@@ -1,5 +1,7 @@
 # PyPOP
 
+Documentation: https://numericalalgorithmsgroup.github.io/pypop/doc.html
+
 A python package for calculating POP metrics from application profiles, primarily designed for
 literate programming using Jupyter notebooks.
 
@@ -59,7 +61,7 @@ These notebooks demonstrate usage of the main elements of the package.
 
 See the [quickstart] guide and [API documentation] for more detail on usage.
 
-[quickstart]: /quickstart.html
-[API documentation]: /api/pypop.html
+[quickstart]: https://numericalalgorithmsgroup.github.io/pypop/quickstart.html
+[API documentation]: https://numericalalgorithmsgroup.github.io/pypop/api/pypop.html
 
 Copyright (c) 2019, Numerical Algorithms Group Ltd.
