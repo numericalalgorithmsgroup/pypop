@@ -1,0 +1,78 @@
+begin:control
+  nx = 1024
+  ny = 1024
+
+  # final time of simulation
+  nsteps = 10
+
+  # size of domain
+  x_min = 0
+  x_end = 1
+
+  y_min = 0
+  y_max = 1
+
+  stdout_frequency = 10
+end:control
+
+
+begin:boundaries
+  bc_x_min = simple_outflow
+  bc_x_max = simple_outflow
+  bc_y_min = periodic
+  bc_y_max = periodic
+end:boundaries
+
+
+begin:window
+  move_window = T
+  window_start_time = 0
+  bc_x_min_after_move = simple_outflow
+  bc_x_max_after_move = simple_outflow
+  window_v_x = 2e8
+end:window
+
+begin:constant
+  x0 = 1.31
+  y0 = 0.5
+  r0 = 0.4^2
+  r2 = (x - x0)^2 + (y - y0)^2
+end:constant
+
+begin:species
+  # electron
+  name = electron
+  charge = -1.0
+  mass = 1.0
+  nparticles_per_cell = 5
+
+  #number_density = if(r2 lt r0, 2*exp(-((time*5e8)^2)), 1)
+  number_density = if(abs(x-x0) lt 0.3, 2, 1)
+  number_density = if(abs(y-y0) lt 0.2, number_density(electron), 1)
+  #number_density = if(abs(x-x0) lt 0.3, if(abs(y-y0) lt 0.2, 2, 1), 1)
+
+  #temperature_ev = if(r2 lt r0, 2*exp(-((time*5e8)^2)), 1)
+  temperature_ev = 0
+end:species
+
+
+begin:output
+  name = normal
+  disabled = T
+  dt_snapshot = 1e-10
+
+  # Properties at particle positions
+  particles = always
+  px = always
+  py = always
+  pz = always
+  vx = always
+  vy = always
+  vz = always
+  particle_weight = always
+
+  # Properties on grid
+  grid = always
+  number_density = always + species
+  temperature = always + species
+end:output

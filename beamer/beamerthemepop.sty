@@ -1,0 +1,31 @@
+% Copyright 2004 by Madhusudan Singh <madhusudan.singh@gmail.com>
+%
+% This file may be distributed and/or modified
+%
+% 1. under the LaTeX Project Public License and/or
+% 2. under the GNU Public License.
+%
+% See the file doc/licenses/LICENSE for more details.
+
+\RequirePackage{helvet}
+\RequirePackage{tikz}
+\usetikzlibrary{calc, positioning}
+
+\mode<presentation>
+
+\def\thereportnumber{ }
+\newcommand{\reportnumber}[1]{\def\thereportnumber{#1}}
+\def\thecodename{}
+\newcommand{\codename}[1]{\def\thecodename{#1}}
+
+
+\useinnertheme{pop}
+\useoutertheme{pop}
+\usecolortheme{pop}
+\usefonttheme{pop}
+
+%disable nav symbols
+\setbeamertemplate{navigation symbols}{}
+
+\mode
+<all>

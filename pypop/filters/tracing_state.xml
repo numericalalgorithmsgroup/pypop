@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+  <filter>
+    <discard_states>1</discard_states>
+    <discard_events>0</discard_events>
+    <discard_communications>1</discard_communications>
+    <states>Running
+      <min_state_time>0</min_state_time>
+    </states>
+    <types>
+      <type>40000012</type>
+    </types>
+    <comms>0</comms>
+  </filter>
+</config>

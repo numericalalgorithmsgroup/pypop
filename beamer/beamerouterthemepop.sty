@@ -1,0 +1,44 @@
+% Copyright 2007 by Till Tantau
+%
+% This file may be distributed and/or modified
+%
+% 1. under the LaTeX Project Public License and/or
+% 2. under the GNU Public License.
+%
+% See the file doc/licenses/LICENSE for more details.
+
+\mode<presentation>
+
+\setbeamercolor*{author in head/foot}{parent=palette secondary}
+\setbeamercolor*{title in head/foot}{parent=palette secondary}
+\setbeamercolor*{date in head/foot}{parent=palette secondary}
+
+\setbeamercolor*{section in head/foot}{parent=palette tertiary}
+\setbeamercolor*{subsection in head/foot}{parent=palette primary}
+
+\defbeamertemplate*{frametitle}{pop}[1][left]
+{
+  \vskip0.15cm%
+  \usebeamerfont{frametitle}%
+  \strut\insertframetitle\strut\par%
+  \vskip0.4cm%
+}
+
+\defbeamertemplate*{footline}{pop}
+{%
+  \ifnum\thepage>1\relax%
+  \begin{tikzpicture}[remember picture, overlay]
+    \coordinate (leftpos) at ($(current page.south west) + (0.05, 0.02)$);
+    \coordinate (rightpos) at ($(current page.south east) + (-0.05, 0.02)$);
+    \coordinate (centerpos) at ($(current page.south) + (0.0, 0.02)$);
+    \node[anchor=south west, text=popgreydark] (author) at (leftpos) {\insertshortauthor~\insertshortinstitute};
+    \node[anchor=south, text=popgreydark] (title) at (centerpos) {\insertshorttitle};
+    \node[anchor=south east, text=popgreydark] (pagenum) at (rightpos) {\insertdate\ \ \ \insertframenumber/\inserttotalframenumber};
+  \end{tikzpicture}%
+  \fi%
+}
+
+\setbeamersize{text margin left=1em,text margin right=1em}
+
+\mode
+<all>

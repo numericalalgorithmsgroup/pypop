@@ -1,0 +1,14 @@
+Machine globalop: 0 0 LOG MAX 0 MAX 
+Machine globalop: 0 1 LOG MAX 0 MAX 
+Machine globalop: 0 2 LOG MAX 0 MAX 
+Machine globalop: 0 3 LOG MAX 0 MAX 
+Machine globalop: 0 4 LOG MAX 0 MAX 
+Machine globalop: 0 5 LOG MAX 0 MAX 
+Machine globalop: 0 6 LOG MAX 0 MAX 
+Machine globalop: 0 7 LOG MAX 0 MAX 
+Machine globalop: 0 8 LIN 2MAX LIN 2MAX 
+Machine globalop: 0 9 LOG MAX 0 MAX 
+Machine globalop: 0 10 LOG 2MAX 0 MAX 
+Machine globalop: 0 11 LOG MAX 0 MAX 
+Machine globalop: 0 12 LOG MAX 0 MAX 
+Machine globalop: 0 13 LOG MAX 0 MAX 

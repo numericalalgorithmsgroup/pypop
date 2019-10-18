@@ -1,0 +1,12 @@
+#!/bin/bash
+
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+template_dir=$(readlink -f ${script_dir}/../ipython_templates)
+
+report_nb=$1
+
+export TEXINPUTS="${template_dir}//:"
+
+jupyter nbconvert "${report_nb}" \
+                  --to pdf \
+                  --template=${template_dir}/pop_report.tplx

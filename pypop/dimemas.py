@@ -1,0 +1,211 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: BSD-3-Clause-Clear
+# Copyright (c) 2019, The Numerical Algorithms Group, Ltd. All rights reserved.
+
+"""Helper routines to run Dimemas from Python, including the special case of
+ideal trace generation.
+"""
+
+import os
+import warnings
+from os.path import basename, splitext
+from tempfile import mkdtemp
+import subprocess as sp
+
+from pkg_resources import resource_filename
+
+from .prv import _parse_paraver_headerline, zipopen
+from .extrae import remove_trace
+
+IDEAL_CONF_PATH = "cfgs/dimemas_ideal.cfg"
+IDEAL_COLL_PATH = "cfgs/ideal.collectives"
+
+
+def dimemas_idealise(tracefile, outpath=None):
+    """Idealise a tracefile using Dimemas
+
+    Parameters
+    ----------
+    tracefile: str
+        Path to Extrae tracefile (`*.prv`)
+    outpath: str
+        Optional path to output idealised trace. (If not specified will be
+        created in a temporary folder.)
+
+    Returns
+    -------
+    idealised: str
+        Path to idealised tracefile in prv format.
+    """
+
+    # First we need the application layout info
+    with zipopen(tracefile, "rt") as fh:
+        traceinfo = _parse_paraver_headerline(fh.readline().strip())
+
+    # Calculate ranks per node for Dimemas
+    ranks_per_node = traceinfo.application_layout.commsize // traceinfo.nodes
+
+    # Check there is not some odd layout we can't deal with
+    if (
+        len(set(traceinfo.procs_per_node)) != 1
+        or ranks_per_node * traceinfo.nodes != traceinfo.application_layout.commsize
+    ):
+        raise ValueError("Can only analyze homogenous sized ranks")
+
+    # Populate run specfic config data
+    subs = {
+        "@NUM_NODES@": traceinfo.nodes,
+        "@PROCS_PER_NODE@": traceinfo.procs_per_node[0],
+        "@RANKS_PER_NODE@": ranks_per_node,
+        "@COLLECTIVES_PATH@": resource_filename(__name__, IDEAL_COLL_PATH),
+    }
+
+    # Pass trace, run config and path to idealisation skeleton config and let
+    # dimemas_analyze work its subtle magic(k)s
+    return dimemas_analyse(
+        tracefile, resource_filename(__name__, IDEAL_CONF_PATH), outpath, subs
+    )
+
+
+def dimemas_analyse(tracefile, configfile, outpath=None, substrings=None):
+    """Run a Dimemas simulation given a configuration and tracefile
+
+    The configuration file may be modifed with key->value substitutions prior
+    to running dimemas using the substrings parameter. This allows the use of a
+    predefined skeleton configuration file rather than requiring programmatic
+    production of the complete config.
+
+    Parameters
+    ----------
+    tracefile: str
+        Path to Extrae tracefile (`*.prv`)
+    configfile: str
+        Path to Dimemas configfile
+    outpath: str or None
+        Optional path to output idealised trace. (If not specified, will be
+        created in a temporary folder.)
+    substrings: dict
+        Dict of keys in the config file to be replaced with corresponding
+        values.
+
+    Returns
+    -------
+    simulated: str
+        Path to simulated tracefile in prv format.
+    """
+
+    # Perform all work in a tempdir with predictable names,
+    # this works around a series of weird dimemas bugs
+    workdir = mkdtemp()
+
+    # Create temporary config from supplied config and substitution dict
+    dimconfig = os.path.join(workdir, ".tmpconfig".join(splitext(basename(configfile))))
+
+    with open(configfile, "rt") as ifh, open(dimconfig, "wt") as ofh:
+        for line in ifh:
+            if substrings:
+                for key, val in substrings.items():
+                    line = line.replace(key, str(val))
+            ofh.write(line)
+
+    # Now copy temporary prv file:
+    tmp_prv = os.path.join(workdir, "input.prv")
+    with zipopen(tracefile, "rb") as ifh, open(tmp_prv, "wb") as ofh:
+        while True:
+            buff = ifh.read(8589934592)
+            if not buff:
+                break
+            ofh.write(buff)
+
+    # And also copy row and pcf if available
+    for ext in [".row", ".pcf"]:
+        tracestem = splitext(tracefile)[0]
+        tracestem = tracestem[:-3] if tracefile.endswith(".gz") else tracestem
+        infile = splitext(tracestem)[0] + ext
+        outfile = splitext(tmp_prv)[0] + ext
+        try:
+            with open(infile, "rb") as ifh, open(outfile, "wb") as ofh:
+                while True:
+                    buff = ifh.read(8589934592)
+                    if not buff:
+                        break
+                    ofh.write(buff)
+        except FileNotFoundError:
+            warnings.warn(
+                "Could not find {}, dimemas may fail or produce invalid data"
+                "".format(infile)
+            )
+
+    # Now create the dim file for dimemas
+    tmp_dim = os.path.join(workdir, splitext(basename(tmp_prv))[0] + ".dim")
+
+    # Use basenames as running in workdir
+    prv2dim_params = [
+        "prv2dim",
+        "--prv-trace",
+        basename(tmp_prv),
+        "--dim-trace",
+        basename(tmp_dim),
+    ]
+
+    # Run prv2dim and check for success
+    result = sp.run(prv2dim_params, stdout=sp.PIPE, stderr=sp.PIPE, cwd=workdir)
+
+    if not os.path.exists(tmp_dim) or result.returncode != 0:
+        raise RuntimeError(
+            "prv2dim execution failed:\n{}" "".format(result.stderr.decode())
+        )
+
+    # Run in workdir to workaround Dimemas path bug, output to relpath
+    sim_prv = ".sim".join(splitext(tmp_prv))
+    dimemas_params = [
+        "Dimemas",
+        "-S",
+        "32k",
+        "--dim",
+        basename(tmp_dim),
+        "-p",
+        basename(sim_prv),
+        basename(dimconfig),
+    ]
+
+    result = sp.run(dimemas_params, stdout=sp.PIPE, stderr=sp.STDOUT, cwd=workdir)
+
+    if not os.path.exists(sim_prv) or result.returncode != 0:
+        raise RuntimeError(
+            "Dimemas execution failed:\n{}" "".format(result.stdout.decode())
+        )
+
+    # remove all the temporary files we created
+    os.remove(dimconfig)
+    os.remove(tmp_dim)
+    remove_trace(tmp_prv)
+
+    # If no outpath specified then we are done
+    if outpath is None:
+        return sim_prv
+
+    # Otherwise copy back to requested location
+    with open(sim_prv, "rb") as ifh, open(outfile, "wb") as ofh:
+        while True:
+            buff = ifh.read(8589934592)
+            if not buff:
+                break
+            ofh.write(buff)
+
+    # And also copy row and pcf
+    for ext in [".row", ".pcf"]:
+        infile = splitext(sim_prv)[0] + ext
+        outfile = splitext(outpath)[0] + ext
+        with open(infile, "rb") as ifh, open(outfile, "wb") as ofh:
+            while True:
+                buff = ifh.read(8589934592)
+                if not buff:
+                    break
+                ofh.write(buff)
+
+    # and then delete temps
+    remove_trace(sim_prv)
+
+    # finally return outpath as promised
+    return outpath

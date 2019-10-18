@@ -1,0 +1,80 @@
+((*- extends 'article.tplx' -*))
+
+## Set pop_report class
+((* block docclass *))
+  \documentclass{pop_report}
+((* endblock docclass *))
+
+## Don't override cls setting of title
+((* block title *))
+((* endblock title *))
+
+((* block commands *))
+  ((( super() )))
+  \setlength{\parindent}{0em}
+  \setlength{\parskip}{1em}
+
+  \newlength{\maximagewidth}
+  \setlength{\maximagewidth}{0.8\textwidth}
+  \renewcommand{\includegraphics}[1]{\Oldincludegraphics[width=\maximagewidth]{#1}}
+  \DeclareCaptionLabelFormat{minimal}{#2}
+  \DeclareCaptionFormat{minimal}{\llap{\textbf{#1#2}}#3\par}
+  \captionsetup{format=minimal, labelformat=minimal, labelsep=period, singlelinecheck=no,
+                width=\maximagewidth}
+((* endblock commands *))
+
+## Input necessary details from ipynb metadata
+((* block maketitle *))
+
+  ((* for item in ['reprefnum', 'application', 'servicelevel', 'author', 'contributors'] *))
+    \((( item ))){((( nb.metadata.get("pop_metadata", {}).get(item, '\color{{red}} pop\_metadata.{} NOT SET'.format(item))
+                  )))}
+  ((* endfor *))
+
+  \date{\today}
+  \maketitle
+((* endblock maketitle *))
+
+## Set pdfs, pngs, etc. to be included as figures
+((*- block data_pdf *))
+  ((( draw_figure_with_caption(output.metadata.filenames['application/pdf'],
+                               cell.metadata.get("caption", ""),
+                               cell.metadata.get("label", "")) )))
+((* endblock data_pdf *))
+
+((*- block data_png *))
+  ((( draw_figure_with_caption(output.metadata.filenames['image/png'],
+                               cell.metadata.get("caption", ""),
+                               cell.metadata.get("label", "")) )))
+((* endblock data_png *))
+
+((*- block data_svg *))
+  ((( draw_figure_with_caption(output.metadata.filenames['image/svg+xml'],
+                               cell.metadata.get("caption", ""),
+                               cell.metadata.get("label", "")) )))
+((* endblock data_svg *))
+
+
+## macro to encapsulate output files in figures
+((* macro draw_figure_with_caption(filename, caption, label) -*))
+((* set filename = filename | posix_path *))
+((*- block figure scoped -*))
+  \begin{figure}[!hb]
+    \begin{center}%
+      \adjustimage{max size={0.9\linewidth}{0.4\paperheight}}{((( filename )))}%
+    \end{center}
+    \caption{((( caption )))}
+    \label{((( label )))}
+  \end{figure}
+((*- endblock figure -*))
+((*- endmacro *))
+
+((* block input_group *))
+((* endblock input_group *))
+
+((* block output_group *))
+  ((*- if cell.metadata.hide_output: -*))
+  ((*- else -*))
+    ((( super() )))
+  ((*- endif *))
+((* endblock output_group *))
