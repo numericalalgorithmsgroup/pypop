@@ -41,7 +41,7 @@ Jupyter notebooks are intended to be the primary interface to PyPOP.  This guide
 example notebooks to demonstrate the core functionality of PyPOP for calculation of the POP Metrics
 as well as advanced analysis of trace files.
 
-PyPOP comes with examplei notebooks. These are located in the examples directory, which can be
+PyPOP comes with example notebooks. These are located in the examples directory, which can be
 found using the `pypop.examples` module:
 
 ```bash
