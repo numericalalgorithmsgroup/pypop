@@ -12,8 +12,8 @@ setup(
     author_email="phil.tooley@nag.co.uk",
     description="Python notebook support for POP metrics and reports",
     packages=find_packages(),
-    install_requires=["numpy", "matplotlib >= 2", "pandas >= 0.24"],
-    extras_require={'tqdm': ['tqdm']},
+    install_requires=["numpy", "matplotlib >= 2", "pandas >= 0.24", "jupyter"],
+    extras_require={'tqdm': ["tqdm"]},
     include_package_data=True,
     entry_points={
         "console_scripts": [
