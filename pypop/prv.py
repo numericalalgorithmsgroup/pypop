@@ -16,8 +16,9 @@ except ImportError:
 import pandas as pd
 import numpy as np
 
-TRACE_FILTER_XML = "filters/tracing_state.xml"
-CUTTER_SKEL = "cutters/single_region.skel"
+# Event states - hopefully these will not change(!)
+K_STATE_RUNNING = "1"
+K_EVENT_OMP_PARALLEL = "60000001"
 
 Trace = namedtuple("Trace", field_names=["info", "data"])
 
@@ -40,7 +41,7 @@ ApplicationLayout = namedtuple(
 
 def zipopen(path, modespec):
     try:
-        if(gzip.open(path, mode=modespec).readline()):
+        if gzip.open(path, mode=modespec).readline():
             return gzip.open(path, mode=modespec)
     except OSError:
         return open(path, mode=modespec)
@@ -84,7 +85,7 @@ class PRV:
         else:
             try:
                 self._load_pickle(prv_path)
-            except:
+            except ValueError:
                 raise ValueError("Not a prv or valid pickle")
 
     def _parse_prv(self, prv_path):
@@ -156,8 +157,92 @@ class PRV:
 
         try:
             self.traceinfo, self.state, self.event, self.comm = data
-        except:
+        except ValueError:
             raise ValueError("Invalid pickle -- missing data")
+
+    def profile_openmp_regions(self, no_progress=False):
+
+        # First generate appropriate event subsets grouped by rank
+        rank_state_groups = self.state.query(
+            "state == {}".format(K_STATE_RUNNING)
+        ).groupby(
+            level="task"
+        )  # State transitions
+        rank_event_groups = self.event.query(
+            "event == {}".format(K_EVENT_OMP_PARALLEL)
+        ).groupby(
+            level="task"
+        )  # OMP regions
+
+        # Now start collecting OMP regions
+        rank_stats = {}
+        for (irank, rank_events), (_, rank_states) in tqdm(
+            zip(rank_event_groups, rank_state_groups),
+            total=self.traceinfo.application_layout.commsize,
+            disable=no_progress,
+            leave=None
+        ):
+
+            # OpenMP events mark region start/end on master thread
+            thread_events = rank_events.droplevel("task").loc[1, :]
+            if not np.alltrue(np.diff(thread_events.index) >= 0):
+                raise ValueError("Event timings are non-monotonic")
+
+            region_starts = thread_events.index[thread_events["value"] != 0]
+            region_ends = thread_events.index[thread_events["value"] == 0]
+            region_lengths = region_ends - region_starts
+            region_computation_mean = np.zeros_like(region_starts)
+            region_computation_max = np.zeros_like(region_starts)
+
+            # Iterate over threads to get max, average
+            thread_state_groups = rank_states.droplevel(0).groupby(level="thread")
+            for thread, thread_states in thread_state_groups:
+
+                thread_states = thread_states.droplevel(0)
+                if not (
+                    np.alltrue(np.diff(thread_states.index) >= 0)
+                    and np.alltrue(np.diff(thread_states["endtime"]) >= 0)
+                ):
+                    raise ValueError("State timings are non-monotonic")
+
+                for idx in range(region_starts.shape[0]):
+                    # Extract useful states that exist within OMP region
+                    start_idx = thread_states["endtime"].searchsorted(
+                        region_starts[idx] + 1
+                    )
+                    end_idx = thread_states.index.searchsorted(region_ends[idx])
+
+                    # Tiny dataframe with useful regions
+                    useful_state = thread_states.iloc[start_idx:end_idx]
+
+                    # Sum to get useful length on thread
+                    useful_length = np.asarray(
+                        useful_state["endtime"] - useful_state.index
+                    ).sum()
+
+                    region_computation_mean[idx] += useful_length / len(
+                        thread_state_groups
+                    )
+                    region_computation_max[idx] = max(
+                        region_computation_max[idx], useful_length
+                    )
+
+                if np.any(region_computation_max > region_lengths):
+                    raise ValueError("Oversized region")
+
+            region_load_balance = region_computation_mean / region_computation_max
+
+            rank_stats[irank] = pd.DataFrame(
+                {
+                    "Region Start": region_starts,
+                    "Region End": region_ends,
+                    "Load Balance": region_load_balance,
+                    "Average Computation Time": region_computation_mean,
+                    "Maximum Computation Time": region_computation_max,
+                }
+            )
+
+        return pd.concat(rank_stats, names=["rank", "region"])
 
 
 def _format_timedate(prv_td):

@@ -8,12 +8,11 @@
 import os
 import pickle
 
-from collections import namedtuple
 from os.path import dirname
+from warnings import warn
 
 from pkg_resources import resource_filename
 
-import numpy
 import pandas
 
 try:
@@ -83,14 +82,14 @@ ideal_configs = {
 class TraceSet:
     """A set of tracefiles for collective analysis
 
-    Collect statistics for provided trace files, currently only Extrae .prv files are
+    Collect statistics from provided trace files, currently only Extrae .prv files are
     supported.
 
-    This will collect the necessary statistics for calculating the POP metrics
-    (including hybrid metrics) for the provided application traces. Data caching is
-    used to improve performance of subsequent analysis runs, with md5 checksumming
-    used to detect tracefile changes. (This is particularly useful for large trace
-    files where calculation of statistics can take a long time).
+    This are the necessary statistics for calculating the POP metrics (including hybrid
+    metrics) for the provided application traces. Data caching is used to improve
+    performance of subsequent analysis runs, with md5 checksumming used to detect
+    tracefile changes. (This is particularly useful for large trace files where
+    calculation of statistics can take a long time).
 
     Parameters
     ----------
@@ -109,14 +108,74 @@ class TraceSet:
         If true, cut trace down to the section bracketed by the first pair of
         Extrae_startup and Extrae_shutdown commands. Default false.
 
+    no_progress: bool
+        If true, disable the use of tqdm progress bar
+
     """
 
     def __init__(
-        self, path_list=None, cache_stats=True, ignore_cache=False, chop_to_roi=False
+        self,
+        path_list=None,
+        cache_stats=True,
+        ignore_cache=False,
+        chop_to_roi=False,
+        no_progress=False,
     ):
+        # Setup data structures
         self.traces = set()
+
+        # Add traces
+        self.add_traces(path_list, cache_stats, ignore_cache, chop_to_roi, no_progress)
+
+    def add_traces(
+        self,
+        path_list=None,
+        cache_stats=True,
+        ignore_cache=False,
+        chop_to_roi=False,
+        no_progress=False,
+    ):
+        """Collect statistics from provided trace files, currently only Extrae .prv files
+        are supported.
+
+        This are the necessary statistics for calculating the POP metrics (including
+        hybrid metrics) for the provided application traces. Data caching is used to
+        improve performance of subsequent analysis runs, with md5 checksumming used to
+        detect tracefile changes. (This is particularly useful for large trace files
+        where calculation of statistics can take a long time).
+
+        Parameters
+        ----------
+        path_list: str or iterable of str
+            String or iterable of strings providing path(s) to the tracefiles of
+            interest.
+
+        cache_stats: bool
+            Cache the calculated statistics as a pickled data file in the trace
+            directory, along with the checksum of the source trace file. (Default True)
+
+        ignore_cache: bool
+            By default, if a cache file is present for a given trace it will be used.
+            This behaviour can be overridden by setting ignore_cache=True.
+
+        chop_to_roi: bool
+            If true, cut trace down to the section bracketed by the first pair of
+            Extrae_startup and Extrae_shutdown commands. Default false.
+
+        no_progress: bool
+            If true, disable the use of tqdm progress bar
+
+        """
+        if isinstance(path_list, str):
+            path_list = [path_list]
+        # Try to get a list length for tqdm
+        try:
+            npath = len(path_list)
+        except TypeError:
+            npath = None
+
         if path_list:
-            for path in path_list:
+            for path in tqdm(path_list, total=npath, disable=no_progress, leave=False):
                 self.traces.add(
                     self._collect_statistics(
                         path, cache_stats, ignore_cache, chop_to_roi
@@ -240,7 +299,7 @@ class TraceSet:
                 remove_trace(cut_ideal_trace)
             remove_trace(ideal_trace)
         except RuntimeError as err:
-            print(
+            warn(
                 "Failed to run Dimemas:\n{}"
                 "Continuing with reduced MPI detail.".format(err)
             )
