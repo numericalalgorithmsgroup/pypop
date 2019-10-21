@@ -23,7 +23,6 @@ figparams["single.axlayout"] = (
 
 pypop_mpl_params = {
     "text.usetex": False,
-    "text.latex.unicode": True,
     "text.latex.preamble": [r"\usepackage{color}", r"\usepackage{amssymb}"],
     "savefig.dpi": 300,
     "figure.dpi": 300,
