@@ -8,6 +8,11 @@ import gzip
 from io import StringIO
 import pickle
 
+try:
+    from tqdm.auto import tqdm
+except ImportError:
+    from .utils import return_first_arg as tqdm
+
 import pandas as pd
 import numpy as np
 

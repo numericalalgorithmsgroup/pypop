@@ -16,6 +16,11 @@ from pkg_resources import resource_filename
 import numpy
 import pandas
 
+try:
+    from tqdm.auto import tqdm
+except ImportError:
+    from .utils import return_first_arg as tqdm
+
 from .dimemas import dimemas_idealise
 from .extrae import paramedir_analyze, chop_prv_to_roi, remove_trace
 from .prv import get_prv_header_info

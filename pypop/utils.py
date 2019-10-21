@@ -28,3 +28,25 @@ def chunked_md5sum(filename, blocksize=8388608):
         for block in iter(lambda: f.read(blocksize), b""):
             hashobj.update(block)
     return hashobj.hexdigest()
+
+
+def return_first_arg(arg, *args, **kwargs):
+    """Return first argument and disregard remaining, intended for silently replacing
+    tqdm when unavailable
+
+    Parameters
+    ----------
+    arg: *
+        Argument to be returned
+
+    *args: Will be ignored
+
+    **kwargs: Will be ignored
+
+    Returns
+    -------
+    arg:
+        First argument passed to function
+    """
+
+    return arg
