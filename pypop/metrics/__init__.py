@@ -16,10 +16,14 @@ Currently PyPOP supports calculation of the following Metric types:
 
     MPI_Metrics
     MPI_OpenMP_Metrics
+    OpenMP_Metrics
 """
 
 from .mpi import MPI_Metrics
+from .hybrid import MPI_OpenMP_Metrics, MPI_OpenMP_Multiplicative_Metrics
+from .openmp import OpenMP_Metrics
 
-from .hybrid import *
-
-__all__ = ['MPI_Metrics', 'MPI_OpenMP_Metrics', 'MPI_OpenMP_Multiplicative_Metrics']
+__all__ = ['MPI_Metrics',
+           'MPI_OpenMP_Metrics',
+           'MPI_OpenMP_Multiplicative_Metrics',
+           'OpenMP_Metrics']
