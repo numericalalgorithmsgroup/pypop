@@ -186,7 +186,7 @@ def dimemas_analyse(tracefile, configfile, outpath=None, substrings=None):
         return sim_prv
 
     # Otherwise copy back to requested location
-    with open(sim_prv, "rb") as ifh, open(outfile, "wb") as ofh:
+    with open(sim_prv, "rb") as ifh, open(outpath, "wb") as ofh:
         while True:
             buff = ifh.read(8589934592)
             if not buff:
