@@ -315,6 +315,9 @@ class TraceSet:
         stats = pandas.concat(stats).T
         stats["IPC"] = stats["Useful Instructions"] / stats["Useful Cycles"]
 
+        if hybrid:
+            stats["Serial Useful Computation"].loc[:, 2:] = 0
+
         stats["Total Useful Computation"] = stats["Serial Useful Computation"]
         stats["Total Non-MPI Runtime"] = stats["Serial Useful Computation"]
 
