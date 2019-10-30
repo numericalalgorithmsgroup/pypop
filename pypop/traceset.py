@@ -30,19 +30,27 @@ class RunData:
     """
     Attributes
     ----------
-    traceinfo: `TraceInfo`
+    metadata: :class:`~pypop.prv.TraceMetadata`
         Trace metadata information
 
     stats: `pd.DataFrame`
         Trace statistics
+
+    tracefile: str
+        Tracefile path
+
+    chopped: bool
+        Was tracefile chopped to ROI before analysis?
     """
 
-    def __init__(self, traceinfo, stats):
-        self.traceinfo = traceinfo
+    def __init__(self, metadata, stats, tracefile=None, chopped=False):
+        self.metadata = metadata
         self.stats = stats
+        self.tracefile = tracefile
+        self.chopped = chopped
 
     def __hash__(self):
-        return hash(self.traceinfo)
+        return hash((self.metadata, self.chopped))
 
     def __iter__(self):
         self._n = 0
@@ -203,7 +211,7 @@ class TraceSet:
 
         This is a helper function equivalent to
 
-        by_key(lambda x: x.traceinfo.application_layout.commsize)
+        by_key(lambda x: x.metadata.application_layout.commsize)
 
         Returns
         -------
@@ -211,7 +219,7 @@ class TraceSet:
             A dictionary of traces organised by the requested key
         """
 
-        return self.by_key(lambda x: x.traceinfo.application_layout.commsize)
+        return self.by_key(lambda x: x.metadata.application_layout.commsize)
 
     def _collect_statistics(self, trace, cache_stats, ignore_cache, chop_to_roi):
 
@@ -224,16 +232,16 @@ class TraceSet:
             # If we can, load the cached version
             try:
                 with open(pkl_path, "rb") as fh:
-                    traceinfo, stats = pickle.load(fh)
+                    metadata, stats = pickle.load(fh)
                     # Quick sanity check
                     if (
-                        traceinfo.application_layout.commsize
+                        metadata.application_layout.commsize
                         != get_prv_header_info(trace).application_layout.commsize
                     ):
                         raise ValueError("Mismatched cache -- hash collision?")
 
                     # Assign data from pickle and do next file
-                    return RunData(traceinfo, stats)
+                    return RunData(metadata, stats, trace)
 
             # Otherwise continue and analyze the file
             except FileNotFoundError:
@@ -246,7 +254,7 @@ class TraceSet:
 
     def _analyze_tracefile(self, trace, cache_path, chop_to_roi):
 
-        traceinfo = get_prv_header_info(trace)
+        metadata = get_prv_header_info(trace)
 
         if chop_to_roi:
             cut_trace = chop_prv_to_roi(trace)
@@ -318,6 +326,6 @@ class TraceSet:
 
         if cache_path:
             with open(cache_path, "wb") as fh:
-                pickle.dump((traceinfo, stats), fh)
+                pickle.dump((metadata, stats), fh)
 
-        return RunData(traceinfo, stats)
+        return RunData(metadata, stats, trace)

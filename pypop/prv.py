@@ -22,8 +22,8 @@ K_EVENT_OMP_PARALLEL = "60000001"
 
 Trace = namedtuple("Trace", field_names=["info", "data"])
 
-TraceInfo = namedtuple(
-    "TraceInfo",
+TraceMetadata = namedtuple(
+    "TraceMetadata",
     field_names=[
         "captured",
         "ns_elapsed",
@@ -100,7 +100,7 @@ class PRV:
 
         with zipopen(prv_path, "r") as prv_fh:
             headerline = next(prv_fh)
-            self.traceinfo = _parse_paraver_headerline(headerline)
+            self.metadata = _parse_paraver_headerline(headerline)
 
             # Skip the communicator lines for now
             try:
@@ -146,7 +146,7 @@ class PRV:
         pass
 
     def save(self, filename):
-        savedata = (self.traceinfo, self.state, self.event, self.comm)
+        savedata = (self.metadata, self.state, self.event, self.comm)
 
         with gzip.open(filename, "wb", compresslevel=6) as fh:
             pickle.dump(savedata, fh)
@@ -156,7 +156,7 @@ class PRV:
             data = pickle.load(fh)
 
         try:
-            self.traceinfo, self.state, self.event, self.comm = data
+            self.metadata, self.state, self.event, self.comm = data
         except ValueError:
             raise ValueError("Invalid pickle -- missing data")
 
@@ -178,7 +178,7 @@ class PRV:
         rank_stats = {}
         for (irank, rank_events), (_, rank_states) in tqdm(
             zip(rank_event_groups, rank_state_groups),
-            total=self.traceinfo.application_layout.commsize,
+            total=self.metadata.application_layout.commsize,
             disable=no_progress,
             leave=None
         ):
@@ -290,7 +290,7 @@ def _parse_paraver_headerline(headerline):
 
     elems = headerline.replace(":", ";", 1).split(":", 4)
 
-    traceinfo = TraceInfo(
+    metadata = TraceMetadata(
         _format_timedate(elems[0]),
         _format_timing(elems[1]),
         *_split_nodestring(elems[2]),
@@ -298,7 +298,7 @@ def _parse_paraver_headerline(headerline):
         _format_app_list(elems[4])
     )
 
-    return traceinfo
+    return metadata
 
 
 def get_prv_header_info(prv_file):
@@ -311,7 +311,7 @@ def get_prv_header_info(prv_file):
 
     Returns:
     --------
-    traceinfo: NamedTuple
+    metadata: NamedTuple
         Named tuple containing the header information.
     """
 

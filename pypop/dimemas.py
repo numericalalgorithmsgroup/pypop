@@ -40,22 +40,22 @@ def dimemas_idealise(tracefile, outpath=None):
 
     # First we need the application layout info
     with zipopen(tracefile, "rt") as fh:
-        traceinfo = _parse_paraver_headerline(fh.readline().strip())
+        metadata = _parse_paraver_headerline(fh.readline().strip())
 
     # Calculate ranks per node for Dimemas
-    ranks_per_node = traceinfo.application_layout.commsize // traceinfo.nodes
+    ranks_per_node = metadata.application_layout.commsize // metadata.nodes
 
     # Check there is not some odd layout we can't deal with
     if (
-        len(set(traceinfo.procs_per_node)) != 1
-        or ranks_per_node * traceinfo.nodes != traceinfo.application_layout.commsize
+        len(set(metadata.procs_per_node)) != 1
+        or ranks_per_node * metadata.nodes != metadata.application_layout.commsize
     ):
         raise ValueError("Can only analyze homogenous sized ranks")
 
     # Populate run specfic config data
     subs = {
-        "@NUM_NODES@": traceinfo.nodes,
-        "@PROCS_PER_NODE@": traceinfo.procs_per_node[0],
+        "@NUM_NODES@": metadata.nodes,
+        "@PROCS_PER_NODE@": metadata.procs_per_node[0],
         "@RANKS_PER_NODE@": ranks_per_node,
         "@COLLECTIVES_PATH@": resource_filename(__name__, IDEAL_COLL_PATH),
     }
