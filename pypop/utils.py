@@ -2,7 +2,11 @@
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 # Copyright (c) 2019, The Numerical Algorithms Group, Ltd. All rights reserved.
 
-"""Miscellaneous utility routines
+"""\
+Miscellaneous utility routines
+------------------------------
+
+General utility and helper routines not specific to a particular tool.
 """
 
 from hashlib import md5

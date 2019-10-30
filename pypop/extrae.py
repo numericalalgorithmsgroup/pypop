@@ -2,6 +2,13 @@
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 # Copyright (c) 2019, The Numerical Algorithms Group, Ltd. All rights reserved.
 
+"""\
+Extrae Trace Utilities
+----------------------
+
+Routines for analysis and management of Extrae traces, including Paramedir automation.
+"""
+
 import re
 import os
 from os.path import basename, dirname, normpath, splitext

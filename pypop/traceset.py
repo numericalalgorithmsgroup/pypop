@@ -2,7 +2,16 @@
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 # Copyright (c) 2019, The Numerical Algorithms Group, Ltd. All rights reserved.
 
-"""Routines for calculating and managing trace data
+"""\
+Trace Data Summary Statistics Calculator Classes
+------------------------------------------------
+
+PyPop provides classes for importing summary statistics for different profiling tools.
+
+Currently the following tools are supported:
+
+    * Extrae
+
 """
 
 import os

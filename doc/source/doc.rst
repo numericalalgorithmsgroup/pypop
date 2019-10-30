@@ -16,4 +16,6 @@ the POP methodology. The primary goals of PyPOP are:
 
    install.rst
    quickstart.rst
-   api/pypop.rst
+   layout.rst
+   api_hl.rst
+   api_ll.rst

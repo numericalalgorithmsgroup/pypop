@@ -2,7 +2,11 @@
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 # Copyright (c) 2019, The Numerical Algorithms Group, Ltd. All rights reserved.
 
-"""Helper routines to run Dimemas from Python, including the special case of
+"""\
+Dimemas Automation
+------------------
+
+Helper routines to run Dimemas from Python, including the special case of
 ideal trace generation.
 """
 

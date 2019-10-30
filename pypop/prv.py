@@ -2,6 +2,13 @@
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 # Copyright (c) 2019, The Numerical Algorithms Group, Ltd. All rights reserved.
 
+"""\
+PRV Trace Loader
+----------------
+
+Support for directly loading PRV trace data as Pandas dataframes
+"""
+
 from collections import namedtuple, OrderedDict
 from csv import writer as csvwriter
 import gzip

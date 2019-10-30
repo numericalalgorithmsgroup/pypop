@@ -172,6 +172,8 @@ texinfo_documents = [
 
 # -- Extension configuration -------------------------------------------------
 
+autoclass_content = 'both'
+
 # -- Options for intersphinx extension ---------------------------------------
 
 # Example configuration for intersphinx: refer to the Python standard library.
