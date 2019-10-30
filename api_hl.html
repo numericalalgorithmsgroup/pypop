@@ -1,0 +1,687 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>High Level API &mdash; PyPOP 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="PyPOP 0.1 documentation" href="index.html"/>
+        <link rel="next" title="Low Level API" href="api_ll.html"/>
+        <link rel="prev" title="PyPOP Package Layout" href="layout.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="doc.html" class="icon icon-home"> PyPOP
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing PyPOP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layout.html">PyPOP Package Layout</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">High Level API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#trace-data-summary-statistics-calculator-classes">Trace Data Summary Statistics Calculator Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#metric-calculator-classes">Metric Calculator Classes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api_ll.html">Low Level API</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="doc.html">PyPOP</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="doc.html">Docs</a> &raquo;</li>
+        
+      <li>High Level API</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/api_hl.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="high-level-api">
+<h1>High Level API<a class="headerlink" href="#high-level-api" title="Permalink to this headline">¶</a></h1>
+<p>The high level API contains all the routines necessary for calculating POP metrics via the Jupyter
+notebook interface.</p>
+<span class="target" id="module-pypop.traceset"></span><div class="section" id="trace-data-summary-statistics-calculator-classes">
+<h2>Trace Data Summary Statistics Calculator Classes<a class="headerlink" href="#trace-data-summary-statistics-calculator-classes" title="Permalink to this headline">¶</a></h2>
+<p>PyPop provides classes for importing summary statistics for different profiling tools.</p>
+<p>Currently the following tools are supported:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Extrae</li>
+</ul>
+</div></blockquote>
+<dl class="class">
+<dt id="pypop.traceset.RunData">
+<em class="property">class </em><code class="descclassname">pypop.traceset.</code><code class="descname">RunData</code><span class="sig-paren">(</span><em>metadata</em>, <em>stats</em>, <em>tracefile=None</em>, <em>chopped=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pypop/traceset.html#RunData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pypop.traceset.RunData" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="pypop.traceset.RunData.metadata">
+<code class="descname">metadata</code><a class="headerlink" href="#pypop.traceset.RunData.metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="api_ll.html#pypop.prv.TraceMetadata" title="pypop.prv.TraceMetadata"><code class="xref py py-class docutils literal notranslate"><span class="pre">TraceMetadata</span></code></a> – Trace metadata information</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pypop.traceset.RunData.stats">
+<code class="descname">stats</code><a class="headerlink" href="#pypop.traceset.RunData.stats" title="Permalink to this definition">¶</a></dt>
+<dd><p><cite>pd.DataFrame</cite> – Trace statistics</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pypop.traceset.RunData.tracefile">
+<code class="descname">tracefile</code><a class="headerlink" href="#pypop.traceset.RunData.tracefile" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>str</em> – Tracefile path</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pypop.traceset.RunData.chopped">
+<code class="descname">chopped</code><a class="headerlink" href="#pypop.traceset.RunData.chopped" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>bool</em> – Was tracefile chopped to ROI before analysis?</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pypop.traceset.TraceSet">
+<em class="property">class </em><code class="descclassname">pypop.traceset.</code><code class="descname">TraceSet</code><span class="sig-paren">(</span><em>path_list=None</em>, <em>cache_stats=True</em>, <em>ignore_cache=False</em>, <em>chop_to_roi=False</em>, <em>no_progress=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pypop/traceset.html#TraceSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pypop.traceset.TraceSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>A set of tracefiles for collective analysis</p>
+<p>Collect statistics from provided trace files, currently only Extrae .prv files are
+supported.</p>
+<p>This are the necessary statistics for calculating the POP metrics (including hybrid
+metrics) for the provided application traces. Data caching is used to improve
+performance of subsequent analysis runs, with md5 checksumming used to detect
+tracefile changes. (This is particularly useful for large trace files where
+calculation of statistics can take a long time).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path_list</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em> or </em><em>iterable of str</em>) – String or iterable of strings providing path(s) to the tracefiles of interest.</li>
+<li><strong>cache_stats</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – Cache the calculated statistics as a pickled data file in the trace
+directory, along with the checksum of the source trace file. (Default True)</li>
+<li><strong>ignore_cache</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – By default, if a cache file is present for a given trace it will be used.
+This behaviour can be overridden by setting ignore_cache=True.</li>
+<li><strong>chop_to_roi</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If true, cut trace down to the section bracketed by the first pair of
+Extrae_startup and Extrae_shutdown commands. Default false.</li>
+<li><strong>no_progress</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If true, disable the use of tqdm progress bar</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="pypop.traceset.TraceSet.add_traces">
+<code class="descname">add_traces</code><span class="sig-paren">(</span><em>path_list=None</em>, <em>cache_stats=True</em>, <em>ignore_cache=False</em>, <em>chop_to_roi=False</em>, <em>no_progress=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pypop/traceset.html#TraceSet.add_traces"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pypop.traceset.TraceSet.add_traces" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collect statistics from provided trace files, currently only Extrae .prv files
+are supported.</p>
+<p>This are the necessary statistics for calculating the POP metrics (including
+hybrid metrics) for the provided application traces. Data caching is used to
+improve performance of subsequent analysis runs, with md5 checksumming used to
+detect tracefile changes. (This is particularly useful for large trace files
+where calculation of statistics can take a long time).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path_list</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em> or </em><em>iterable of str</em>) – String or iterable of strings providing path(s) to the tracefiles of
+interest.</li>
+<li><strong>cache_stats</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – Cache the calculated statistics as a pickled data file in the trace
+directory, along with the checksum of the source trace file. (Default True)</li>
+<li><strong>ignore_cache</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – By default, if a cache file is present for a given trace it will be used.
+This behaviour can be overridden by setting ignore_cache=True.</li>
+<li><strong>chop_to_roi</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If true, cut trace down to the section bracketed by the first pair of
+Extrae_startup and Extrae_shutdown commands. Default false.</li>
+<li><strong>no_progress</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If true, disable the use of tqdm progress bar</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pypop.traceset.TraceSet.by_commsize">
+<code class="descname">by_commsize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pypop/traceset.html#TraceSet.by_commsize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pypop.traceset.TraceSet.by_commsize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a dictionary of traces keyed by commsize</p>
+<p>This is a helper function equivalent to</p>
+<p>by_key(lambda x: x.metadata.application_layout.commsize)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>traces_by_key</strong> – A dictionary of traces organised by the requested key</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)">dict</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pypop.traceset.TraceSet.by_key">
+<code class="descname">by_key</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pypop/traceset.html#TraceSet.by_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pypop.traceset.TraceSet.by_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a dictionary of traces with given key</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>key</strong> (<em>func</em>) – A function which takes a RunData object and returns a valid dictionary key</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>traces_by_key</strong> – A dictionary of traces organised by the requested key</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)">dict</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<span class="target" id="module-pypop.metrics"></span><div class="section" id="metric-calculator-classes">
+<h2>Metric Calculator Classes<a class="headerlink" href="#metric-calculator-classes" title="Permalink to this headline">¶</a></h2>
+<p>PyPOP provides calculator classes for generating the POP Metrics for different
+application types.</p>
+<p>Currently PyPOP supports calculation of the following Metric types:</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#pypop.metrics.MPI_Metrics" title="pypop.metrics.MPI_Metrics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MPI_Metrics</span></code></a></td>
+<td>Pure MPI Metrics.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#pypop.metrics.MPI_OpenMP_Metrics" title="pypop.metrics.MPI_OpenMP_Metrics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MPI_OpenMP_Metrics</span></code></a></td>
+<td>Proposed Hybrid MPI+OpenMP Metrics.</td>
+</tr>
+</tbody>
+</table>
+<dl class="class">
+<dt id="pypop.metrics.MPI_Metrics">
+<em class="property">class </em><code class="descclassname">pypop.metrics.</code><code class="descname">MPI_Metrics</code><span class="sig-paren">(</span><em>stats_dict</em>, <em>ref_key=None</em>, <em>sort_keys=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pypop/metrics/mpi.html#MPI_Metrics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pypop.metrics.MPI_Metrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pure MPI Metrics.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>stats_dict</strong> (dict or list of <cite>pd.DataFrame</cite>) – Statistics as collected with <cite>collect_statistics()</cite>. Dictionary keys will be
+used as the dataframe index. If a list, a dict will be constructed by
+enumeration.</li>
+<li><strong>ref_key</strong> (<em>scalar</em>) – Key of stats_dict that should be used as the reference for calculation of
+scaling values.  If not specified, the lexical minimum key will be used (i.e
+<code class="docutils literal notranslate"><span class="pre">min(stats_dict.keys())</span></code>.</li>
+<li><strong>sort_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If true (default), lexically sort the keys in the returned DataFrame.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="pypop.metrics.MPI_Metrics.metric_data">
+<code class="descname">metric_data</code><a class="headerlink" href="#pypop.metrics.MPI_Metrics.metric_data" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>pandas.DataFrame</em> – Calculated metric data.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pypop.metrics.MPI_Metrics.metrics">
+<code class="descname">metrics</code><a class="headerlink" href="#pypop.metrics.MPI_Metrics.metrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of <code class="xref py py-class docutils literal notranslate"><span class="pre">pypop.metrics.Metric</span></code> – List of metrics that will be
+calculated.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pypop.metrics.MPI_Metrics.plot_scaling">
+<code class="descname">plot_scaling</code><span class="sig-paren">(</span><em>x_key='Number of Processes'</em>, <em>y_key='Speedup'</em>, <em>label=None</em>, <em>title=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pypop.metrics.MPI_Metrics.plot_scaling" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot scaling graph with region shading.</p>
+<p>Plots scaling data from pandas dataframe(s). The 0-80% and 80-100% scaling
+regions are shaded for visual identification.  Multiple scaling lines may be
+plotted by passing a dict of dataframes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x_key</strong> (<em>scalar</em>) – Key of Dataframe column to use as x-axis.</li>
+<li><strong>y_key</strong> (<em>scalar</em>) – key of Dataframe column to use as y-axis.</li>
+<li><strong>label</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><em>None</em></a>) – Label to be used for y-axis and data series. Defaults to <cite>y_key</cite>.</li>
+<li><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><em>None</em></a>) – Optional title for plot.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>figure</strong> – Figure containing complete scaling plot.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">matplotlib.figure.Figure</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pypop.metrics.MPI_Metrics.plot_table">
+<code class="descname">plot_table</code><span class="sig-paren">(</span><em>columns_key='Number of Processes'</em>, <em>title=None</em>, <em>columns_label=None</em>, <em>good_thres=0.8</em>, <em>bad_thres=0.5</em>, <em>skipfirst=0</em>, <em>bwfirst=0</em><span class="sig-paren">)</span><a class="headerlink" href="#pypop.metrics.MPI_Metrics.plot_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot Metrics in colour coded Table</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>columns_key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><em>None</em></a>) – Key to pandas dataframe column containing column heading data (default
+“Number of Processes”). If <cite>None</cite> then the index will be used.</li>
+<li><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><em>None</em></a>) – Title for table.</li>
+<li><strong>columns_label</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><em>None</em></a>) – Label to apply to column heading data (defaults to value of
+<cite>columns_key</cite>).</li>
+<li><strong>good_thres</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a><em> [</em><em>0.0 - 1.0</em><em>]</em>) – Threshold above which cells are shaded green.</li>
+<li><strong>bad_thres</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a><em> [</em><em>0.0 - 1.0</em><em>]</em>) – Threshold below which cells are shaded red.</li>
+<li><strong>skipfirst</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – Skip output of first N columns of metric data (default 0).</li>
+<li><strong>bwfirst</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – Skip coloring of first N columns of metric data (default 0).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>figure</strong> – Figure containing the metrics table.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><cite>matplotlib.figure.Figure</cite></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pypop.metrics.MPI_OpenMP_Metrics">
+<em class="property">class </em><code class="descclassname">pypop.metrics.</code><code class="descname">MPI_OpenMP_Metrics</code><span class="sig-paren">(</span><em>stats_dict</em>, <em>ref_key=None</em>, <em>sort_keys=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pypop/metrics/hybrid.html#MPI_OpenMP_Metrics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pypop.metrics.MPI_OpenMP_Metrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Proposed Hybrid MPI+OpenMP Metrics.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>stats_dict</strong> (dict or list of <cite>pd.DataFrame</cite>) – Statistics as collected with <cite>collect_statistics()</cite>. Dictionary keys will be
+used as the dataframe index. If a list, a dict will be constructed by
+enumeration.</li>
+<li><strong>ref_key</strong> (<em>scalar</em>) – Key of stats_dict that should be used as the reference for calculation of
+scaling values.  If not specified, the lexical minimum key will be used (i.e
+<code class="docutils literal notranslate"><span class="pre">min(stats_dict.keys())</span></code>.</li>
+<li><strong>sort_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If true (default), lexically sort the keys in the returned DataFrame.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="pypop.metrics.MPI_OpenMP_Metrics.metric_data">
+<code class="descname">metric_data</code><a class="headerlink" href="#pypop.metrics.MPI_OpenMP_Metrics.metric_data" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>pandas.DataFrame</em> – Calculated metric data.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pypop.metrics.MPI_OpenMP_Metrics.metrics">
+<code class="descname">metrics</code><a class="headerlink" href="#pypop.metrics.MPI_OpenMP_Metrics.metrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of <code class="xref py py-class docutils literal notranslate"><span class="pre">pypop.metrics.Metric</span></code> – List of metrics that will be
+calculated.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pypop.metrics.MPI_OpenMP_Metrics.plot_scaling">
+<code class="descname">plot_scaling</code><span class="sig-paren">(</span><em>x_key='Number of Processes'</em>, <em>y_key='Speedup'</em>, <em>label=None</em>, <em>title=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pypop.metrics.MPI_OpenMP_Metrics.plot_scaling" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot scaling graph with region shading.</p>
+<p>Plots scaling data from pandas dataframe(s). The 0-80% and 80-100% scaling
+regions are shaded for visual identification.  Multiple scaling lines may be
+plotted by passing a dict of dataframes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x_key</strong> (<em>scalar</em>) – Key of Dataframe column to use as x-axis.</li>
+<li><strong>y_key</strong> (<em>scalar</em>) – key of Dataframe column to use as y-axis.</li>
+<li><strong>label</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><em>None</em></a>) – Label to be used for y-axis and data series. Defaults to <cite>y_key</cite>.</li>
+<li><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><em>None</em></a>) – Optional title for plot.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>figure</strong> – Figure containing complete scaling plot.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">matplotlib.figure.Figure</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pypop.metrics.MPI_OpenMP_Metrics.plot_table">
+<code class="descname">plot_table</code><span class="sig-paren">(</span><em>columns_key='Number of Processes'</em>, <em>title=None</em>, <em>columns_label=None</em>, <em>good_thres=0.8</em>, <em>bad_thres=0.5</em>, <em>skipfirst=0</em>, <em>bwfirst=0</em><span class="sig-paren">)</span><a class="headerlink" href="#pypop.metrics.MPI_OpenMP_Metrics.plot_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot Metrics in colour coded Table</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>columns_key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><em>None</em></a>) – Key to pandas dataframe column containing column heading data (default
+“Number of Processes”). If <cite>None</cite> then the index will be used.</li>
+<li><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><em>None</em></a>) – Title for table.</li>
+<li><strong>columns_label</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><em>None</em></a>) – Label to apply to column heading data (defaults to value of
+<cite>columns_key</cite>).</li>
+<li><strong>good_thres</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a><em> [</em><em>0.0 - 1.0</em><em>]</em>) – Threshold above which cells are shaded green.</li>
+<li><strong>bad_thres</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a><em> [</em><em>0.0 - 1.0</em><em>]</em>) – Threshold below which cells are shaded red.</li>
+<li><strong>skipfirst</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – Skip output of first N columns of metric data (default 0).</li>
+<li><strong>bwfirst</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – Skip coloring of first N columns of metric data (default 0).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>figure</strong> – Figure containing the metrics table.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><cite>matplotlib.figure.Figure</cite></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pypop.metrics.MPI_OpenMP_Multiplicative_Metrics">
+<em class="property">class </em><code class="descclassname">pypop.metrics.</code><code class="descname">MPI_OpenMP_Multiplicative_Metrics</code><span class="sig-paren">(</span><em>stats_dict</em>, <em>ref_key=None</em>, <em>sort_keys=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pypop/metrics/hybrid.html#MPI_OpenMP_Multiplicative_Metrics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pypop.metrics.MPI_OpenMP_Multiplicative_Metrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Proposed Hybrid MPI+OpenMP Metrics (multiplicative version).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>stats_dict</strong> (dict or list of <cite>pd.DataFrame</cite>) – Statistics as collected with <cite>collect_statistics()</cite>. Dictionary keys will be
+used as the dataframe index. If a list, a dict will be constructed by
+enumeration.</li>
+<li><strong>ref_key</strong> (<em>scalar</em>) – Key of stats_dict that should be used as the reference for calculation of
+scaling values.  If not specified, the lexical minimum key will be used (i.e
+<code class="docutils literal notranslate"><span class="pre">min(stats_dict.keys())</span></code>.</li>
+<li><strong>sort_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If true (default), lexically sort the keys in the returned DataFrame.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="pypop.metrics.MPI_OpenMP_Multiplicative_Metrics.metric_data">
+<code class="descname">metric_data</code><a class="headerlink" href="#pypop.metrics.MPI_OpenMP_Multiplicative_Metrics.metric_data" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>pandas.DataFrame</em> – Calculated metric data.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pypop.metrics.MPI_OpenMP_Multiplicative_Metrics.metrics">
+<code class="descname">metrics</code><a class="headerlink" href="#pypop.metrics.MPI_OpenMP_Multiplicative_Metrics.metrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of <code class="xref py py-class docutils literal notranslate"><span class="pre">pypop.metrics.Metric</span></code> – List of metrics that will be
+calculated.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pypop.metrics.MPI_OpenMP_Multiplicative_Metrics.plot_scaling">
+<code class="descname">plot_scaling</code><span class="sig-paren">(</span><em>x_key='Number of Processes'</em>, <em>y_key='Speedup'</em>, <em>label=None</em>, <em>title=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pypop.metrics.MPI_OpenMP_Multiplicative_Metrics.plot_scaling" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot scaling graph with region shading.</p>
+<p>Plots scaling data from pandas dataframe(s). The 0-80% and 80-100% scaling
+regions are shaded for visual identification.  Multiple scaling lines may be
+plotted by passing a dict of dataframes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x_key</strong> (<em>scalar</em>) – Key of Dataframe column to use as x-axis.</li>
+<li><strong>y_key</strong> (<em>scalar</em>) – key of Dataframe column to use as y-axis.</li>
+<li><strong>label</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><em>None</em></a>) – Label to be used for y-axis and data series. Defaults to <cite>y_key</cite>.</li>
+<li><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><em>None</em></a>) – Optional title for plot.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>figure</strong> – Figure containing complete scaling plot.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">matplotlib.figure.Figure</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pypop.metrics.MPI_OpenMP_Multiplicative_Metrics.plot_table">
+<code class="descname">plot_table</code><span class="sig-paren">(</span><em>columns_key='Number of Processes'</em>, <em>title=None</em>, <em>columns_label=None</em>, <em>good_thres=0.8</em>, <em>bad_thres=0.5</em>, <em>skipfirst=0</em>, <em>bwfirst=0</em><span class="sig-paren">)</span><a class="headerlink" href="#pypop.metrics.MPI_OpenMP_Multiplicative_Metrics.plot_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot Metrics in colour coded Table</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>columns_key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><em>None</em></a>) – Key to pandas dataframe column containing column heading data (default
+“Number of Processes”). If <cite>None</cite> then the index will be used.</li>
+<li><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><em>None</em></a>) – Title for table.</li>
+<li><strong>columns_label</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><em>None</em></a>) – Label to apply to column heading data (defaults to value of
+<cite>columns_key</cite>).</li>
+<li><strong>good_thres</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a><em> [</em><em>0.0 - 1.0</em><em>]</em>) – Threshold above which cells are shaded green.</li>
+<li><strong>bad_thres</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a><em> [</em><em>0.0 - 1.0</em><em>]</em>) – Threshold below which cells are shaded red.</li>
+<li><strong>skipfirst</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – Skip output of first N columns of metric data (default 0).</li>
+<li><strong>bwfirst</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – Skip coloring of first N columns of metric data (default 0).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>figure</strong> – Figure containing the metrics table.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><cite>matplotlib.figure.Figure</cite></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="api_ll.html" class="btn btn-neutral float-right" title="Low Level API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="layout.html" class="btn btn-neutral" title="PyPOP Package Layout" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, The Numerical Algorithms Group, Ltd..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

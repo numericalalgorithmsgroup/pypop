@@ -1,0 +1,694 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Low Level API &mdash; PyPOP 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="PyPOP 0.1 documentation" href="index.html"/>
+        <link rel="prev" title="High Level API" href="api_hl.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="doc.html" class="icon icon-home"> PyPOP
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing PyPOP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layout.html">PyPOP Package Layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_hl.html">High Level API</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Low Level API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#dimemas-automation">Dimemas Automation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#extrae-trace-utilities">Extrae Trace Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#prv-trace-loader">PRV Trace Loader</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#miscellaneous-utility-routines">Miscellaneous utility routines</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="doc.html">PyPOP</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="doc.html">Docs</a> &raquo;</li>
+        
+      <li>Low Level API</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/api_ll.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="low-level-api">
+<h1>Low Level API<a class="headerlink" href="#low-level-api" title="Permalink to this headline">¶</a></h1>
+<p><em>Beware, this package is under heavy development and the low level API is subject to change
+without warning!</em></p>
+<span class="target" id="module-pypop.dimemas"></span><div class="section" id="dimemas-automation">
+<h2>Dimemas Automation<a class="headerlink" href="#dimemas-automation" title="Permalink to this headline">¶</a></h2>
+<p>Helper routines to run Dimemas from Python, including the special case of
+ideal trace generation.</p>
+<dl class="function">
+<dt id="pypop.dimemas.dimemas_analyse">
+<code class="descclassname">pypop.dimemas.</code><code class="descname">dimemas_analyse</code><span class="sig-paren">(</span><em>tracefile</em>, <em>configfile</em>, <em>outpath=None</em>, <em>substrings=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pypop/dimemas.html#dimemas_analyse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pypop.dimemas.dimemas_analyse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a Dimemas simulation given a configuration and tracefile</p>
+<p>The configuration file may be modifed with key-&gt;value substitutions prior
+to running dimemas using the substrings parameter. This allows the use of a
+predefined skeleton configuration file rather than requiring programmatic
+production of the complete config.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tracefile</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Path to Extrae tracefile (<cite>*.prv</cite>)</li>
+<li><strong>configfile</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Path to Dimemas configfile</li>
+<li><strong>outpath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><em>None</em></a>) – Optional path to output idealised trace. (If not specified, will be
+created in a temporary folder.)</li>
+<li><strong>substrings</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a>) – Dict of keys in the config file to be replaced with corresponding
+values.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>simulated</strong> – Path to simulated tracefile in prv format.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)">str</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pypop.dimemas.dimemas_idealise">
+<code class="descclassname">pypop.dimemas.</code><code class="descname">dimemas_idealise</code><span class="sig-paren">(</span><em>tracefile</em>, <em>outpath=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pypop/dimemas.html#dimemas_idealise"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pypop.dimemas.dimemas_idealise" title="Permalink to this definition">¶</a></dt>
+<dd><p>Idealise a tracefile using Dimemas</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tracefile</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Path to Extrae tracefile (<cite>*.prv</cite>)</li>
+<li><strong>outpath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Optional path to output idealised trace. (If not specified will be
+created in a temporary folder.)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>idealised</strong> – Path to idealised tracefile in prv format.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)">str</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<span class="target" id="module-pypop.extrae"></span><div class="section" id="extrae-trace-utilities">
+<h2>Extrae Trace Utilities<a class="headerlink" href="#extrae-trace-utilities" title="Permalink to this headline">¶</a></h2>
+<p>Routines for analysis and management of Extrae traces, including Paramedir automation.</p>
+<dl class="function">
+<dt id="pypop.extrae.chop_prv_to_roi">
+<code class="descclassname">pypop.extrae.</code><code class="descname">chop_prv_to_roi</code><span class="sig-paren">(</span><em>prv_file</em>, <em>outfile=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pypop/extrae.html#chop_prv_to_roi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pypop.extrae.chop_prv_to_roi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cut down a prv trace to just the region of interest</p>
+<p>This will cut a trace to just include the region of interest, which is
+assumed to be bracketed by calls to <cite>Extrae_Restart()</cite> and
+<cite>Extrae_Shutdown()</cite> which are located by their corresponding events
+(40000012) in the trace.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>prv_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Trace file to be cut</li>
+<li><strong>outfile</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><em>None</em></a>) – Optional output file for chopped trace. (If not specified will be
+created in a temporary folder.)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>chopped</strong> – Path to chopped tracefile in prv format.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)">str</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pypop.extrae.load_paraver_histdata">
+<code class="descclassname">pypop.extrae.</code><code class="descname">load_paraver_histdata</code><span class="sig-paren">(</span><em>hist_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pypop/extrae.html#load_paraver_histdata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pypop.extrae.load_paraver_histdata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a Paraver histogram file and return pandas dataframe containing the
+data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>hist_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Path to the histogram data file</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pypop.extrae.paramedir_analyze">
+<code class="descclassname">pypop.extrae.</code><code class="descname">paramedir_analyze</code><span class="sig-paren">(</span><em>tracefile</em>, <em>config</em>, <em>variables=None</em>, <em>index_by_thread=False</em>, <em>statistic_names=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pypop/extrae.html#paramedir_analyze"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pypop.extrae.paramedir_analyze" title="Permalink to this definition">¶</a></dt>
+<dd><p>Analyze a tracefile with paramedir</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tracefile</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Path to <cite>*.prv</cite> tracefile from Extrae</li>
+<li><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Path to Paraver/Paramedir <cite>*.cfg</cite></li>
+<li><strong>variables</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><em>None</em></a>) – Optional dict of key-value pairs for replacement in config file prior
+to running paramedir.</li>
+<li><strong>index_by_thread</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If True return data organised by a multilevel index of MPI ranks and
+threads.  Note that this discards Paramedir calculated statistical
+info.</li>
+<li><strong>statistic_names</strong> (<em>list of str</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><em>None</em></a>) – Optional list of string names for the statistics returned by the config
+file.  If not provided names will be taken from paramedir output.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>result</strong> – Result data loaded from the resulting csv.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">pandas.DataFrame</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pypop.extrae.reindex_by_thread">
+<code class="descclassname">pypop.extrae.</code><code class="descname">reindex_by_thread</code><span class="sig-paren">(</span><em>stats_dframe</em>, <em>thread_prefix='THREAD'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pypop/extrae.html#reindex_by_thread"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pypop.extrae.reindex_by_thread" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert stats Dataframe index in-place to a rank,thread MultiIndex</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>stats_dframe</strong> (<em>pd.DataFrame</em>) – Dataframe to reindex. Typically this will have been produced using
+paramedir_analyze().</li>
+<li><strong>thread_prefix</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Prefix before thread number pattern in current index.  Should almost
+always be “THREAD”. Paraver/Paramedir default is “THREAD a.r.t” with r
+the rank number and t the thread number.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pypop.extrae.remove_trace">
+<code class="descclassname">pypop.extrae.</code><code class="descname">remove_trace</code><span class="sig-paren">(</span><em>tracefile</em>, <em>failure_is_error=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pypop/extrae.html#remove_trace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pypop.extrae.remove_trace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove prv or dim file and its associated .row and .pcf files</p>
+<p>The function should be passed a filename ending in .dim or .prv and will
+attempt to delete this and the pcf and row file.  The filenames of these
+will be constructed by direct substitution of the file extension.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tracefile</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Path to tracefile, should end with .dim or prv</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pypop.extrae.run_paramedir">
+<code class="descclassname">pypop.extrae.</code><code class="descname">run_paramedir</code><span class="sig-paren">(</span><em>tracefile</em>, <em>config</em>, <em>outfile=None</em>, <em>variables=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pypop/extrae.html#run_paramedir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pypop.extrae.run_paramedir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run paramedir on a tracefile</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tracefile</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Path to <cite>*.prv</cite> tracefile from Extrae</li>
+<li><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Path to Paraver/Paramedir <cite>*.cfg</cite></li>
+<li><strong>outfile</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><em>None</em></a>) – Path to output file. If None or “” a randomly named temporary file will
+be used.</li>
+<li><strong>variables</strong> (<em>dict of str:str</em>) – Dict of variables to replace in the config file.  For a key-value pair
+“key”:val any occurrence of &#64;key&#64; in the file will be replaced with
+“val”</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>outfile</strong> – Path to the output file.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)">str</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pypop.extrae.sort_traces_by_commsize">
+<code class="descclassname">pypop.extrae.</code><code class="descname">sort_traces_by_commsize</code><span class="sig-paren">(</span><em>tracelist</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pypop/extrae.html#sort_traces_by_commsize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pypop.extrae.sort_traces_by_commsize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take a list of traces and return them sorted in ascending order of
+their MPI commsize</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tracelist</strong> (<em>iterable of str</em>) – List of traces in arbitrary order</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
+<li><strong>commsizes</strong> (<em>list of int</em>) – Sorted list of comm sizes</li>
+<li><strong>traces</strong> (<em>list of str</em>) – Sorted list of tracefiles</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<span class="target" id="module-pypop.prv"></span><div class="section" id="prv-trace-loader">
+<h2>PRV Trace Loader<a class="headerlink" href="#prv-trace-loader" title="Permalink to this headline">¶</a></h2>
+<p>Support for directly loading PRV trace data as Pandas dataframes</p>
+<dl class="class">
+<dt id="pypop.prv.ApplicationLayout">
+<em class="property">class </em><code class="descclassname">pypop.prv.</code><code class="descname">ApplicationLayout</code><span class="sig-paren">(</span><em>commsize</em>, <em>rank_threads</em><span class="sig-paren">)</span><a class="headerlink" href="#pypop.prv.ApplicationLayout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create new instance of ApplicationLayout(commsize, rank_threads)</p>
+<dl class="attribute">
+<dt id="pypop.prv.ApplicationLayout.commsize">
+<code class="descname">commsize</code><a class="headerlink" href="#pypop.prv.ApplicationLayout.commsize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pypop.prv.ApplicationLayout.count">
+<code class="descname">count</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span> &#x2192; integer -- return number of occurrences of value<a class="headerlink" href="#pypop.prv.ApplicationLayout.count" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pypop.prv.ApplicationLayout.index">
+<code class="descname">index</code><span class="sig-paren">(</span><em>value</em><span class="optional">[</span>, <em>start</em><span class="optional">[</span>, <em>stop</em><span class="optional">]</span><span class="optional">]</span><span class="sig-paren">)</span> &#x2192; integer -- return first index of value.<a class="headerlink" href="#pypop.prv.ApplicationLayout.index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raises ValueError if the value is not present.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pypop.prv.ApplicationLayout.rank_threads">
+<code class="descname">rank_threads</code><a class="headerlink" href="#pypop.prv.ApplicationLayout.rank_threads" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pypop.prv.PRV">
+<em class="property">class </em><code class="descclassname">pypop.prv.</code><code class="descname">PRV</code><span class="sig-paren">(</span><em>prv_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pypop/prv.html#PRV"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pypop.prv.PRV" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="pypop.prv.PRV.colnames">
+<code class="descname">colnames</code><em class="property"> = {'comm': None, 'event': ['task', 'thread', 'cpu', 'time', 'event', 'value'], 'state': ['task', 'thread', 'cpu', 'time', 'endtime', 'state']}</em><a class="headerlink" href="#pypop.prv.PRV.colnames" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pypop.prv.PRV.coltypes">
+<code class="descname">coltypes</code><em class="property"> = {'comm': None, 'event': {'task': &lt;class 'numpy.int32'&gt;, 'thread': &lt;class 'numpy.int32'&gt;, 'cpu': &lt;class 'numpy.int32'&gt;, 'begin': &lt;class 'numpy.int64'&gt;, 'event': &lt;class 'numpy.int32'&gt;, 'value': &lt;class 'numpy.int64'&gt;}, 'state': {'task': &lt;class 'numpy.int32'&gt;, 'thread': &lt;class 'numpy.int32'&gt;, 'cpu': &lt;class 'numpy.int32'&gt;, 'begin': &lt;class 'numpy.int64'&gt;, 'end': &lt;class 'numpy.int64'&gt;, 'state': &lt;class 'numpy.int32'&gt;}}</em><a class="headerlink" href="#pypop.prv.PRV.coltypes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pypop.prv.PRV.profile_openmp_regions">
+<code class="descname">profile_openmp_regions</code><span class="sig-paren">(</span><em>no_progress=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pypop/prv.html#PRV.profile_openmp_regions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pypop.prv.PRV.profile_openmp_regions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pypop.prv.PRV.record_types">
+<code class="descname">record_types</code><em class="property"> = {1: 'state', 2: 'event', 3: 'comm'}</em><a class="headerlink" href="#pypop.prv.PRV.record_types" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pypop.prv.PRV.save">
+<code class="descname">save</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pypop/prv.html#PRV.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pypop.prv.PRV.save" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pypop.prv.Trace">
+<em class="property">class </em><code class="descclassname">pypop.prv.</code><code class="descname">Trace</code><span class="sig-paren">(</span><em>info</em>, <em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#pypop.prv.Trace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create new instance of Trace(info, data)</p>
+<dl class="method">
+<dt id="pypop.prv.Trace.count">
+<code class="descname">count</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span> &#x2192; integer -- return number of occurrences of value<a class="headerlink" href="#pypop.prv.Trace.count" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pypop.prv.Trace.data">
+<code class="descname">data</code><a class="headerlink" href="#pypop.prv.Trace.data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pypop.prv.Trace.index">
+<code class="descname">index</code><span class="sig-paren">(</span><em>value</em><span class="optional">[</span>, <em>start</em><span class="optional">[</span>, <em>stop</em><span class="optional">]</span><span class="optional">]</span><span class="sig-paren">)</span> &#x2192; integer -- return first index of value.<a class="headerlink" href="#pypop.prv.Trace.index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raises ValueError if the value is not present.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pypop.prv.Trace.info">
+<code class="descname">info</code><a class="headerlink" href="#pypop.prv.Trace.info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pypop.prv.TraceMetadata">
+<em class="property">class </em><code class="descclassname">pypop.prv.</code><code class="descname">TraceMetadata</code><span class="sig-paren">(</span><em>captured</em>, <em>ns_elapsed</em>, <em>nodes</em>, <em>procs_per_node</em>, <em>num_appl</em>, <em>application_layout</em><span class="sig-paren">)</span><a class="headerlink" href="#pypop.prv.TraceMetadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create new instance of TraceMetadata(captured, ns_elapsed, nodes, procs_per_node, num_appl, application_layout)</p>
+<dl class="attribute">
+<dt id="pypop.prv.TraceMetadata.application_layout">
+<code class="descname">application_layout</code><a class="headerlink" href="#pypop.prv.TraceMetadata.application_layout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pypop.prv.TraceMetadata.captured">
+<code class="descname">captured</code><a class="headerlink" href="#pypop.prv.TraceMetadata.captured" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pypop.prv.TraceMetadata.count">
+<code class="descname">count</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span> &#x2192; integer -- return number of occurrences of value<a class="headerlink" href="#pypop.prv.TraceMetadata.count" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pypop.prv.TraceMetadata.index">
+<code class="descname">index</code><span class="sig-paren">(</span><em>value</em><span class="optional">[</span>, <em>start</em><span class="optional">[</span>, <em>stop</em><span class="optional">]</span><span class="optional">]</span><span class="sig-paren">)</span> &#x2192; integer -- return first index of value.<a class="headerlink" href="#pypop.prv.TraceMetadata.index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raises ValueError if the value is not present.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pypop.prv.TraceMetadata.nodes">
+<code class="descname">nodes</code><a class="headerlink" href="#pypop.prv.TraceMetadata.nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pypop.prv.TraceMetadata.ns_elapsed">
+<code class="descname">ns_elapsed</code><a class="headerlink" href="#pypop.prv.TraceMetadata.ns_elapsed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pypop.prv.TraceMetadata.num_appl">
+<code class="descname">num_appl</code><a class="headerlink" href="#pypop.prv.TraceMetadata.num_appl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pypop.prv.TraceMetadata.procs_per_node">
+<code class="descname">procs_per_node</code><a class="headerlink" href="#pypop.prv.TraceMetadata.procs_per_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pypop.prv.get_prv_header_info">
+<code class="descclassname">pypop.prv.</code><code class="descname">get_prv_header_info</code><span class="sig-paren">(</span><em>prv_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pypop/prv.html#get_prv_header_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pypop.prv.get_prv_header_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get basic run information from the prv file header</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>prv_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Path to prv trace file.</li>
+<li><strong>Returns</strong> – </li>
+<li><strong>--------</strong> – </li>
+<li><strong>metadata</strong> (<em>NamedTuple</em>) – Named tuple containing the header information.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pypop.prv.zipopen">
+<code class="descclassname">pypop.prv.</code><code class="descname">zipopen</code><span class="sig-paren">(</span><em>path</em>, <em>modespec</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pypop/prv.html#zipopen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pypop.prv.zipopen" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<span class="target" id="module-pypop.utils"></span><div class="section" id="miscellaneous-utility-routines">
+<h2>Miscellaneous utility routines<a class="headerlink" href="#miscellaneous-utility-routines" title="Permalink to this headline">¶</a></h2>
+<p>General utility and helper routines not specific to a particular tool.</p>
+<dl class="function">
+<dt id="pypop.utils.chunked_md5sum">
+<code class="descclassname">pypop.utils.</code><code class="descname">chunked_md5sum</code><span class="sig-paren">(</span><em>filename</em>, <em>blocksize=8388608</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pypop/utils.html#chunked_md5sum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pypop.utils.chunked_md5sum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Chunked md5 checksum using hashlib</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – File to calculate checksum.</li>
+<li><strong>blocksize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – Blocksize in bytes to iterate with, (default 8MB).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>hexdigest</strong> – String containing hexadecimal representation of the checksum.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)">str</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pypop.utils.return_first_arg">
+<code class="descclassname">pypop.utils.</code><code class="descname">return_first_arg</code><span class="sig-paren">(</span><em>arg</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pypop/utils.html#return_first_arg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pypop.utils.return_first_arg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return first argument and disregard remaining, intended for silently replacing
+tqdm when unavailable</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>arg</strong> – Argument to be returned</li>
+<li><strong>*args</strong> (<em>Will be ignored</em>) – </li>
+<li><strong>**kwargs</strong> (<em>Will be ignored</em>) – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">First argument passed to function</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">arg</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="api_hl.html" class="btn btn-neutral" title="High Level API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, The Numerical Algorithms Group, Ltd..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

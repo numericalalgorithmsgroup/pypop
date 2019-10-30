@@ -1,0 +1,310 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyPOP Package Layout &mdash; PyPOP 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="PyPOP 0.1 documentation" href="index.html"/>
+        <link rel="next" title="High Level API" href="api_hl.html"/>
+        <link rel="prev" title="Quickstart Guide" href="quickstart.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="doc.html" class="icon icon-home"> PyPOP
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing PyPOP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">PyPOP Package Layout</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#high-level-interface">High Level Interface</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#trace-data-summary-statistics-calculator-classes">Trace Data Summary Statistics Calculator Classes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#metric-calculator-classes">Metric Calculator Classes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pypop.extrae">Low Level Interface</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#extrae-trace-utilities">Extrae Trace Utilities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dimemas-automation">Dimemas Automation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#prv-trace-loader">PRV Trace Loader</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#miscellaneous-utility-routines">Miscellaneous utility routines</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api_hl.html">High Level API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_ll.html">Low Level API</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="doc.html">PyPOP</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="doc.html">Docs</a> &raquo;</li>
+        
+      <li>PyPOP Package Layout</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/layout.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pypop-package-layout">
+<h1>PyPOP Package Layout<a class="headerlink" href="#pypop-package-layout" title="Permalink to this headline">¶</a></h1>
+<p>The PyPOP package is laid out with two API levels.  The first provides a high-level
+inteface to load summary statistics from traces and calculate various POP metrics from
+them.  This is backed by a low level interface which provides more direct access to the
+capabilites of the various tools, allowing scripting of custom analyses.</p>
+<div class="section" id="high-level-interface">
+<h2>High Level Interface<a class="headerlink" href="#high-level-interface" title="Permalink to this headline">¶</a></h2>
+<p>The key components of the PyPOP package are the <a class="reference internal" href="#module-pypop.metrics" title="pypop.metrics"><code class="xref py py-mod docutils literal notranslate"><span class="pre">metrics</span></code></a> and
+<a class="reference internal" href="#module-pypop.traceset" title="pypop.traceset"><code class="xref py py-mod docutils literal notranslate"><span class="pre">traceset</span></code></a> modules.  These contain the classes handling the loading and analysis of
+traces, and calculation of metrics.</p>
+<span class="target" id="module-pypop.traceset"></span><div class="section" id="trace-data-summary-statistics-calculator-classes">
+<h3>Trace Data Summary Statistics Calculator Classes<a class="headerlink" href="#trace-data-summary-statistics-calculator-classes" title="Permalink to this headline">¶</a></h3>
+<p>PyPop provides classes for importing summary statistics for different profiling tools.</p>
+<p>Currently the following tools are supported:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Extrae</li>
+</ul>
+</div></blockquote>
+</div>
+<span class="target" id="module-pypop.metrics"></span><div class="section" id="metric-calculator-classes">
+<h3>Metric Calculator Classes<a class="headerlink" href="#metric-calculator-classes" title="Permalink to this headline">¶</a></h3>
+<p>PyPOP provides calculator classes for generating the POP Metrics for different
+application types.</p>
+<p>Currently PyPOP supports calculation of the following Metric types:</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="api_hl.html#pypop.metrics.MPI_Metrics" title="pypop.metrics.MPI_Metrics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MPI_Metrics</span></code></a></td>
+<td>Pure MPI Metrics.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="api_hl.html#pypop.metrics.MPI_OpenMP_Metrics" title="pypop.metrics.MPI_OpenMP_Metrics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MPI_OpenMP_Metrics</span></code></a></td>
+<td>Proposed Hybrid MPI+OpenMP Metrics.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="module-pypop.extrae">
+<span id="low-level-interface"></span><h2>Low Level Interface<a class="headerlink" href="#module-pypop.extrae" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="extrae-trace-utilities">
+<h3>Extrae Trace Utilities<a class="headerlink" href="#extrae-trace-utilities" title="Permalink to this headline">¶</a></h3>
+<p>Routines for analysis and management of Extrae traces, including Paramedir automation.</p>
+</div>
+<span class="target" id="module-pypop.dimemas"></span><div class="section" id="dimemas-automation">
+<h3>Dimemas Automation<a class="headerlink" href="#dimemas-automation" title="Permalink to this headline">¶</a></h3>
+<p>Helper routines to run Dimemas from Python, including the special case of
+ideal trace generation.</p>
+</div>
+<span class="target" id="module-pypop.prv"></span><div class="section" id="prv-trace-loader">
+<h3>PRV Trace Loader<a class="headerlink" href="#prv-trace-loader" title="Permalink to this headline">¶</a></h3>
+<p>Support for directly loading PRV trace data as Pandas dataframes</p>
+</div>
+<span class="target" id="module-pypop.utils"></span><div class="section" id="miscellaneous-utility-routines">
+<h3>Miscellaneous utility routines<a class="headerlink" href="#miscellaneous-utility-routines" title="Permalink to this headline">¶</a></h3>
+<p>General utility and helper routines not specific to a particular tool.</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="api_hl.html" class="btn btn-neutral float-right" title="High Level API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="quickstart.html" class="btn btn-neutral" title="Quickstart Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, The Numerical Algorithms Group, Ltd..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

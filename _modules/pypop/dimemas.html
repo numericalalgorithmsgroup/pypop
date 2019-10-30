@@ -1,0 +1,439 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pypop.dimemas &mdash; PyPOP 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="PyPOP 0.1 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../doc.html" class="icon icon-home"> PyPOP
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Installing PyPOP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../layout.html">PyPOP Package Layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api_hl.html">High Level API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api_ll.html">Low Level API</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../doc.html">PyPOP</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../doc.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>pypop.dimemas</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pypop.dimemas</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># SPDX-License-Identifier: BSD-3-Clause-Clear</span>
+<span class="c1"># Copyright (c) 2019, The Numerical Algorithms Group, Ltd. All rights reserved.</span>
+
+<span class="sd">&quot;&quot;&quot;\</span>
+<span class="sd">Dimemas Automation</span>
+<span class="sd">------------------</span>
+
+<span class="sd">Helper routines to run Dimemas from Python, including the special case of</span>
+<span class="sd">ideal trace generation.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">basename</span><span class="p">,</span> <span class="n">splitext</span>
+<span class="kn">from</span> <span class="nn">tempfile</span> <span class="k">import</span> <span class="n">mkdtemp</span>
+<span class="kn">import</span> <span class="nn">subprocess</span> <span class="k">as</span> <span class="nn">sp</span>
+
+<span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="k">import</span> <span class="n">resource_filename</span>
+
+<span class="kn">from</span> <span class="nn">.prv</span> <span class="k">import</span> <span class="n">_parse_paraver_headerline</span><span class="p">,</span> <span class="n">zipopen</span>
+<span class="kn">from</span> <span class="nn">.extrae</span> <span class="k">import</span> <span class="n">remove_trace</span>
+
+<span class="n">IDEAL_CONF_PATH</span> <span class="o">=</span> <span class="s2">&quot;cfgs/dimemas_ideal.cfg&quot;</span>
+<span class="n">IDEAL_COLL_PATH</span> <span class="o">=</span> <span class="s2">&quot;cfgs/ideal.collectives&quot;</span>
+
+
+<div class="viewcode-block" id="dimemas_idealise"><a class="viewcode-back" href="../../api_ll.html#pypop.dimemas.dimemas_idealise">[docs]</a><span class="k">def</span> <span class="nf">dimemas_idealise</span><span class="p">(</span><span class="n">tracefile</span><span class="p">,</span> <span class="n">outpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Idealise a tracefile using Dimemas</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tracefile: str</span>
+<span class="sd">        Path to Extrae tracefile (`*.prv`)</span>
+<span class="sd">    outpath: str</span>
+<span class="sd">        Optional path to output idealised trace. (If not specified will be</span>
+<span class="sd">        created in a temporary folder.)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    idealised: str</span>
+<span class="sd">        Path to idealised tracefile in prv format.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># First we need the application layout info</span>
+    <span class="k">with</span> <span class="n">zipopen</span><span class="p">(</span><span class="n">tracefile</span><span class="p">,</span> <span class="s2">&quot;rt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="n">_parse_paraver_headerline</span><span class="p">(</span><span class="n">fh</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+
+    <span class="c1"># Calculate ranks per node for Dimemas</span>
+    <span class="n">ranks_per_node</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">application_layout</span><span class="o">.</span><span class="n">commsize</span> <span class="o">//</span> <span class="n">metadata</span><span class="o">.</span><span class="n">nodes</span>
+
+    <span class="c1"># Check there is not some odd layout we can&#39;t deal with</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">procs_per_node</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">1</span>
+        <span class="ow">or</span> <span class="n">ranks_per_node</span> <span class="o">*</span> <span class="n">metadata</span><span class="o">.</span><span class="n">nodes</span> <span class="o">!=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">application_layout</span><span class="o">.</span><span class="n">commsize</span>
+    <span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Can only analyze homogenous sized ranks&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Populate run specfic config data</span>
+    <span class="n">subs</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;@NUM_NODES@&quot;</span><span class="p">:</span> <span class="n">metadata</span><span class="o">.</span><span class="n">nodes</span><span class="p">,</span>
+        <span class="s2">&quot;@PROCS_PER_NODE@&quot;</span><span class="p">:</span> <span class="n">metadata</span><span class="o">.</span><span class="n">procs_per_node</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="s2">&quot;@RANKS_PER_NODE@&quot;</span><span class="p">:</span> <span class="n">ranks_per_node</span><span class="p">,</span>
+        <span class="s2">&quot;@COLLECTIVES_PATH@&quot;</span><span class="p">:</span> <span class="n">resource_filename</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">IDEAL_COLL_PATH</span><span class="p">),</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Pass trace, run config and path to idealisation skeleton config and let</span>
+    <span class="c1"># dimemas_analyze work its subtle magic(k)s</span>
+    <span class="k">return</span> <span class="n">dimemas_analyse</span><span class="p">(</span>
+        <span class="n">tracefile</span><span class="p">,</span> <span class="n">resource_filename</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">IDEAL_CONF_PATH</span><span class="p">),</span> <span class="n">outpath</span><span class="p">,</span> <span class="n">subs</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="dimemas_analyse"><a class="viewcode-back" href="../../api_ll.html#pypop.dimemas.dimemas_analyse">[docs]</a><span class="k">def</span> <span class="nf">dimemas_analyse</span><span class="p">(</span><span class="n">tracefile</span><span class="p">,</span> <span class="n">configfile</span><span class="p">,</span> <span class="n">outpath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">substrings</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Run a Dimemas simulation given a configuration and tracefile</span>
+
+<span class="sd">    The configuration file may be modifed with key-&gt;value substitutions prior</span>
+<span class="sd">    to running dimemas using the substrings parameter. This allows the use of a</span>
+<span class="sd">    predefined skeleton configuration file rather than requiring programmatic</span>
+<span class="sd">    production of the complete config.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tracefile: str</span>
+<span class="sd">        Path to Extrae tracefile (`*.prv`)</span>
+<span class="sd">    configfile: str</span>
+<span class="sd">        Path to Dimemas configfile</span>
+<span class="sd">    outpath: str or None</span>
+<span class="sd">        Optional path to output idealised trace. (If not specified, will be</span>
+<span class="sd">        created in a temporary folder.)</span>
+<span class="sd">    substrings: dict</span>
+<span class="sd">        Dict of keys in the config file to be replaced with corresponding</span>
+<span class="sd">        values.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    simulated: str</span>
+<span class="sd">        Path to simulated tracefile in prv format.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Perform all work in a tempdir with predictable names,</span>
+    <span class="c1"># this works around a series of weird dimemas bugs</span>
+    <span class="n">workdir</span> <span class="o">=</span> <span class="n">mkdtemp</span><span class="p">()</span>
+
+    <span class="c1"># Create temporary config from supplied config and substitution dict</span>
+    <span class="n">dimconfig</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;.tmpconfig&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">splitext</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">configfile</span><span class="p">))))</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">configfile</span><span class="p">,</span> <span class="s2">&quot;rt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ifh</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">dimconfig</span><span class="p">,</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ofh</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">ifh</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">substrings</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">substrings</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+            <span class="n">ofh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+    <span class="c1"># Now copy temporary prv file:</span>
+    <span class="n">tmp_prv</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;input.prv&quot;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">zipopen</span><span class="p">(</span><span class="n">tracefile</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ifh</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">tmp_prv</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ofh</span><span class="p">:</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">buff</span> <span class="o">=</span> <span class="n">ifh</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">8589934592</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">buff</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">ofh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">buff</span><span class="p">)</span>
+
+    <span class="c1"># And also copy row and pcf if available</span>
+    <span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;.row&quot;</span><span class="p">,</span> <span class="s2">&quot;.pcf&quot;</span><span class="p">]:</span>
+        <span class="n">tracestem</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">tracefile</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">tracestem</span> <span class="o">=</span> <span class="n">tracestem</span><span class="p">[:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span> <span class="k">if</span> <span class="n">tracefile</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.gz&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="n">tracestem</span>
+        <span class="n">infile</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">tracestem</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">ext</span>
+        <span class="n">outfile</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">tmp_prv</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">ext</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ifh</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ofh</span><span class="p">:</span>
+                <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                    <span class="n">buff</span> <span class="o">=</span> <span class="n">ifh</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">8589934592</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">buff</span><span class="p">:</span>
+                        <span class="k">break</span>
+                    <span class="n">ofh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">buff</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;Could not find </span><span class="si">{}</span><span class="s2">, dimemas may fail or produce invalid data&quot;</span>
+                <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">infile</span><span class="p">)</span>
+            <span class="p">)</span>
+
+    <span class="c1"># Now create the dim file for dimemas</span>
+    <span class="n">tmp_dim</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="n">splitext</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">tmp_prv</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.dim&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Use basenames as running in workdir</span>
+    <span class="n">prv2dim_params</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;prv2dim&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;--prv-trace&quot;</span><span class="p">,</span>
+        <span class="n">basename</span><span class="p">(</span><span class="n">tmp_prv</span><span class="p">),</span>
+        <span class="s2">&quot;--dim-trace&quot;</span><span class="p">,</span>
+        <span class="n">basename</span><span class="p">(</span><span class="n">tmp_dim</span><span class="p">),</span>
+    <span class="p">]</span>
+
+    <span class="c1"># Run prv2dim and check for success</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">prv2dim_params</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">sp</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">sp</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="n">workdir</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">tmp_dim</span><span class="p">)</span> <span class="ow">or</span> <span class="n">result</span><span class="o">.</span><span class="n">returncode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="s2">&quot;prv2dim execution failed:</span><span class="se">\n</span><span class="si">{}</span><span class="s2">&quot;</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">decode</span><span class="p">())</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Run in workdir to workaround Dimemas path bug, output to relpath</span>
+    <span class="n">sim_prv</span> <span class="o">=</span> <span class="s2">&quot;.sim&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">splitext</span><span class="p">(</span><span class="n">tmp_prv</span><span class="p">))</span>
+    <span class="n">dimemas_params</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;Dimemas&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-S&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;32k&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;--dim&quot;</span><span class="p">,</span>
+        <span class="n">basename</span><span class="p">(</span><span class="n">tmp_dim</span><span class="p">),</span>
+        <span class="s2">&quot;-p&quot;</span><span class="p">,</span>
+        <span class="n">basename</span><span class="p">(</span><span class="n">sim_prv</span><span class="p">),</span>
+        <span class="n">basename</span><span class="p">(</span><span class="n">dimconfig</span><span class="p">),</span>
+    <span class="p">]</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">dimemas_params</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">sp</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">sp</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="n">workdir</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">sim_prv</span><span class="p">)</span> <span class="ow">or</span> <span class="n">result</span><span class="o">.</span><span class="n">returncode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="s2">&quot;Dimemas execution failed:</span><span class="se">\n</span><span class="si">{}</span><span class="s2">&quot;</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">decode</span><span class="p">())</span>
+        <span class="p">)</span>
+
+    <span class="c1"># remove all the temporary files we created</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">dimconfig</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">tmp_dim</span><span class="p">)</span>
+    <span class="n">remove_trace</span><span class="p">(</span><span class="n">tmp_prv</span><span class="p">)</span>
+
+    <span class="c1"># If no outpath specified then we are done</span>
+    <span class="k">if</span> <span class="n">outpath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">sim_prv</span>
+
+    <span class="c1"># Otherwise copy back to requested location</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">sim_prv</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ifh</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ofh</span><span class="p">:</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">buff</span> <span class="o">=</span> <span class="n">ifh</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">8589934592</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">buff</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">ofh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">buff</span><span class="p">)</span>
+
+    <span class="c1"># And also copy row and pcf</span>
+    <span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;.row&quot;</span><span class="p">,</span> <span class="s2">&quot;.pcf&quot;</span><span class="p">]:</span>
+        <span class="n">infile</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">sim_prv</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">ext</span>
+        <span class="n">outfile</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">outpath</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">ext</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ifh</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ofh</span><span class="p">:</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">buff</span> <span class="o">=</span> <span class="n">ifh</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">8589934592</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">buff</span><span class="p">:</span>
+                    <span class="k">break</span>
+                <span class="n">ofh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">buff</span><span class="p">)</span>
+
+    <span class="c1"># and then delete temps</span>
+    <span class="n">remove_trace</span><span class="p">(</span><span class="n">sim_prv</span><span class="p">)</span>
+
+    <span class="c1"># finally return outpath as promised</span>
+    <span class="k">return</span> <span class="n">outpath</span></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, The Numerical Algorithms Group, Ltd..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

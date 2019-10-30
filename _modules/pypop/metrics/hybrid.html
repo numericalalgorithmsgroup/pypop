@@ -1,0 +1,513 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pypop.metrics.hybrid &mdash; PyPOP 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="PyPOP 0.1 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../doc.html" class="icon icon-home"> PyPOP
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installing PyPOP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../layout.html">PyPOP Package Layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_hl.html">High Level API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_ll.html">Low Level API</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../doc.html">PyPOP</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../doc.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pypop.metrics.hybrid</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pypop.metrics.hybrid</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># SPDX-License-Identifier: BSD-3-Clause-Clear</span>
+<span class="c1"># Copyright (c) 2019, The Numerical Algorithms Group, Ltd. All rights reserved.</span>
+
+<span class="sd">&quot;&quot;&quot;Hybrid metrics</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">pandas</span>
+
+<span class="kn">from</span> <span class="nn">.metricset</span> <span class="k">import</span> <span class="n">MetricSet</span><span class="p">,</span> <span class="n">Metric</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;MPI_OpenMP_Metrics&#39;</span><span class="p">,</span> <span class="s1">&#39;MPI_OpenMP_Multiplicative_Metrics&#39;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="MPI_OpenMP_Metrics"><a class="viewcode-back" href="../../../api_hl.html#pypop.metrics.MPI_OpenMP_Metrics">[docs]</a><span class="k">class</span> <span class="nc">MPI_OpenMP_Metrics</span><span class="p">(</span><span class="n">MetricSet</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Proposed Hybrid MPI+OpenMP Metrics.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_metric_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">Metric</span><span class="p">(</span><span class="s2">&quot;Global Efficiency&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+        <span class="n">Metric</span><span class="p">(</span><span class="s2">&quot;Parallel Efficiency&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="n">Metric</span><span class="p">(</span><span class="s2">&quot;Process Level Efficiency&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+        <span class="n">Metric</span><span class="p">(</span><span class="s2">&quot;MPI Load balance&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;Load balance&quot;</span><span class="p">),</span>
+        <span class="n">Metric</span><span class="p">(</span><span class="s2">&quot;MPI Communication Efficiency&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="n">Metric</span><span class="p">(</span><span class="s2">&quot;MPI Transfer Efficiency&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+        <span class="n">Metric</span><span class="p">(</span><span class="s2">&quot;MPI Serialisation Efficiency&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+        <span class="n">Metric</span><span class="p">(</span><span class="s2">&quot;Thread Level Efficiency&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+        <span class="n">Metric</span><span class="p">(</span><span class="s2">&quot;OpenMP Region Efficiency&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;OpenMP Region Efficiency&quot;</span><span class="p">),</span>
+        <span class="n">Metric</span><span class="p">(</span><span class="s2">&quot;Serial Region Efficiency&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="n">Metric</span><span class="p">(</span><span class="s2">&quot;Computational Scaling&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="n">Metric</span><span class="p">(</span><span class="s2">&quot;Instruction Scaling&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+        <span class="n">Metric</span><span class="p">(</span><span class="s2">&quot;IPC Scaling&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;IPC Scaling&quot;</span><span class="p">),</span>
+    <span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_calculate_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ref_key</span><span class="p">:</span>
+            <span class="n">ref_key</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_stats_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+        <span class="n">metrics_by_key</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="n">sort_keys</span><span class="p">:</span>
+            <span class="n">keys</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_stats_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stats_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+            <span class="n">metadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stats_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">metadata</span>
+            <span class="n">stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stats_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">stats</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">nthreads</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">application_layout</span><span class="o">.</span><span class="n">rank_threads</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">metrics</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Number of Processes&quot;</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">procs_per_node</span><span class="p">)}</span>
+
+                <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;OpenMP Region Efficiency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span>
+                    <span class="p">(</span>
+                        <span class="p">(</span>
+                            <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;OpenMP Total Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+                            <span class="o">-</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;OpenMP Useful Computation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s2">&quot;rank&quot;</span><span class="p">)</span>
+                        <span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                    <span class="p">)</span>
+                    <span class="o">/</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                <span class="p">)</span>
+
+                <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;Serial Region Efficiency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span>
+                    <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Serial Useful Computation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                    <span class="o">/</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                    <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">nthreads</span><span class="p">)</span>
+                <span class="p">)</span>
+
+                <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;Thread Level Efficiency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span>
+                    <span class="p">(</span>
+                        <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;OpenMP Total Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                        <span class="o">-</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;OpenMP Useful Computation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                        <span class="o">+</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Serial Useful Computation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                        <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">nthreads</span><span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="o">/</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                <span class="p">)</span>
+
+                <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;MPI Communication Efficiency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Non-MPI Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                    <span class="o">/</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                <span class="p">)</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;MPI Serialisation Efficiency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Non-MPI Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                        <span class="o">/</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Ideal Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                    <span class="p">)</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;MPI Serialisation Efficiency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;MPI Transfer Efficiency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Ideal Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                        <span class="o">/</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                    <span class="p">)</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;MPI Transfer Efficiency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan</span>
+
+                <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;MPI Load balance&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span>
+                    <span class="p">(</span>
+                        <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Non-MPI Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                        <span class="o">-</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Non-MPI Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                    <span class="p">)</span>
+                    <span class="o">/</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                <span class="p">)</span>
+
+                <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;Process Level Efficiency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Non-MPI Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                <span class="p">)</span> <span class="o">/</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+                <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;Parallel Efficiency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Useful Computation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                    <span class="o">/</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>  <span class="c1"># avg all threads to include Amdahl</span>
+                <span class="p">)</span>
+
+                <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;IPC Scaling&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;IPC&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stats_dict</span><span class="p">[</span><span class="n">ref_key</span><span class="p">]</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;IPC&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                <span class="p">)</span>
+
+                <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;Instruction Scaling&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_stats_dict</span><span class="p">[</span><span class="n">ref_key</span><span class="p">]</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Useful Instructions&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                    <span class="o">/</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Useful Instructions&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                <span class="p">)</span>
+
+                <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;Frequency Scaling&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Frequency&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                    <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stats_dict</span><span class="p">[</span><span class="n">ref_key</span><span class="p">]</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Frequency&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                <span class="p">)</span>
+
+                <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;Computational Scaling&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_stats_dict</span><span class="p">[</span><span class="n">ref_key</span><span class="p">]</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Useful Computation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                    <span class="o">/</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Useful Computation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                <span class="p">)</span>
+
+                <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;Global Efficiency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;Computational Scaling&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;Parallel Efficiency&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+
+                <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;Speedup&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_stats_dict</span><span class="p">[</span><span class="n">ref_key</span><span class="p">]</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                    <span class="o">/</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                <span class="p">)</span>
+
+                <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;Runtime&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+            <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;No &#39;</span><span class="si">{}</span><span class="s2">&#39; statistic. (Wrong analysis type?)&quot;</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="p">)</span>
+
+            <span class="n">metrics_by_key</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">metrics</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_metric_data</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">metrics_by_key</span><span class="p">)</span><span class="o">.</span><span class="n">T</span></div>
+
+
+<div class="viewcode-block" id="MPI_OpenMP_Multiplicative_Metrics"><a class="viewcode-back" href="../../../api_hl.html#pypop.metrics.MPI_OpenMP_Multiplicative_Metrics">[docs]</a><span class="k">class</span> <span class="nc">MPI_OpenMP_Multiplicative_Metrics</span><span class="p">(</span><span class="n">MetricSet</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Proposed Hybrid MPI+OpenMP Metrics (multiplicative version).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_metric_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">Metric</span><span class="p">(</span><span class="s2">&quot;Global Efficiency&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+        <span class="n">Metric</span><span class="p">(</span><span class="s2">&quot;Parallel Efficiency&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="n">Metric</span><span class="p">(</span><span class="s2">&quot;Process Level Efficiency&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+        <span class="n">Metric</span><span class="p">(</span><span class="s2">&quot;MPI Load balance&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;Load balance&quot;</span><span class="p">),</span>
+        <span class="n">Metric</span><span class="p">(</span><span class="s2">&quot;MPI Communication Efficiency&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="n">Metric</span><span class="p">(</span><span class="s2">&quot;MPI Transfer Efficiency&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+        <span class="n">Metric</span><span class="p">(</span><span class="s2">&quot;MPI Serialisation Efficiency&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+        <span class="n">Metric</span><span class="p">(</span><span class="s2">&quot;Thread Level Efficiency&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+        <span class="n">Metric</span><span class="p">(</span><span class="s2">&quot;OpenMP Region Efficiency&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;OpenMP Region Efficiency&quot;</span><span class="p">),</span>
+        <span class="n">Metric</span><span class="p">(</span><span class="s2">&quot;Serial Region Efficiency&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="n">Metric</span><span class="p">(</span><span class="s2">&quot;Computational Scaling&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="n">Metric</span><span class="p">(</span><span class="s2">&quot;Instruction Scaling&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+        <span class="n">Metric</span><span class="p">(</span><span class="s2">&quot;IPC Scaling&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;IPC Scaling&quot;</span><span class="p">),</span>
+    <span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_calculate_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ref_key</span><span class="p">:</span>
+            <span class="n">ref_key</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_stats_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+        <span class="n">metrics_by_key</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="n">sort_keys</span><span class="p">:</span>
+            <span class="n">keys</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_stats_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stats_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+            <span class="n">metadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stats_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">metadata</span>
+            <span class="n">stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stats_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">stats</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">metrics</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Number of Processes&quot;</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">procs_per_node</span><span class="p">)}</span>
+
+                <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;OpenMP Region Efficiency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;OpenMP Useful Computation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                    <span class="o">+</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Serial Useful Computation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                <span class="p">)</span> <span class="o">/</span> <span class="p">(</span>
+                    <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;OpenMP Total Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                    <span class="o">+</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Serial Useful Computation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                <span class="p">)</span>
+
+                <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;Serial Region Efficiency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Useful Computation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                <span class="p">)</span> <span class="o">/</span> <span class="p">(</span>
+                    <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;OpenMP Useful Computation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                    <span class="o">+</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Serial Useful Computation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                <span class="p">)</span>
+
+                <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;Thread Level Efficiency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Useful Computation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                <span class="p">)</span> <span class="o">/</span> <span class="p">(</span>
+                    <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;OpenMP Total Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                    <span class="o">+</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Serial Useful Computation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                <span class="p">)</span>
+
+                <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;MPI Communication Efficiency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Non-MPI Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                    <span class="o">/</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                <span class="p">)</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;MPI Serialisation Efficiency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Non-MPI Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                        <span class="o">/</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Ideal Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                    <span class="p">)</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;MPI Serialisation Efficiency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;MPI Transfer Efficiency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Ideal Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                        <span class="o">/</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                    <span class="p">)</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;MPI Transfer Efficiency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan</span>
+
+                <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;MPI Load balance&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;OpenMP Total Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                    <span class="o">+</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Serial Useful Computation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                <span class="p">)</span> <span class="o">/</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Non-MPI Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+                <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;Process Level Efficiency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Non-MPI Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                <span class="p">)</span> <span class="o">/</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+                <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;Parallel Efficiency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Useful Computation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                    <span class="o">/</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>  <span class="c1"># avg all threads to include Amdahl</span>
+                <span class="p">)</span>
+
+                <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;IPC Scaling&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;IPC&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stats_dict</span><span class="p">[</span><span class="n">ref_key</span><span class="p">]</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;IPC&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                <span class="p">)</span>
+
+                <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;Instruction Scaling&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_stats_dict</span><span class="p">[</span><span class="n">ref_key</span><span class="p">]</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Useful Instructions&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                    <span class="o">/</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Useful Instructions&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                <span class="p">)</span>
+
+                <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;Frequency Scaling&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Frequency&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                    <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stats_dict</span><span class="p">[</span><span class="n">ref_key</span><span class="p">]</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Frequency&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                <span class="p">)</span>
+
+                <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;Computational Scaling&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_stats_dict</span><span class="p">[</span><span class="n">ref_key</span><span class="p">]</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Useful Computation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                    <span class="o">/</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Useful Computation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                <span class="p">)</span>
+
+                <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;Global Efficiency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;Computational Scaling&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;Parallel Efficiency&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+
+                <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;Speedup&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_stats_dict</span><span class="p">[</span><span class="n">ref_key</span><span class="p">]</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                    <span class="o">/</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+                <span class="p">)</span>
+
+                <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;Runtime&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Runtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+            <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;No &#39;</span><span class="si">{}</span><span class="s2">&#39; statistic. (Wrong analysis type?)&quot;</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="p">)</span>
+
+            <span class="n">metrics_by_key</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">metrics</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_metric_data</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">metrics_by_key</span><span class="p">)</span><span class="o">.</span><span class="n">T</span></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, The Numerical Algorithms Group, Ltd..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

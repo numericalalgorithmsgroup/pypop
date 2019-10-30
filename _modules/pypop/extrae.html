@@ -1,0 +1,676 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pypop.extrae &mdash; PyPOP 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="PyPOP 0.1 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../doc.html" class="icon icon-home"> PyPOP
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Installing PyPOP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../layout.html">PyPOP Package Layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api_hl.html">High Level API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api_ll.html">Low Level API</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../doc.html">PyPOP</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../doc.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>pypop.extrae</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pypop.extrae</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># SPDX-License-Identifier: BSD-3-Clause-Clear</span>
+<span class="c1"># Copyright (c) 2019, The Numerical Algorithms Group, Ltd. All rights reserved.</span>
+
+<span class="sd">&quot;&quot;&quot;\</span>
+<span class="sd">Extrae Trace Utilities</span>
+<span class="sd">----------------------</span>
+
+<span class="sd">Routines for analysis and management of Extrae traces, including Paramedir automation.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">basename</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">normpath</span><span class="p">,</span> <span class="n">splitext</span>
+<span class="kn">from</span> <span class="nn">tempfile</span> <span class="k">import</span> <span class="n">mkdtemp</span><span class="p">,</span> <span class="n">mkstemp</span>
+<span class="kn">import</span> <span class="nn">subprocess</span> <span class="k">as</span> <span class="nn">sp</span>
+
+<span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="k">import</span> <span class="n">resource_filename</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">.prv</span> <span class="k">import</span> <span class="n">get_prv_header_info</span><span class="p">,</span> <span class="n">_parse_paraver_headerline</span><span class="p">,</span> <span class="n">zipopen</span>
+
+<span class="n">floatmatch</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;[0-9,]+\.[0-9]+&quot;</span><span class="p">)</span>
+<span class="n">keymatch</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;@.*@&quot;</span><span class="p">)</span>
+<span class="n">tabmatch</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\t+&quot;</span><span class="p">)</span>
+
+<span class="n">ROI_FILTER_XML</span> <span class="o">=</span> <span class="s2">&quot;filters/tracing_state.xml&quot;</span>
+<span class="n">CUTTER_SINGLE_SKEL</span> <span class="o">=</span> <span class="s2">&quot;cutters/single_region.skel&quot;</span>
+
+
+<div class="viewcode-block" id="remove_trace"><a class="viewcode-back" href="../../api_ll.html#pypop.extrae.remove_trace">[docs]</a><span class="k">def</span> <span class="nf">remove_trace</span><span class="p">(</span><span class="n">tracefile</span><span class="p">,</span> <span class="n">failure_is_error</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Remove prv or dim file and its associated .row and .pcf files</span>
+
+<span class="sd">    The function should be passed a filename ending in .dim or .prv and will</span>
+<span class="sd">    attempt to delete this and the pcf and row file.  The filenames of these</span>
+<span class="sd">    will be constructed by direct substitution of the file extension.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tracefile: str</span>
+<span class="sd">        Path to tracefile, should end with .dim or prv</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">tracefile</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.prv&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">tracefile</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.dim&quot;</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Expected a .prv or .dim file&quot;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">tracefile</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">FileNotFoundError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">failure_is_error</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">err</span>
+
+    <span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;.pcf&quot;</span><span class="p">,</span> <span class="s2">&quot;.row&quot;</span><span class="p">]:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">splitext</span><span class="p">(</span><span class="n">tracefile</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">ext</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">failure_is_error</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">err</span></div>
+
+
+<div class="viewcode-block" id="sort_traces_by_commsize"><a class="viewcode-back" href="../../api_ll.html#pypop.extrae.sort_traces_by_commsize">[docs]</a><span class="k">def</span> <span class="nf">sort_traces_by_commsize</span><span class="p">(</span><span class="n">tracelist</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Take a list of traces and return them sorted in ascending order of</span>
+<span class="sd">    their MPI commsize</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tracelist: iterable of str</span>
+<span class="sd">        List of traces in arbitrary order</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    commsizes: list of int</span>
+<span class="sd">        Sorted list of comm sizes</span>
+<span class="sd">    traces: list of str</span>
+<span class="sd">        Sorted list of tracefiles</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">tracelist</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">tracelist</span><span class="p">)</span>
+
+    <span class="n">nproc_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_prv_header_info</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">application_layout</span><span class="o">.</span><span class="n">commsize</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">tracelist</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">nproc_list</span><span class="p">,</span> <span class="n">tracelist</span><span class="p">)))</span></div>
+
+
+<div class="viewcode-block" id="chop_prv_to_roi"><a class="viewcode-back" href="../../api_ll.html#pypop.extrae.chop_prv_to_roi">[docs]</a><span class="k">def</span> <span class="nf">chop_prv_to_roi</span><span class="p">(</span><span class="n">prv_file</span><span class="p">,</span> <span class="n">outfile</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Cut down a prv trace to just the region of interest</span>
+
+<span class="sd">    This will cut a trace to just include the region of interest, which is</span>
+<span class="sd">    assumed to be bracketed by calls to `Extrae_Restart()` and</span>
+<span class="sd">    `Extrae_Shutdown()` which are located by their corresponding events</span>
+<span class="sd">    (40000012) in the trace.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    prv_file: str</span>
+<span class="sd">        Trace file to be cut</span>
+<span class="sd">    outfile: str or None</span>
+<span class="sd">        Optional output file for chopped trace. (If not specified will be</span>
+<span class="sd">        created in a temporary folder.)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    chopped: str</span>
+<span class="sd">        Path to chopped tracefile in prv format.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">outfile</span><span class="p">:</span>
+        <span class="n">workdir</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">normpath</span><span class="p">(</span><span class="n">outfile</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">tgtname</span> <span class="o">=</span> <span class="s2">&quot;.chop&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">splitext</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">prv_file</span><span class="p">)))</span>
+        <span class="n">workdir</span> <span class="o">=</span> <span class="n">mkdtemp</span><span class="p">()</span>
+        <span class="n">outfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="n">tgtname</span><span class="p">)</span>
+
+    <span class="n">roi_filter</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">ROI_FILTER_XML</span><span class="p">)</span>
+    <span class="n">roi_prv</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;.roifilter&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">splitext</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">prv_file</span><span class="p">))))</span>
+
+    <span class="n">filter_cmds</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;paramedir&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;--filter&quot;</span><span class="p">,</span>
+        <span class="n">roi_filter</span><span class="p">,</span>
+        <span class="s2">&quot;--output-name&quot;</span><span class="p">,</span>
+        <span class="n">roi_prv</span><span class="p">,</span>
+        <span class="n">prv_file</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">filter_cmds</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">sp</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">sp</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">returncode</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">roi_prv</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="s2">&quot;Failed to filter ROI file:</span><span class="se">\n</span><span class="si">{}</span><span class="s2">&quot;</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">decode</span><span class="p">())</span>
+        <span class="p">)</span>
+
+    <span class="n">starttime</span><span class="p">,</span> <span class="n">endtime</span> <span class="o">=</span> <span class="n">_get_roi_times</span><span class="p">(</span><span class="n">roi_prv</span><span class="p">)</span>
+
+    <span class="n">remove_trace</span><span class="p">(</span><span class="n">roi_prv</span><span class="p">)</span>
+
+    <span class="n">wfh</span><span class="p">,</span> <span class="n">cutter_xml</span> <span class="o">=</span> <span class="n">mkstemp</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;.xml&quot;</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">wfh</span><span class="p">)</span>
+
+    <span class="n">cutter_skel</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">CUTTER_SINGLE_SKEL</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">cutter_skel</span><span class="p">,</span> <span class="s2">&quot;rt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">rfh</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">cutter_xml</span><span class="p">,</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">wfh</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">rfh</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;@MIN_TIME@&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{:d}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">starttime</span><span class="p">))</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;@MAX_TIME@&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{:d}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">endtime</span><span class="p">))</span>
+            <span class="n">wfh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+    <span class="n">wfh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="n">cutter_cmds</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;paramedir&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;--cutter&quot;</span><span class="p">,</span>
+        <span class="n">prv_file</span><span class="p">,</span>
+        <span class="n">cutter_xml</span><span class="p">,</span>
+        <span class="s2">&quot;--output-name&quot;</span><span class="p">,</span>
+        <span class="n">outfile</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">cutter_cmds</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">sp</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">sp</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">returncode</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">outfile</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="s2">&quot;Failed to cut prv file </span><span class="si">{}</span><span class="s2">:</span><span class="se">\n</span><span class="si">{}</span><span class="s2">&quot;</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">decode</span><span class="p">())</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">outfile</span></div>
+
+
+<span class="k">def</span> <span class="nf">_get_roi_times</span><span class="p">(</span><span class="n">roi_prv</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Extract ROi timing information from a filtered trace</span>
+
+<span class="sd">    Expects a trace containing only Extrae On/Off events and returns tuple of</span>
+<span class="sd">    earliest and latest time</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">zipopen</span><span class="p">(</span><span class="n">roi_prv</span><span class="p">,</span> <span class="s2">&quot;rt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+        <span class="n">headerline</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+        <span class="n">prvheader</span> <span class="o">=</span> <span class="n">_parse_paraver_headerline</span><span class="p">(</span><span class="n">headerline</span><span class="p">)</span>
+
+        <span class="c1"># First want commsize</span>
+        <span class="n">commsize</span> <span class="o">=</span> <span class="n">prvheader</span><span class="o">.</span><span class="n">application_layout</span><span class="o">.</span><span class="n">commsize</span>
+
+        <span class="c1"># skip over communicator definition lines</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">while</span> <span class="n">line</span><span class="p">:</span>
+            <span class="c1"># If we get to a non-communicator line we are done, but seek back</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;c&quot;</span><span class="p">):</span>
+                <span class="n">fh</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">fh</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">))</span>
+                <span class="k">break</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="c1"># Now skip over commsize shutdown events at beginning of trace:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">commsize</span><span class="p">):</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;40000012:0&quot;</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Unexpected event or misordered events: &quot;</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                <span class="p">)</span>
+
+        <span class="c1"># Can now grab the start events</span>
+        <span class="n">starttime</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">commsize</span><span class="p">):</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;40000012:1&quot;</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Unexpected event or misordered events: &quot;</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                <span class="p">)</span>
+
+            <span class="n">tmptime</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">5</span><span class="p">])</span>
+
+            <span class="n">starttime</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">starttime</span><span class="p">,</span> <span class="n">tmptime</span><span class="p">)</span> <span class="k">if</span> <span class="n">starttime</span> <span class="k">else</span> <span class="n">tmptime</span>
+
+        <span class="c1"># and the end events</span>
+        <span class="n">endtime</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">commsize</span><span class="p">):</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;40000012:0&quot;</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Unexpected event or misordered events :&quot;</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                <span class="p">)</span>
+
+            <span class="n">tmptime</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">5</span><span class="p">])</span>
+
+            <span class="n">endtime</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">endtime</span><span class="p">,</span> <span class="n">tmptime</span><span class="p">)</span> <span class="k">if</span> <span class="n">endtime</span> <span class="k">else</span> <span class="n">tmptime</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">starttime</span><span class="p">,</span> <span class="n">endtime</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="paramedir_analyze"><a class="viewcode-back" href="../../api_ll.html#pypop.extrae.paramedir_analyze">[docs]</a><span class="k">def</span> <span class="nf">paramedir_analyze</span><span class="p">(</span>
+    <span class="n">tracefile</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">index_by_thread</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">statistic_names</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Analyze a tracefile with paramedir</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tracefile: str</span>
+<span class="sd">        Path to `*.prv` tracefile from Extrae</span>
+<span class="sd">    config: str</span>
+<span class="sd">        Path to Paraver/Paramedir `*.cfg`</span>
+<span class="sd">    variables: dict or None</span>
+<span class="sd">        Optional dict of key-value pairs for replacement in config file prior</span>
+<span class="sd">        to running paramedir.</span>
+<span class="sd">    index_by_thread: bool</span>
+<span class="sd">        If True return data organised by a multilevel index of MPI ranks and</span>
+<span class="sd">        threads.  Note that this discards Paramedir calculated statistical</span>
+<span class="sd">        info.</span>
+<span class="sd">    statistic_names: list of str or None</span>
+<span class="sd">        Optional list of string names for the statistics returned by the config</span>
+<span class="sd">        file.  If not provided names will be taken from paramedir output.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result: pandas.DataFrame</span>
+<span class="sd">        Result data loaded from the resulting csv.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+        <span class="n">confstring</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s2">&quot;Analyzer2D.3D&quot;</span> <span class="ow">in</span> <span class="n">confstring</span><span class="p">:</span>
+        <span class="n">datatype</span> <span class="o">=</span> <span class="s2">&quot;Hist3D&quot;</span>
+    <span class="k">elif</span> <span class="s2">&quot;Analyzer2D&quot;</span> <span class="ow">in</span> <span class="n">confstring</span><span class="p">:</span>
+        <span class="n">datatype</span> <span class="o">=</span> <span class="s2">&quot;Hist2D&quot;</span>
+        <span class="k">return</span> <span class="n">_analyze_hist2D</span><span class="p">(</span>
+            <span class="n">tracefile</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">index_by_thread</span><span class="p">,</span> <span class="n">statistic_names</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">datatype</span> <span class="o">=</span> <span class="s2">&quot;Raw counts&quot;</span>
+
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unsupported analysis type &quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">datatype</span><span class="p">))</span></div>
+
+
+<span class="k">def</span> <span class="nf">_analyze_hist2D</span><span class="p">(</span><span class="n">tracefile</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">index_by_thread</span><span class="p">,</span> <span class="n">stat_names</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Run config producing a 2D histogram and return result DataFrame</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">histfile</span> <span class="o">=</span> <span class="n">run_paramedir</span><span class="p">(</span><span class="n">tracefile</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="n">variables</span><span class="p">)</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">load_paraver_histdata</span><span class="p">(</span><span class="n">histfile</span><span class="p">)</span>
+
+    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">histfile</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">stat_names</span><span class="p">:</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="n">stat_names</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">index_by_thread</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">reindex_by_thread</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">data</span>
+
+
+<div class="viewcode-block" id="reindex_by_thread"><a class="viewcode-back" href="../../api_ll.html#pypop.extrae.reindex_by_thread">[docs]</a><span class="k">def</span> <span class="nf">reindex_by_thread</span><span class="p">(</span><span class="n">stats_dframe</span><span class="p">,</span> <span class="n">thread_prefix</span><span class="o">=</span><span class="s2">&quot;THREAD&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert stats Dataframe index in-place to a rank,thread MultiIndex</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    stats_dframe: pd.DataFrame</span>
+<span class="sd">        Dataframe to reindex. Typically this will have been produced using</span>
+<span class="sd">        paramedir_analyze().</span>
+
+<span class="sd">    thread_prefix: str</span>
+<span class="sd">        Prefix before thread number pattern in current index.  Should almost</span>
+<span class="sd">        always be &quot;THREAD&quot;. Paraver/Paramedir default is &quot;THREAD a.r.t&quot; with r</span>
+<span class="sd">        the rank number and t the thread number.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stats_dframe</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;stats_dframe must be a Pandas DataFrame&quot;</span><span class="p">)</span>
+
+    <span class="n">oc_select</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">stats_dframe</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">thread_prefix</span><span class="p">)]</span>
+    <span class="n">newcols</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">(</span>
+        <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">y</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:])</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">oc_select</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">stats_dframe</span> <span class="o">=</span> <span class="n">stats_dframe</span><span class="p">[</span><span class="n">oc_select</span><span class="p">]</span><span class="o">.</span><span class="n">set_axis</span><span class="p">(</span>
+        <span class="n">newcols</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">&quot;columns&quot;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="n">stats_dframe</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">rename</span><span class="p">([</span><span class="s2">&quot;rank&quot;</span><span class="p">,</span> <span class="s2">&quot;thread&quot;</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">stats_dframe</span></div>
+
+
+<div class="viewcode-block" id="run_paramedir"><a class="viewcode-back" href="../../api_ll.html#pypop.extrae.run_paramedir">[docs]</a><span class="k">def</span> <span class="nf">run_paramedir</span><span class="p">(</span><span class="n">tracefile</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">outfile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Run paramedir on a tracefile</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tracefile: str</span>
+<span class="sd">        Path to `*.prv` tracefile from Extrae</span>
+<span class="sd">    config: str</span>
+<span class="sd">        Path to Paraver/Paramedir `*.cfg`</span>
+<span class="sd">    outfile: str or None</span>
+<span class="sd">        Path to output file. If None or &quot;&quot; a randomly named temporary file will</span>
+<span class="sd">        be used.</span>
+<span class="sd">    variables: dict of str:str</span>
+<span class="sd">        Dict of variables to replace in the config file.  For a key-value pair</span>
+<span class="sd">        &quot;key&quot;:val any occurrence of @key@ in the file will be replaced with</span>
+<span class="sd">        &quot;val&quot;</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    outfile: str</span>
+<span class="sd">        Path to the output file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tmpdir</span> <span class="o">=</span> <span class="n">mkdtemp</span><span class="p">()</span>
+
+    <span class="c1"># If variables is none, still sub with empty dict</span>
+    <span class="n">variables</span> <span class="o">=</span> <span class="n">variables</span> <span class="k">if</span> <span class="n">variables</span> <span class="k">else</span> <span class="p">{}</span>
+    <span class="n">tmp_config</span> <span class="o">=</span> <span class="n">_write_substituted_config</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">tmpdir</span><span class="p">,</span> <span class="n">variables</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">outfile</span><span class="p">:</span>
+        <span class="n">outfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">config</span><span class="p">))[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="n">paramedir_params</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;paramedir&quot;</span><span class="p">,</span> <span class="n">tracefile</span><span class="p">,</span> <span class="n">tmp_config</span><span class="p">,</span> <span class="n">outfile</span><span class="p">]</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">paramedir_params</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">sp</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">sp</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">outfile</span><span class="p">)</span> <span class="ow">or</span> <span class="n">result</span><span class="o">.</span><span class="n">returncode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="s2">&quot;Paramedir execution failed:</span><span class="se">\n</span><span class="si">{}</span><span class="s2">&quot;</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">decode</span><span class="p">())</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">outfile</span></div>
+
+
+<span class="k">def</span> <span class="nf">_write_substituted_config</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">tmpdir</span><span class="p">,</span> <span class="n">variables</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Copy config to tempfile, substituting placeholders from variables dict</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">newconfig</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">config</span><span class="p">))</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">newconfig</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">newfh</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">oldfh</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">oldfh</span><span class="p">:</span>
+            <span class="n">newline</span> <span class="o">=</span> <span class="n">line</span>
+            <span class="k">for</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">keymatch</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">match</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">variables</span><span class="p">:</span>
+                    <span class="n">newline</span> <span class="o">=</span> <span class="n">newline</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">match</span><span class="p">,</span> <span class="n">variables</span><span class="p">[</span><span class="n">match</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unhandled key </span><span class="si">{}</span><span class="s2"> in </span><span class="si">{}</span><span class="s2">&quot;</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">match</span><span class="p">,</span> <span class="n">config</span><span class="p">))</span>
+            <span class="n">newfh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">newline</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">newconfig</span>
+
+
+<span class="k">def</span> <span class="nf">_split_binline</span><span class="p">(</span><span class="n">binline</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Internal function to read the line of bin specs</span>
+
+<span class="sd">    Returns bin width and array of bin lower edges</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bin_strings</span> <span class="o">=</span> <span class="n">tabmatch</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">binline</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+
+    <span class="c1"># Grab the first float from each binspec, we&#39;ll return lower edges</span>
+    <span class="c1"># Note that commas must be stripped from numbers...</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromiter</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">floatmatch</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">x</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">bin_strings</span><span class="p">),</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+        <span class="n">bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">bin_strings</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">bins</span>
+
+
+<span class="k">def</span> <span class="nf">_split_countline</span><span class="p">(</span><span class="n">countline</span><span class="p">,</span> <span class="n">bins</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Internal function to read the line of counts</span>
+
+<span class="sd">    Returns count name and array of counts</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">num_values</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span>
+    <span class="n">count_strings</span> <span class="o">=</span> <span class="n">tabmatch</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">countline</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+
+    <span class="c1"># Must be at least one more string than values to be the label</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">count_strings</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">num_values</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Malformed count line&quot;</span><span class="p">)</span>
+
+    <span class="n">extra_strings</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">count_strings</span><span class="p">)</span> <span class="o">-</span> <span class="n">num_values</span>
+
+    <span class="k">if</span> <span class="n">extra_strings</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s2">&quot;Warning, got more label strings (</span><span class="si">{}</span><span class="s2">) than expected (1)&quot;</span>
+            <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">extra_strings</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="c1"># However many extra strings there are, join them to make the name</span>
+    <span class="n">count_name</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">count_strings</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">extra_strings</span><span class="p">])</span>
+
+    <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">count_strings</span><span class="p">[</span><span class="n">extra_strings</span><span class="p">:],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">count_name</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">bins</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="load_paraver_histdata"><a class="viewcode-back" href="../../api_ll.html#pypop.extrae.load_paraver_histdata">[docs]</a><span class="k">def</span> <span class="nf">load_paraver_histdata</span><span class="p">(</span><span class="n">hist_file</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read a Paraver histogram file and return pandas dataframe containing the</span>
+<span class="sd">    data.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    hist_file : str</span>
+<span class="sd">        Path to the histogram data file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">hist_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+        <span class="c1"># First line should be bins</span>
+        <span class="n">bins</span> <span class="o">=</span> <span class="n">_split_binline</span><span class="p">(</span><span class="n">fh</span><span class="o">.</span><span class="n">readline</span><span class="p">())</span>
+
+        <span class="c1"># Now process count lines</span>
+        <span class="k">for</span> <span class="n">count_line</span> <span class="ow">in</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">count_line</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+                <span class="n">name</span><span class="p">,</span> <span class="n">data_dict</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">_split_countline</span><span class="p">(</span><span class="n">count_line</span><span class="p">,</span> <span class="n">bins</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">data_dict</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, The Numerical Algorithms Group, Ltd..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

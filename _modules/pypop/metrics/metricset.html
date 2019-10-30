@@ -1,0 +1,574 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pypop.metrics.metricset &mdash; PyPOP 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="PyPOP 0.1 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../doc.html" class="icon icon-home"> PyPOP
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installing PyPOP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../layout.html">PyPOP Package Layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_hl.html">High Level API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_ll.html">Low Level API</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../doc.html">PyPOP</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../doc.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pypop.metrics.metricset</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pypop.metrics.metricset</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># SPDX-License-Identifier: BSD-3-Clause-Clear</span>
+<span class="c1"># Copyright (c) 2019, The Numerical Algorithms Group, Ltd. All rights reserved.</span>
+
+<span class="sd">&quot;&quot;&quot;Shared routines for different Metric Sets</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib.colors</span> <span class="k">as</span> <span class="nn">mc</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
+<span class="kn">import</span> <span class="nn">matplotlib.table</span> <span class="k">as</span> <span class="nn">mt</span>
+<span class="kn">import</span> <span class="nn">matplotlib.ticker</span> <span class="k">as</span> <span class="nn">mtick</span>
+
+<span class="kn">from</span> <span class="nn">..traceset</span> <span class="k">import</span> <span class="n">RunData</span>
+<span class="kn">from</span> <span class="nn">.._plotsettings</span> <span class="k">import</span> <span class="n">pypop_mpl_params</span><span class="p">,</span> <span class="n">figparams</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Metric&quot;</span><span class="p">,</span> <span class="s2">&quot;MetricSet&quot;</span><span class="p">]</span>
+
+
+<span class="k">class</span> <span class="nc">Metric</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    freq_corr: bool</span>
+<span class="sd">        Correct performance metrics based on average clock frequency (use to</span>
+<span class="sd">        correct for node dynamic clocking issues).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">displayname</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">key</span> <span class="o">=</span> <span class="n">key</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="n">level</span>
+
+        <span class="k">if</span> <span class="n">displayname</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">displayname</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;$\hookrightarrow$&quot;</span> <span class="o">*</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">level</span><span class="p">)</span> <span class="o">+</span> <span class="n">displayname</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">displayname</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;$\hookrightarrow$&quot;</span> <span class="o">*</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">level</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span>
+
+
+<span class="k">class</span> <span class="nc">MetricSet</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Calculate and plot POP MPI metrics</span>
+
+<span class="sd">    Statistics data is expected to have been produced with `collect_statistics()`</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    metric_data</span>
+<span class="sd">    metric_definition</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stats_dict</span><span class="p">,</span> <span class="n">ref_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        stats_dict: dict or list of `pd.DataFrame`</span>
+<span class="sd">            Statistics as collected with `collect_statistics()`. Dictionary keys will be</span>
+<span class="sd">            used as the dataframe index. If a list, a dict will be constructed by</span>
+<span class="sd">            enumeration.</span>
+
+<span class="sd">        ref_key: scalar</span>
+<span class="sd">            Key of stats_dict that should be used as the reference for calculation of</span>
+<span class="sd">            scaling values.  If not specified, the lexical minimum key will be used (i.e</span>
+<span class="sd">            ``min(stats_dict.keys())``.</span>
+
+<span class="sd">        sort_keys: bool</span>
+<span class="sd">            If true (default), lexically sort the keys in the returned DataFrame.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stats_dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">stats_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">stats_dict</span><span class="p">)}</span>
+
+        <span class="k">for</span> <span class="n">df</span> <span class="ow">in</span> <span class="n">stats_dict</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">RunData</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;stats_dict must be an iterable of &quot;</span> <span class="s2">&quot;pypop.traceset.RunData&quot;</span>
+                <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stats_dict</span> <span class="o">=</span> <span class="n">stats_dict</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_metric_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ref_key</span> <span class="o">=</span> <span class="n">ref_key</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sort_keys</span> <span class="o">=</span> <span class="n">sort_keys</span>
+
+    <span class="k">def</span> <span class="nf">_calculate_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="k">def</span> <span class="nf">_repr_html_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric_data</span><span class="o">.</span><span class="n">_repr_html_</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">metric_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;pandas.DataFrame: Calculated metric data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metric_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_metrics</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metric_data</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;List of :py:class:`pypop.metrics.Metric`: List of metrics that will be</span>
+<span class="sd">        calculated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metric_list</span>
+
+    <span class="k">def</span> <span class="nf">plot_table</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">columns_key</span><span class="o">=</span><span class="s2">&quot;Number of Processes&quot;</span><span class="p">,</span>
+        <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">columns_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">good_thres</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+        <span class="n">bad_thres</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">skipfirst</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">bwfirst</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Plot Metrics in colour coded Table</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        columns_key: str or None</span>
+<span class="sd">            Key to pandas dataframe column containing column heading data (default</span>
+<span class="sd">            &quot;Number of Processes&quot;). If `None` then the index will be used.</span>
+<span class="sd">        title: str or None</span>
+<span class="sd">            Title for table.</span>
+<span class="sd">        columns_label: str or None</span>
+<span class="sd">            Label to apply to column heading data (defaults to value of</span>
+<span class="sd">            `columns_key`).</span>
+<span class="sd">        good_thres: float [0.0 - 1.0]</span>
+<span class="sd">            Threshold above which cells are shaded green.</span>
+<span class="sd">        bad_thres: float [0.0 - 1.0]</span>
+<span class="sd">            Threshold below which cells are shaded red.</span>
+<span class="sd">        skipfirst: int</span>
+<span class="sd">            Skip output of first N columns of metric data (default 0).</span>
+<span class="sd">        bwfirst: int</span>
+<span class="sd">            Skip coloring of first N columns of metric data (default 0).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        figure: `matplotlib.figure.Figure`</span>
+<span class="sd">            Figure containing the metrics table.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">with</span> <span class="n">mpl</span><span class="o">.</span><span class="n">rc_context</span><span class="p">(</span><span class="n">pypop_mpl_params</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plot_table</span><span class="p">(</span>
+                <span class="n">columns_key</span><span class="p">,</span>
+                <span class="n">title</span><span class="p">,</span>
+                <span class="n">columns_label</span><span class="p">,</span>
+                <span class="n">good_thres</span><span class="p">,</span>
+                <span class="n">bad_thres</span><span class="p">,</span>
+                <span class="n">skipfirst</span><span class="p">,</span>
+                <span class="n">bwfirst</span><span class="p">,</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_plot_table</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">columns_key</span><span class="p">,</span>
+        <span class="n">title</span><span class="p">,</span>
+        <span class="n">columns_label</span><span class="p">,</span>
+        <span class="n">good_thres</span><span class="p">,</span>
+        <span class="n">bad_thres</span><span class="p">,</span>
+        <span class="n">skipfirst</span><span class="p">,</span>
+        <span class="n">bwfirst</span><span class="p">,</span>
+    <span class="p">):</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">columns_key</span><span class="p">:</span>
+            <span class="n">columns_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric_data</span><span class="o">.</span><span class="n">index</span>
+            <span class="k">if</span> <span class="n">columns_label</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">columns_label</span> <span class="o">=</span> <span class="s2">&quot;Index&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">columns_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric_data</span><span class="p">[</span><span class="n">columns_key</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">columns_label</span><span class="p">:</span>
+                <span class="n">columns_label</span> <span class="o">=</span> <span class="n">columns_key</span>
+
+        <span class="n">label_cell_width</span> <span class="o">=</span> <span class="mf">0.65</span>
+        <span class="n">body_cell_width</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">label_cell_width</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">columns_values</span><span class="p">)</span> <span class="o">-</span> <span class="n">skipfirst</span><span class="p">)</span>
+        <span class="n">body_cell_height</span> <span class="o">=</span> <span class="mf">0.1</span>
+        <span class="n">level_pad</span> <span class="o">=</span> <span class="mf">0.075</span>
+
+        <span class="n">cmap_points</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.690</span><span class="p">,</span> <span class="mf">0.074</span><span class="p">,</span> <span class="mf">0.074</span><span class="p">)),</span>
+            <span class="p">(</span><span class="n">bad_thres</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.690</span><span class="p">,</span> <span class="mf">0.074</span><span class="p">,</span> <span class="mf">0.074</span><span class="p">)),</span>
+            <span class="p">(</span><span class="n">good_thres</span> <span class="o">-</span> <span class="mf">1e-20</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.992</span><span class="p">,</span> <span class="mf">0.910</span><span class="p">,</span> <span class="mf">0.910</span><span class="p">)),</span>
+            <span class="p">(</span><span class="n">good_thres</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.910</span><span class="p">,</span> <span class="mf">0.992</span><span class="p">,</span> <span class="mf">0.910</span><span class="p">)),</span>
+            <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.074</span><span class="p">,</span> <span class="mf">0.690</span><span class="p">,</span> <span class="mf">0.074</span><span class="p">)),</span>
+        <span class="p">]</span>
+
+        <span class="n">metric_cmap</span> <span class="o">=</span> <span class="n">mc</span><span class="o">.</span><span class="n">LinearSegmentedColormap</span><span class="o">.</span><span class="n">from_list</span><span class="p">(</span>
+            <span class="s2">&quot;POP_Metrics&quot;</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="n">cmap_points</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mi">1</span>
+        <span class="p">)</span>
+
+        <span class="n">label_cell_kwargs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="s2">&quot;left&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="n">label_cell_width</span><span class="p">,</span>
+            <span class="s2">&quot;height&quot;</span><span class="p">:</span> <span class="n">body_cell_height</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">body_cell_kwargs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="s2">&quot;center&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="n">body_cell_width</span><span class="p">,</span>
+            <span class="s2">&quot;height&quot;</span><span class="p">:</span> <span class="n">body_cell_height</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figparams</span><span class="p">[</span><span class="s2">&quot;single.figsize&quot;</span><span class="p">])</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="p">[</span><span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span> <span class="k">for</span> <span class="n">fp</span> <span class="ow">in</span> <span class="n">figparams</span><span class="p">[</span><span class="s2">&quot;single.axlayout&quot;</span><span class="p">]]</span>
+        <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_axis_off</span><span class="p">()</span>
+
+        <span class="c1"># Create empty table using full bounding box of axes</span>
+        <span class="n">metric_table</span> <span class="o">=</span> <span class="n">mt</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">bbox</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">metric_table</span><span class="o">.</span><span class="n">auto_set_font_size</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">metric_table</span><span class="o">.</span><span class="n">set_fontsize</span><span class="p">(</span><span class="mi">9</span><span class="p">)</span>
+
+        <span class="n">metric_table</span><span class="o">.</span><span class="n">add_cell</span><span class="p">(</span>
+            <span class="mi">0</span><span class="p">,</span>
+            <span class="mi">0</span><span class="p">,</span>
+            <span class="n">width</span><span class="o">=</span><span class="n">label_cell_width</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="n">body_cell_height</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="n">columns_label</span><span class="p">,</span>
+            <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">col_num</span><span class="p">,</span> <span class="n">col_data</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">columns_values</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">col_num</span> <span class="o">&lt;=</span> <span class="n">skipfirst</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">metric_table</span><span class="o">.</span><span class="n">add_cell</span><span class="p">(</span>
+                <span class="mi">0</span><span class="p">,</span> <span class="n">col_num</span> <span class="o">-</span> <span class="n">skipfirst</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">col_data</span><span class="p">),</span> <span class="o">**</span><span class="n">body_cell_kwargs</span>
+            <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">row_num</span><span class="p">,</span> <span class="n">metric</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">metric_table</span><span class="o">.</span><span class="n">add_cell</span><span class="p">(</span>
+                <span class="n">row_num</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">metric</span><span class="o">.</span><span class="n">displayname</span><span class="p">,</span> <span class="o">**</span><span class="n">label_cell_kwargs</span>
+            <span class="p">)</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">PAD</span> <span class="o">=</span> <span class="mf">0.05</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">PAD</span> <span class="o">+=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">metric</span><span class="o">.</span><span class="n">level</span> <span class="o">&lt;=</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">level_pad</span> <span class="o">*</span> <span class="p">(</span><span class="n">metric</span><span class="o">.</span><span class="n">level</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">col_num</span><span class="p">,</span> <span class="n">col_data</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metric_data</span><span class="p">[</span><span class="n">metric</span><span class="o">.</span><span class="n">key</span><span class="p">],</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">col_num</span> <span class="o">&lt;=</span> <span class="n">skipfirst</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">col_num</span> <span class="o">&lt;=</span> <span class="n">bwfirst</span><span class="p">:</span>
+                    <span class="n">metric_table</span><span class="o">.</span><span class="n">add_cell</span><span class="p">(</span>
+                        <span class="n">row_num</span><span class="p">,</span>
+                        <span class="n">col_num</span><span class="p">,</span>
+                        <span class="n">text</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{:1.02f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">col_data</span><span class="p">),</span>
+                        <span class="o">**</span><span class="n">body_cell_kwargs</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">metric_table</span><span class="o">.</span><span class="n">add_cell</span><span class="p">(</span>
+                        <span class="n">row_num</span><span class="p">,</span>
+                        <span class="n">col_num</span> <span class="o">-</span> <span class="n">skipfirst</span><span class="p">,</span>
+                        <span class="n">text</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{:1.02f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">col_data</span><span class="p">),</span>
+                        <span class="n">facecolor</span><span class="o">=</span><span class="n">metric_cmap</span><span class="p">(</span><span class="n">col_data</span><span class="p">),</span>
+                        <span class="o">**</span><span class="n">body_cell_kwargs</span>
+                    <span class="p">)</span>
+
+        <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">metric_table</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">title</span><span class="p">:</span>
+            <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fig</span>
+
+    <span class="k">def</span> <span class="nf">plot_scaling</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">x_key</span><span class="o">=</span><span class="s2">&quot;Number of Processes&quot;</span><span class="p">,</span> <span class="n">y_key</span><span class="o">=</span><span class="s2">&quot;Speedup&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Plot scaling graph with region shading.</span>
+
+<span class="sd">        Plots scaling data from pandas dataframe(s). The 0-80% and 80-100% scaling</span>
+<span class="sd">        regions are shaded for visual identification.  Multiple scaling lines may be</span>
+<span class="sd">        plotted by passing a dict of dataframes.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x_key: scalar</span>
+<span class="sd">            Key of Dataframe column to use as x-axis.</span>
+
+<span class="sd">        y_key: scalar</span>
+<span class="sd">            key of Dataframe column to use as y-axis.</span>
+
+<span class="sd">        label: str or None</span>
+<span class="sd">            Label to be used for y-axis and data series. Defaults to `y_key`.</span>
+
+<span class="sd">        title: str or None</span>
+<span class="sd">            Optional title for plot.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        figure: matplotlib.figure.Figure</span>
+<span class="sd">            Figure containing complete scaling plot.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="n">mpl</span><span class="o">.</span><span class="n">rc_context</span><span class="p">(</span><span class="n">pypop_mpl_params</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plot_scaling</span><span class="p">(</span><span class="n">x_key</span><span class="p">,</span> <span class="n">y_key</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">title</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_plot_scaling</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_key</span><span class="p">,</span> <span class="n">y_key</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">title</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">y_key</span><span class="p">)</span>
+
+        <span class="n">cores_min</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">cores_max</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">y_max</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan</span>
+
+        <span class="n">cores_min</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nanmin</span><span class="p">([</span><span class="n">cores_min</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric_data</span><span class="p">[</span><span class="n">x_key</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()])</span>
+        <span class="n">cores_max</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nanmax</span><span class="p">([</span><span class="n">cores_max</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric_data</span><span class="p">[</span><span class="n">x_key</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()])</span>
+        <span class="n">y_max</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nanmax</span><span class="p">((</span><span class="n">y_max</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric_data</span><span class="p">[</span><span class="n">y_key</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span>
+
+        <span class="n">y_max</span> <span class="o">*=</span> <span class="mf">1.2</span>
+
+        <span class="n">x_margin</span> <span class="o">=</span> <span class="mf">0.02</span> <span class="o">*</span> <span class="n">cores_max</span>
+        <span class="n">ideal_scaling_cores</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">cores_min</span> <span class="o">-</span> <span class="n">x_margin</span><span class="p">,</span> <span class="n">cores_max</span> <span class="o">+</span> <span class="n">x_margin</span><span class="p">)</span>
+        <span class="n">ideal_scaling</span> <span class="o">=</span> <span class="n">ideal_scaling_cores</span> <span class="o">/</span> <span class="n">cores_min</span>
+        <span class="n">ideal_scaling_80pc</span> <span class="o">=</span> <span class="mf">0.2</span> <span class="o">+</span> <span class="mf">0.8</span> <span class="o">*</span> <span class="n">ideal_scaling</span>
+
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figparams</span><span class="p">[</span><span class="s2">&quot;single.figsize&quot;</span><span class="p">])</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">(</span><span class="n">figparams</span><span class="p">[</span><span class="s2">&quot;single.axlayout&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span>
+            <span class="n">ideal_scaling_cores</span><span class="p">,</span>
+            <span class="mi">0</span><span class="p">,</span>
+            <span class="n">ideal_scaling_80pc</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;80% Scaling&quot;</span><span class="p">,</span>
+            <span class="n">alpha</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="s2">&quot;g&quot;</span><span class="p">,</span>
+            <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span>
+            <span class="n">ideal_scaling_cores</span><span class="p">,</span>
+            <span class="n">ideal_scaling_80pc</span><span class="p">,</span>
+            <span class="n">ideal_scaling</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Ideal Scaling&quot;</span><span class="p">,</span>
+            <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="s2">&quot;g&quot;</span><span class="p">,</span>
+            <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">metric_data</span><span class="p">[</span><span class="n">x_key</span><span class="p">],</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">metric_data</span><span class="p">[</span><span class="n">y_key</span><span class="p">],</span>
+            <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span>
+            <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span>
+            <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span>
+            <span class="n">alpha</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">ideal_scaling_cores</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">ideal_scaling_cores</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">y_max</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Total cores&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_locator</span><span class="p">(</span><span class="n">mtick</span><span class="o">.</span><span class="n">FixedLocator</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metric_data</span><span class="p">[</span><span class="n">x_key</span><span class="p">],</span> <span class="mi">6</span><span class="p">))</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">title</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fig</span>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, The Numerical Algorithms Group, Ltd..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,567 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pypop.traceset &mdash; PyPOP 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="PyPOP 0.1 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../doc.html" class="icon icon-home"> PyPOP
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Installing PyPOP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../layout.html">PyPOP Package Layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api_hl.html">High Level API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api_ll.html">Low Level API</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../doc.html">PyPOP</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../doc.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>pypop.traceset</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pypop.traceset</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># SPDX-License-Identifier: BSD-3-Clause-Clear</span>
+<span class="c1"># Copyright (c) 2019, The Numerical Algorithms Group, Ltd. All rights reserved.</span>
+
+<span class="sd">&quot;&quot;&quot;\</span>
+<span class="sd">Trace Data Summary Statistics Calculator Classes</span>
+<span class="sd">------------------------------------------------</span>
+
+<span class="sd">PyPop provides classes for importing summary statistics for different profiling tools.</span>
+
+<span class="sd">Currently the following tools are supported:</span>
+
+<span class="sd">    * Extrae</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">dirname</span>
+<span class="kn">from</span> <span class="nn">warnings</span> <span class="k">import</span> <span class="n">warn</span>
+
+<span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="k">import</span> <span class="n">resource_filename</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">tqdm.auto</span> <span class="k">import</span> <span class="n">tqdm</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">return_first_arg</span> <span class="k">as</span> <span class="n">tqdm</span>
+
+<span class="kn">from</span> <span class="nn">.dimemas</span> <span class="k">import</span> <span class="n">dimemas_idealise</span>
+<span class="kn">from</span> <span class="nn">.extrae</span> <span class="k">import</span> <span class="n">paramedir_analyze</span><span class="p">,</span> <span class="n">chop_prv_to_roi</span><span class="p">,</span> <span class="n">remove_trace</span>
+<span class="kn">from</span> <span class="nn">.prv</span> <span class="k">import</span> <span class="n">get_prv_header_info</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">chunked_md5sum</span>
+
+
+<div class="viewcode-block" id="RunData"><a class="viewcode-back" href="../../api_hl.html#pypop.traceset.RunData">[docs]</a><span class="k">class</span> <span class="nc">RunData</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    metadata: :class:`~pypop.prv.TraceMetadata`</span>
+<span class="sd">        Trace metadata information</span>
+
+<span class="sd">    stats: `pd.DataFrame`</span>
+<span class="sd">        Trace statistics</span>
+
+<span class="sd">    tracefile: str</span>
+<span class="sd">        Tracefile path</span>
+
+<span class="sd">    chopped: bool</span>
+<span class="sd">        Was tracefile chopped to ROI before analysis?</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">stats</span><span class="p">,</span> <span class="n">tracefile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">chopped</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="n">metadata</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stats</span> <span class="o">=</span> <span class="n">stats</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tracefile</span> <span class="o">=</span> <span class="n">tracefile</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chopped</span> <span class="o">=</span> <span class="n">chopped</span>
+
+    <span class="k">def</span> <span class="nf">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">chopped</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_n</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">_repr_html_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">_repr_html_</span><span class="p">()</span></div>
+
+
+<span class="n">base_configs</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">k</span><span class="p">:</span> <span class="n">resource_filename</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="p">{</span>
+        <span class="s2">&quot;Serial Useful Computation&quot;</span><span class="p">:</span> <span class="s2">&quot;cfgs/serial_useful_computation.cfg&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Total Runtime&quot;</span><span class="p">:</span> <span class="s2">&quot;cfgs/total_runtime.cfg&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Useful Instructions&quot;</span><span class="p">:</span> <span class="s2">&quot;cfgs/useful_instructions.cfg&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Useful Cycles&quot;</span><span class="p">:</span> <span class="s2">&quot;cfgs/useful_cycles.cfg&quot;</span><span class="p">,</span>
+    <span class="p">}</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="n">omp_configs</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">k</span><span class="p">:</span> <span class="n">resource_filename</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="p">{</span>
+        <span class="s2">&quot;OpenMP Total Runtime&quot;</span><span class="p">:</span> <span class="s2">&quot;cfgs/omp_total_runtime.cfg&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;OpenMP Useful Computation&quot;</span><span class="p">:</span> <span class="s2">&quot;cfgs/omp_useful_computation.cfg&quot;</span><span class="p">,</span>
+    <span class="p">}</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="n">ideal_configs</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">k</span><span class="p">:</span> <span class="n">resource_filename</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="p">{</span>
+        <span class="s2">&quot;Ideal Useful Computation&quot;</span><span class="p">:</span> <span class="s2">&quot;cfgs/total_useful_computation.cfg&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Ideal Runtime&quot;</span><span class="p">:</span> <span class="s2">&quot;cfgs/total_runtime.cfg&quot;</span><span class="p">,</span>
+    <span class="p">}</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="TraceSet"><a class="viewcode-back" href="../../api_hl.html#pypop.traceset.TraceSet">[docs]</a><span class="k">class</span> <span class="nc">TraceSet</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;A set of tracefiles for collective analysis</span>
+
+<span class="sd">    Collect statistics from provided trace files, currently only Extrae .prv files are</span>
+<span class="sd">    supported.</span>
+
+<span class="sd">    This are the necessary statistics for calculating the POP metrics (including hybrid</span>
+<span class="sd">    metrics) for the provided application traces. Data caching is used to improve</span>
+<span class="sd">    performance of subsequent analysis runs, with md5 checksumming used to detect</span>
+<span class="sd">    tracefile changes. (This is particularly useful for large trace files where</span>
+<span class="sd">    calculation of statistics can take a long time).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path_list: str or iterable of str</span>
+<span class="sd">       String or iterable of strings providing path(s) to the tracefiles of interest.</span>
+
+<span class="sd">    cache_stats: bool</span>
+<span class="sd">        Cache the calculated statistics as a pickled data file in the trace</span>
+<span class="sd">        directory, along with the checksum of the source trace file. (Default True)</span>
+
+<span class="sd">    ignore_cache: bool</span>
+<span class="sd">        By default, if a cache file is present for a given trace it will be used.</span>
+<span class="sd">        This behaviour can be overridden by setting ignore_cache=True.</span>
+
+<span class="sd">    chop_to_roi: bool</span>
+<span class="sd">        If true, cut trace down to the section bracketed by the first pair of</span>
+<span class="sd">        Extrae_startup and Extrae_shutdown commands. Default false.</span>
+
+<span class="sd">    no_progress: bool</span>
+<span class="sd">        If true, disable the use of tqdm progress bar</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">path_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">cache_stats</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">ignore_cache</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">chop_to_roi</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">no_progress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="c1"># Setup data structures</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">traces</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+        <span class="c1"># Add traces</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_traces</span><span class="p">(</span><span class="n">path_list</span><span class="p">,</span> <span class="n">cache_stats</span><span class="p">,</span> <span class="n">ignore_cache</span><span class="p">,</span> <span class="n">chop_to_roi</span><span class="p">,</span> <span class="n">no_progress</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TraceSet.add_traces"><a class="viewcode-back" href="../../api_hl.html#pypop.traceset.TraceSet.add_traces">[docs]</a>    <span class="k">def</span> <span class="nf">add_traces</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">path_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">cache_stats</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">ignore_cache</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">chop_to_roi</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">no_progress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Collect statistics from provided trace files, currently only Extrae .prv files</span>
+<span class="sd">        are supported.</span>
+
+<span class="sd">        This are the necessary statistics for calculating the POP metrics (including</span>
+<span class="sd">        hybrid metrics) for the provided application traces. Data caching is used to</span>
+<span class="sd">        improve performance of subsequent analysis runs, with md5 checksumming used to</span>
+<span class="sd">        detect tracefile changes. (This is particularly useful for large trace files</span>
+<span class="sd">        where calculation of statistics can take a long time).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        path_list: str or iterable of str</span>
+<span class="sd">            String or iterable of strings providing path(s) to the tracefiles of</span>
+<span class="sd">            interest.</span>
+
+<span class="sd">        cache_stats: bool</span>
+<span class="sd">            Cache the calculated statistics as a pickled data file in the trace</span>
+<span class="sd">            directory, along with the checksum of the source trace file. (Default True)</span>
+
+<span class="sd">        ignore_cache: bool</span>
+<span class="sd">            By default, if a cache file is present for a given trace it will be used.</span>
+<span class="sd">            This behaviour can be overridden by setting ignore_cache=True.</span>
+
+<span class="sd">        chop_to_roi: bool</span>
+<span class="sd">            If true, cut trace down to the section bracketed by the first pair of</span>
+<span class="sd">            Extrae_startup and Extrae_shutdown commands. Default false.</span>
+
+<span class="sd">        no_progress: bool</span>
+<span class="sd">            If true, disable the use of tqdm progress bar</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path_list</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">path_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">path_list</span><span class="p">]</span>
+        <span class="c1"># Try to get a list length for tqdm</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">npath</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">path_list</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="n">npath</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">path_list</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">path_list</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="n">npath</span><span class="p">,</span> <span class="n">disable</span><span class="o">=</span><span class="n">no_progress</span><span class="p">,</span> <span class="n">leave</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">traces</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_collect_statistics</span><span class="p">(</span>
+                        <span class="n">path</span><span class="p">,</span> <span class="n">cache_stats</span><span class="p">,</span> <span class="n">ignore_cache</span><span class="p">,</span> <span class="n">chop_to_roi</span>
+                    <span class="p">)</span>
+                <span class="p">)</span></div>
+
+<div class="viewcode-block" id="TraceSet.by_key"><a class="viewcode-back" href="../../api_hl.html#pypop.traceset.TraceSet.by_key">[docs]</a>    <span class="k">def</span> <span class="nf">by_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a dictionary of traces with given key</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key: func</span>
+<span class="sd">            A function which takes a RunData object and returns a valid dictionary key</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        traces_by_key: dict</span>
+<span class="sd">            A dictionary of traces organised by the requested key</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="p">{</span><span class="n">key</span><span class="p">(</span><span class="n">v</span><span class="p">):</span> <span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">traces</span><span class="p">}</span></div>
+
+<div class="viewcode-block" id="TraceSet.by_commsize"><a class="viewcode-back" href="../../api_hl.html#pypop.traceset.TraceSet.by_commsize">[docs]</a>    <span class="k">def</span> <span class="nf">by_commsize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a dictionary of traces keyed by commsize</span>
+
+<span class="sd">        This is a helper function equivalent to</span>
+
+<span class="sd">        by_key(lambda x: x.metadata.application_layout.commsize)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        traces_by_key: dict</span>
+<span class="sd">            A dictionary of traces organised by the requested key</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">by_key</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">application_layout</span><span class="o">.</span><span class="n">commsize</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_collect_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trace</span><span class="p">,</span> <span class="n">cache_stats</span><span class="p">,</span> <span class="n">ignore_cache</span><span class="p">,</span> <span class="n">chop_to_roi</span><span class="p">):</span>
+
+        <span class="c1"># Calculate a checksum for cache purposes</span>
+        <span class="n">csum</span> <span class="o">=</span> <span class="n">chunked_md5sum</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+        <span class="n">trace_dir</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+        <span class="n">pkl_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">trace_dir</span><span class="p">,</span> <span class="s2">&quot;stats_</span><span class="si">{}</span><span class="s2">.pkl&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">csum</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ignore_cache</span><span class="p">:</span>
+            <span class="c1"># If we can, load the cached version</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">pkl_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+                    <span class="n">metadata</span><span class="p">,</span> <span class="n">stats</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+                    <span class="c1"># Quick sanity check</span>
+                    <span class="k">if</span> <span class="p">(</span>
+                        <span class="n">metadata</span><span class="o">.</span><span class="n">application_layout</span><span class="o">.</span><span class="n">commsize</span>
+                        <span class="o">!=</span> <span class="n">get_prv_header_info</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span><span class="o">.</span><span class="n">application_layout</span><span class="o">.</span><span class="n">commsize</span>
+                    <span class="p">):</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Mismatched cache -- hash collision?&quot;</span><span class="p">)</span>
+
+                    <span class="c1"># Assign data from pickle and do next file</span>
+                    <span class="k">return</span> <span class="n">RunData</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">stats</span><span class="p">,</span> <span class="n">trace</span><span class="p">)</span>
+
+            <span class="c1"># Otherwise continue and analyze the file</span>
+            <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+        <span class="c1"># If ignoring cache, or cache not present, do the analysis</span>
+        <span class="k">if</span> <span class="n">cache_stats</span><span class="p">:</span>
+            <span class="n">cache_stats</span> <span class="o">=</span> <span class="n">pkl_path</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analyze_tracefile</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">cache_stats</span><span class="p">,</span> <span class="n">chop_to_roi</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_analyze_tracefile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trace</span><span class="p">,</span> <span class="n">cache_path</span><span class="p">,</span> <span class="n">chop_to_roi</span><span class="p">):</span>
+
+        <span class="n">metadata</span> <span class="o">=</span> <span class="n">get_prv_header_info</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">chop_to_roi</span><span class="p">:</span>
+            <span class="n">cut_trace</span> <span class="o">=</span> <span class="n">chop_prv_to_roi</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cut_trace</span> <span class="o">=</span> <span class="n">trace</span>
+
+        <span class="n">stats</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">paramedir_analyze</span><span class="p">(</span>
+                <span class="n">cut_trace</span><span class="p">,</span> <span class="n">cfg</span><span class="p">,</span> <span class="n">index_by_thread</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">statistic_names</span><span class="o">=</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">cfg</span> <span class="ow">in</span> <span class="n">base_configs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">]</span>
+
+        <span class="n">hybrid</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">omp_stats</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">paramedir_analyze</span><span class="p">(</span>
+                    <span class="n">cut_trace</span><span class="p">,</span> <span class="n">cfg</span><span class="p">,</span> <span class="n">index_by_thread</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">statistic_names</span><span class="o">=</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">cfg</span> <span class="ow">in</span> <span class="n">omp_configs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="p">]</span>
+            <span class="n">stats</span> <span class="o">+=</span> <span class="n">omp_stats</span>
+            <span class="n">hybrid</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="c1"># Remember to clean up after ourselves</span>
+        <span class="k">if</span> <span class="n">chop_to_roi</span><span class="p">:</span>
+            <span class="n">remove_trace</span><span class="p">(</span><span class="n">cut_trace</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ideal_trace</span> <span class="o">=</span> <span class="n">dimemas_idealise</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">chop_to_roi</span><span class="p">:</span>
+                <span class="n">cut_ideal_trace</span> <span class="o">=</span> <span class="n">chop_prv_to_roi</span><span class="p">(</span><span class="n">ideal_trace</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cut_ideal_trace</span> <span class="o">=</span> <span class="n">ideal_trace</span>
+            <span class="n">stats</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="n">paramedir_analyze</span><span class="p">(</span>
+                        <span class="n">cut_ideal_trace</span><span class="p">,</span>
+                        <span class="n">cfg</span><span class="p">,</span>
+                        <span class="n">index_by_thread</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">statistic_names</span><span class="o">=</span><span class="p">[</span><span class="n">name</span><span class="p">],</span>
+                    <span class="p">)</span>
+                    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">cfg</span> <span class="ow">in</span> <span class="n">ideal_configs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+            <span class="c1"># Keeping things tidy</span>
+            <span class="k">if</span> <span class="n">chop_to_roi</span><span class="p">:</span>
+                <span class="n">remove_trace</span><span class="p">(</span><span class="n">cut_ideal_trace</span><span class="p">)</span>
+            <span class="n">remove_trace</span><span class="p">(</span><span class="n">ideal_trace</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">RuntimeError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;Failed to run Dimemas:</span><span class="se">\n</span><span class="si">{}</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;Continuing with reduced MPI detail.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="n">stats</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">stats</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;IPC&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Useful Instructions&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Useful Cycles&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">hybrid</span><span class="p">:</span>
+            <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Serial Useful Computation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">:]</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Useful Computation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Serial Useful Computation&quot;</span><span class="p">]</span>
+        <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Non-MPI Runtime&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Serial Useful Computation&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">hybrid</span><span class="p">:</span>
+            <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Useful Computation&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;OpenMP Useful Computation&quot;</span><span class="p">]</span>
+            <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Non-MPI Runtime&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;OpenMP Total Runtime&quot;</span><span class="p">]</span>
+
+        <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Frequency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Useful Cycles&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;Total Useful Computation&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">cache_path</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">cache_path</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+                <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">((</span><span class="n">metadata</span><span class="p">,</span> <span class="n">stats</span><span class="p">),</span> <span class="n">fh</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">RunData</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">stats</span><span class="p">,</span> <span class="n">trace</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, The Numerical Algorithms Group, Ltd..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

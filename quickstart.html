@@ -1,0 +1,371 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Quickstart Guide &mdash; PyPOP 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="PyPOP 0.1 documentation" href="index.html"/>
+        <link rel="next" title="PyPOP Package Layout" href="layout.html"/>
+        <link rel="prev" title="Installing PyPOP" href="install.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="doc.html" class="icon icon-home"> PyPOP
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing PyPOP</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quickstart Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#analysis-using-ipython-notebooks">Analysis using IPython Notebooks</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#running-the-mpi-metrics-example-notebook">Running the MPI Metrics Example Notebook</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#running-the-hybrid-metrics-example-notebook">Running the Hybrid Metrics Example Notebook</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#command-line-scripts">Command Line Scripts</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mpi-strong-scaling-metrics">MPI Strong Scaling Metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mpi-openmp-hybrid-strong-scaling-metrics">MPI/OpenMP Hybrid Strong Scaling Metrics</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="layout.html">PyPOP Package Layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_hl.html">High Level API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_ll.html">Low Level API</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="doc.html">PyPOP</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="doc.html">Docs</a> &raquo;</li>
+        
+      <li>Quickstart Guide</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/quickstart.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="quickstart-guide">
+<h1>Quickstart Guide<a class="headerlink" href="#quickstart-guide" title="Permalink to this headline">¶</a></h1>
+<p>Jupyter notebooks are intended to be the primary interface to PyPOP.  This guide uses several
+example notebooks to demonstrate the core functionality of PyPOP for calculation of the POP Metrics
+as well as advanced analysis of trace files.</p>
+<div class="section" id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<p>This guide assumes that you have successfully <a class="reference internal" href="install.html"><span class="doc">installed PyPOP</span></a> and are able
+to open <a class="reference external" href="https://jupyter.org/install">Jupyter (IPython) notebooks</a>.</p>
+<p>In addition, you will need a copy of the examples. These are located in the examples directory,
+which can be found using the <cite>pypop.examples</cite> module:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ python -m pypop.examples
+/home/phil/repos/pypop/pypop/examples
+</pre></div>
+</div>
+<p>Copy these to directory where you have read permissions, e.g.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ cp -vr <span class="k">$(</span>python -m pypop.examples<span class="k">)</span> <span class="nv">$HOME</span>/pypop_examples
+</pre></div>
+</div>
+</div>
+<div class="section" id="analysis-using-ipython-notebooks">
+<h2>Analysis using IPython Notebooks<a class="headerlink" href="#analysis-using-ipython-notebooks" title="Permalink to this headline">¶</a></h2>
+<p>Example notebooks are provided for the different analysis types</p>
+<div class="section" id="running-the-mpi-metrics-example-notebook">
+<h3>Running the MPI Metrics Example Notebook<a class="headerlink" href="#running-the-mpi-metrics-example-notebook" title="Permalink to this headline">¶</a></h3>
+<p>To open the notebook you can either start a <a class="reference external" href="https://jupyter.readthedocs.io/en/latest/running.html">Jupyter session</a>, and navigate to the
+examples directory you created, or open the notebook directly from the console:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ <span class="nb">cd</span> <span class="nv">$HOME</span>/pypop_examples
+$ jupyter notebook MPI<span class="se">\ </span>Metrics<span class="se">\ </span>Example.ipynb
+</pre></div>
+</div>
+<p>This demonstrates basic, in-notebook use of the PyPOP tool for generating the POP MPI metrics, and
+shows how the underlying data can be accessed as Pandas Dataframes.  The example notebook is
+self-documenting, and code cells can be run directly in the browser using <kbd class="kbd docutils literal notranslate">shift</kbd> +
+<kbd class="kbd docutils literal notranslate">enter</kbd>.</p>
+</div>
+<div class="section" id="running-the-hybrid-metrics-example-notebook">
+<h3>Running the Hybrid Metrics Example Notebook<a class="headerlink" href="#running-the-hybrid-metrics-example-notebook" title="Permalink to this headline">¶</a></h3>
+<p>There is also a hybrid metrics example notebook, which</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ <span class="nb">cd</span> <span class="nv">$HOME</span>/pypop_examples
+$ jupyter notebook Hybrid<span class="se">\ </span>Metrics<span class="se">\ </span>Example.ipynb
+</pre></div>
+</div>
+<p>This is a slightly more detailed example, showing how the code can be used to perform a more in
+depth analysis that is supported by the command line version of the tool.</p>
+</div>
+</div>
+<div class="section" id="command-line-scripts">
+<h2>Command Line Scripts<a class="headerlink" href="#command-line-scripts" title="Permalink to this headline">¶</a></h2>
+<p>To quickly generate strong scaling metrics for MPI and MPI/OpenMP hybrid codes on the command line,
+some convenience scripts are provided.</p>
+<div class="section" id="mpi-strong-scaling-metrics">
+<h3>MPI Strong Scaling Metrics<a class="headerlink" href="#mpi-strong-scaling-metrics" title="Permalink to this headline">¶</a></h3>
+<p>The <cite>pypop-mpi-metrics</cite> script takes a list of trace files and calculates the POP MPI strong
+scalings metrics.  By default output is provided in the form of a csv file containing the metrics,
+along with images with the metric table and a speedup scaling plot.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ pypop-mpi-metrics -h
+usage: pypop-mpi-metrics [-h] [--no-csv] [--no-metric-table]
+                         [--no-scaling-plot] [--csv CSV]
+                         [--metric-table METRIC_TABLE]
+                         [--scaling-plot SCALING_PLOT]
+                         [--metric-title METRIC_TITLE]
+                         [--scaling-title SCALING_TITLE]
+                         trace [trace ...]
+
+Calculate POP MPI strong scaling metrics
+
+positional arguments:
+  trace                 tracefiles to analyze
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --no-csv              Don&#39;t save metrics csv
+  --no-metric-table     Don&#39;t save table plot
+  --no-scaling-plot     Don&#39;t save scaling plot
+  --csv CSV, -c CSV     path to save metric csv
+  --metric-table METRIC_TABLE, -m METRIC_TABLE
+                        path to save table plot
+  --scaling-plot SCALING_PLOT, -s SCALING_PLOT
+                        path to save scaling plot
+  --metric-title METRIC_TITLE
+                        Title of metric table
+  --scaling-title SCALING_TITLE
+                        Title of scaling plot
+</pre></div>
+</div>
+</div>
+<div class="section" id="mpi-openmp-hybrid-strong-scaling-metrics">
+<h3>MPI/OpenMP Hybrid Strong Scaling Metrics<a class="headerlink" href="#mpi-openmp-hybrid-strong-scaling-metrics" title="Permalink to this headline">¶</a></h3>
+<p>The <cite>pypop-hybrid-metrics</cite> script takes a list of trace files and calculates prototype hybrid
+MPI+OpenMP strong scalings metrics.  By default output is provided in the form of a csv file
+containing the metrics, along with images with the metric table and a speedup scaling plot.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ pypop-hybrid-metrics -h
+usage: pypop-hybrid-metrics [-h] [--no-csv] [--no-metric-table]
+                            [--no-scaling-plot] [--csv CSV]
+                            [--metric-table METRIC_TABLE]
+                            [--scaling-plot SCALING_PLOT]
+                            [--metric-title METRIC_TITLE]
+                            [--scaling-title SCALING_TITLE]
+                            trace [trace ...]
+
+Calculate POP MPI strong scaling metrics
+
+positional arguments:
+  trace                 tracefiles to analyze
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --no-csv              Don&#39;t save metrics csv
+  --no-metric-table     Don&#39;t save table plot
+  --no-scaling-plot     Don&#39;t save scaling plot
+  --csv CSV, -c CSV     path to save metric csv
+  --metric-table METRIC_TABLE, -m METRIC_TABLE
+                        path to save table plot
+  --scaling-plot SCALING_PLOT, -s SCALING_PLOT
+                        path to save scaling plot
+  --metric-title METRIC_TITLE
+                        Title of metric table
+  --scaling-title SCALING_TITLE
+                        Title of scaling plot
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="layout.html" class="btn btn-neutral float-right" title="PyPOP Package Layout" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="install.html" class="btn btn-neutral" title="Installing PyPOP" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, The Numerical Algorithms Group, Ltd..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

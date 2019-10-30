@@ -1,0 +1,550 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pypop.prv &mdash; PyPOP 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="PyPOP 0.1 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../doc.html" class="icon icon-home"> PyPOP
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Installing PyPOP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../layout.html">PyPOP Package Layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api_hl.html">High Level API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api_ll.html">Low Level API</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../doc.html">PyPOP</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../doc.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>pypop.prv</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pypop.prv</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># SPDX-License-Identifier: BSD-3-Clause-Clear</span>
+<span class="c1"># Copyright (c) 2019, The Numerical Algorithms Group, Ltd. All rights reserved.</span>
+
+<span class="sd">&quot;&quot;&quot;\</span>
+<span class="sd">PRV Trace Loader</span>
+<span class="sd">----------------</span>
+
+<span class="sd">Support for directly loading PRV trace data as Pandas dataframes</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span><span class="p">,</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">csv</span> <span class="k">import</span> <span class="n">writer</span> <span class="k">as</span> <span class="n">csvwriter</span>
+<span class="kn">import</span> <span class="nn">gzip</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="k">import</span> <span class="n">StringIO</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">tqdm.auto</span> <span class="k">import</span> <span class="n">tqdm</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">return_first_arg</span> <span class="k">as</span> <span class="n">tqdm</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># Event states - hopefully these will not change(!)</span>
+<span class="n">K_STATE_RUNNING</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
+<span class="n">K_EVENT_OMP_PARALLEL</span> <span class="o">=</span> <span class="s2">&quot;60000001&quot;</span>
+
+<span class="n">Trace</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;Trace&quot;</span><span class="p">,</span> <span class="n">field_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;info&quot;</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">])</span>
+
+<span class="n">TraceMetadata</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
+    <span class="s2">&quot;TraceMetadata&quot;</span><span class="p">,</span>
+    <span class="n">field_names</span><span class="o">=</span><span class="p">[</span>
+        <span class="s2">&quot;captured&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ns_elapsed&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;nodes&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;procs_per_node&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;num_appl&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;application_layout&quot;</span><span class="p">,</span>
+    <span class="p">],</span>
+<span class="p">)</span>
+
+<span class="n">ApplicationLayout</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
+    <span class="s2">&quot;ApplicationLayout&quot;</span><span class="p">,</span> <span class="n">field_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;commsize&quot;</span><span class="p">,</span> <span class="s2">&quot;rank_threads&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="zipopen"><a class="viewcode-back" href="../../api_ll.html#pypop.prv.zipopen">[docs]</a><span class="k">def</span> <span class="nf">zipopen</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">modespec</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">modespec</span><span class="p">)</span><span class="o">.</span><span class="n">readline</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">modespec</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">modespec</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PRV"><a class="viewcode-back" href="../../api_ll.html#pypop.prv.PRV">[docs]</a><span class="k">class</span> <span class="nc">PRV</span><span class="p">:</span>
+
+    <span class="n">record_types</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;state&quot;</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;event&quot;</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;comm&quot;</span><span class="p">)])</span>
+
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;state&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;task&quot;</span><span class="p">,</span> <span class="s2">&quot;thread&quot;</span><span class="p">,</span> <span class="s2">&quot;cpu&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="s2">&quot;endtime&quot;</span><span class="p">,</span> <span class="s2">&quot;state&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;event&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;task&quot;</span><span class="p">,</span> <span class="s2">&quot;thread&quot;</span><span class="p">,</span> <span class="s2">&quot;cpu&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="s2">&quot;event&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;comm&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">coltypes</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;state&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;task&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span>
+            <span class="s2">&quot;thread&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span>
+            <span class="s2">&quot;cpu&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span>
+            <span class="s2">&quot;begin&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">,</span>
+            <span class="s2">&quot;end&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">,</span>
+            <span class="s2">&quot;state&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;event&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;task&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span>
+            <span class="s2">&quot;thread&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span>
+            <span class="s2">&quot;cpu&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span>
+            <span class="s2">&quot;begin&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">,</span>
+            <span class="s2">&quot;event&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span>
+            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;comm&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prv_path</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">prv_path</span> <span class="ow">and</span> <span class="n">prv_path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.prv&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_parse_prv</span><span class="p">(</span><span class="n">prv_path</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_load_pickle</span><span class="p">(</span><span class="n">prv_path</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Not a prv or valid pickle&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_parse_prv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prv_path</span><span class="p">):</span>
+
+        <span class="n">temp_data</span> <span class="o">=</span> <span class="p">[</span><span class="n">StringIO</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">PRV</span><span class="o">.</span><span class="n">record_types</span><span class="p">))]</span>
+        <span class="n">temp_writers</span> <span class="o">=</span> <span class="p">[</span><span class="n">csvwriter</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">temp_data</span><span class="p">]</span>
+
+        <span class="n">line_processors</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">k</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_process_</span><span class="si">{}</span><span class="s2">line&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">PRV</span><span class="o">.</span><span class="n">record_types</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span>
+
+        <span class="k">with</span> <span class="n">zipopen</span><span class="p">(</span><span class="n">prv_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">prv_fh</span><span class="p">:</span>
+            <span class="n">headerline</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">prv_fh</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="n">_parse_paraver_headerline</span><span class="p">(</span><span class="n">headerline</span><span class="p">)</span>
+
+            <span class="c1"># Skip the communicator lines for now</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">skiplines</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">headerline</span><span class="p">[</span><span class="n">headerline</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;),&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span> <span class="p">:])</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="n">skiplines</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">skiplines</span><span class="p">):</span>
+                <span class="nb">next</span><span class="p">(</span><span class="n">prv_fh</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">prv_fh</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)]</span>
+                <span class="n">line_processors</span><span class="p">[</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]](</span><span class="n">line</span><span class="p">,</span> <span class="n">temp_writers</span><span class="p">[</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+
+            <span class="k">for</span> <span class="n">iattr</span><span class="p">,</span> <span class="n">attrname</span> <span class="ow">in</span> <span class="n">PRV</span><span class="o">.</span><span class="n">record_types</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">temp_data</span><span class="p">[</span><span class="n">iattr</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="nb">setattr</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="p">,</span>
+                        <span class="n">attrname</span><span class="p">,</span>
+                        <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
+                            <span class="n">temp_data</span><span class="p">[</span><span class="n">iattr</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span>
+                            <span class="n">names</span><span class="o">=</span><span class="n">PRV</span><span class="o">.</span><span class="n">colnames</span><span class="p">[</span><span class="n">attrname</span><span class="p">],</span>
+                            <span class="n">dtype</span><span class="o">=</span><span class="n">PRV</span><span class="o">.</span><span class="n">coltypes</span><span class="p">[</span><span class="n">attrname</span><span class="p">],</span>
+                        <span class="p">),</span>
+                    <span class="p">)</span>
+                    <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attrname</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span>
+                        <span class="p">[</span><span class="s2">&quot;task&quot;</span><span class="p">,</span> <span class="s2">&quot;thread&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span>
+                    <span class="p">)</span>
+                    <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attrname</span><span class="p">)</span><span class="o">.</span><span class="n">sort_index</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">except</span> <span class="n">pd</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">EmptyDataError</span><span class="p">:</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attrname</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_process_stateline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">writer</span><span class="p">):</span>
+        <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span><span class="n">line</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">line</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">line</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="n">line</span><span class="p">[</span><span class="mi">6</span><span class="p">],</span> <span class="n">line</span><span class="p">[</span><span class="mi">7</span><span class="p">]])</span>
+
+    <span class="k">def</span> <span class="nf">_process_eventline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">writer</span><span class="p">):</span>
+        <span class="n">row_start</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">line</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">line</span><span class="p">[</span><span class="mi">5</span><span class="p">]]</span>
+        <span class="n">nrows</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">-</span> <span class="mi">6</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="p">[</span><span class="n">row_start</span> <span class="o">+</span> <span class="n">line</span><span class="p">[</span><span class="mi">6</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">x</span> <span class="p">:</span> <span class="mi">8</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nrows</span><span class="p">)]</span>
+        <span class="n">writer</span><span class="o">.</span><span class="n">writerows</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_process_commline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">writer</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+<div class="viewcode-block" id="PRV.save"><a class="viewcode-back" href="../../api_ll.html#pypop.prv.PRV.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="n">savedata</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">,</span> <span class="n">compresslevel</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">savedata</span><span class="p">,</span> <span class="n">fh</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_load_pickle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">comm</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid pickle -- missing data&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="PRV.profile_openmp_regions"><a class="viewcode-back" href="../../api_ll.html#pypop.prv.PRV.profile_openmp_regions">[docs]</a>    <span class="k">def</span> <span class="nf">profile_openmp_regions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">no_progress</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+        <span class="c1"># First generate appropriate event subsets grouped by rank</span>
+        <span class="n">rank_state_groups</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+            <span class="s2">&quot;state == </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">K_STATE_RUNNING</span><span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span>
+            <span class="n">level</span><span class="o">=</span><span class="s2">&quot;task&quot;</span>
+        <span class="p">)</span>  <span class="c1"># State transitions</span>
+        <span class="n">rank_event_groups</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+            <span class="s2">&quot;event == </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">K_EVENT_OMP_PARALLEL</span><span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span>
+            <span class="n">level</span><span class="o">=</span><span class="s2">&quot;task&quot;</span>
+        <span class="p">)</span>  <span class="c1"># OMP regions</span>
+
+        <span class="c1"># Now start collecting OMP regions</span>
+        <span class="n">rank_stats</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">irank</span><span class="p">,</span> <span class="n">rank_events</span><span class="p">),</span> <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">rank_states</span><span class="p">)</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
+            <span class="nb">zip</span><span class="p">(</span><span class="n">rank_event_groups</span><span class="p">,</span> <span class="n">rank_state_groups</span><span class="p">),</span>
+            <span class="n">total</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">application_layout</span><span class="o">.</span><span class="n">commsize</span><span class="p">,</span>
+            <span class="n">disable</span><span class="o">=</span><span class="n">no_progress</span><span class="p">,</span>
+            <span class="n">leave</span><span class="o">=</span><span class="kc">None</span>
+        <span class="p">):</span>
+
+            <span class="c1"># OpenMP events mark region start/end on master thread</span>
+            <span class="n">thread_events</span> <span class="o">=</span> <span class="n">rank_events</span><span class="o">.</span><span class="n">droplevel</span><span class="p">(</span><span class="s2">&quot;task&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">alltrue</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">thread_events</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Event timings are non-monotonic&quot;</span><span class="p">)</span>
+
+            <span class="n">region_starts</span> <span class="o">=</span> <span class="n">thread_events</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">thread_events</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span>
+            <span class="n">region_ends</span> <span class="o">=</span> <span class="n">thread_events</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">thread_events</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>
+            <span class="n">region_lengths</span> <span class="o">=</span> <span class="n">region_ends</span> <span class="o">-</span> <span class="n">region_starts</span>
+            <span class="n">region_computation_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">region_starts</span><span class="p">)</span>
+            <span class="n">region_computation_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">region_starts</span><span class="p">)</span>
+
+            <span class="c1"># Iterate over threads to get max, average</span>
+            <span class="n">thread_state_groups</span> <span class="o">=</span> <span class="n">rank_states</span><span class="o">.</span><span class="n">droplevel</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s2">&quot;thread&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">thread</span><span class="p">,</span> <span class="n">thread_states</span> <span class="ow">in</span> <span class="n">thread_state_groups</span><span class="p">:</span>
+
+                <span class="n">thread_states</span> <span class="o">=</span> <span class="n">thread_states</span><span class="o">.</span><span class="n">droplevel</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">alltrue</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">thread_states</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
+                    <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">alltrue</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">thread_states</span><span class="p">[</span><span class="s2">&quot;endtime&quot;</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;State timings are non-monotonic&quot;</span><span class="p">)</span>
+
+                <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">region_starts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                    <span class="c1"># Extract useful states that exist within OMP region</span>
+                    <span class="n">start_idx</span> <span class="o">=</span> <span class="n">thread_states</span><span class="p">[</span><span class="s2">&quot;endtime&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span>
+                        <span class="n">region_starts</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="p">)</span>
+                    <span class="n">end_idx</span> <span class="o">=</span> <span class="n">thread_states</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">region_ends</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+
+                    <span class="c1"># Tiny dataframe with useful regions</span>
+                    <span class="n">useful_state</span> <span class="o">=</span> <span class="n">thread_states</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">start_idx</span><span class="p">:</span><span class="n">end_idx</span><span class="p">]</span>
+
+                    <span class="c1"># Sum to get useful length on thread</span>
+                    <span class="n">useful_length</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
+                        <span class="n">useful_state</span><span class="p">[</span><span class="s2">&quot;endtime&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">useful_state</span><span class="o">.</span><span class="n">index</span>
+                    <span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+                    <span class="n">region_computation_mean</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">+=</span> <span class="n">useful_length</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span>
+                        <span class="n">thread_state_groups</span>
+                    <span class="p">)</span>
+                    <span class="n">region_computation_max</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+                        <span class="n">region_computation_max</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="n">useful_length</span>
+                    <span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">region_computation_max</span> <span class="o">&gt;</span> <span class="n">region_lengths</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Oversized region&quot;</span><span class="p">)</span>
+
+            <span class="n">region_load_balance</span> <span class="o">=</span> <span class="n">region_computation_mean</span> <span class="o">/</span> <span class="n">region_computation_max</span>
+
+            <span class="n">rank_stats</span><span class="p">[</span><span class="n">irank</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;Region Start&quot;</span><span class="p">:</span> <span class="n">region_starts</span><span class="p">,</span>
+                    <span class="s2">&quot;Region End&quot;</span><span class="p">:</span> <span class="n">region_ends</span><span class="p">,</span>
+                    <span class="s2">&quot;Load Balance&quot;</span><span class="p">:</span> <span class="n">region_load_balance</span><span class="p">,</span>
+                    <span class="s2">&quot;Average Computation Time&quot;</span><span class="p">:</span> <span class="n">region_computation_mean</span><span class="p">,</span>
+                    <span class="s2">&quot;Maximum Computation Time&quot;</span><span class="p">:</span> <span class="n">region_computation_max</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">rank_stats</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;rank&quot;</span><span class="p">,</span> <span class="s2">&quot;region&quot;</span><span class="p">])</span></div></div>
+
+
+<span class="k">def</span> <span class="nf">_format_timedate</span><span class="p">(</span><span class="n">prv_td</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">prv_td</span><span class="p">[</span><span class="n">prv_td</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;(&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:</span> <span class="n">prv_td</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;)&quot;</span><span class="p">)]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;;&quot;</span><span class="p">,</span> <span class="s2">&quot;:&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_format_timing</span><span class="p">(</span><span class="n">prv_td</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">prv_td</span><span class="p">[:</span><span class="o">-</span><span class="mi">3</span><span class="p">])</span>
+
+
+<span class="k">def</span> <span class="nf">_split_nodestring</span><span class="p">(</span><span class="n">prv_td</span><span class="p">):</span>
+    <span class="n">nnodes</span><span class="p">,</span> <span class="n">plist</span> <span class="o">=</span> <span class="n">prv_td</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;(&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">nnodes</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">nnodes</span><span class="p">)</span>
+    <span class="n">ncpu_list</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">plist</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;,)&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">nnodes</span><span class="p">,</span> <span class="n">ncpu_list</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_format_num_apps</span><span class="p">(</span><span class="n">prv_td</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">prv_td</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_format_app_list</span><span class="p">(</span><span class="n">prv_td</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">prv_td</span> <span class="o">=</span> <span class="n">prv_td</span><span class="p">[:</span> <span class="n">prv_td</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;),&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="n">apps</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">prv_td</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;)&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">apps</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Only 1 traced application supported&quot;</span><span class="p">)</span>
+    <span class="n">app</span> <span class="o">=</span> <span class="n">apps</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+    <span class="n">nranks</span><span class="p">,</span> <span class="n">nprocs</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;(&quot;</span><span class="p">)</span>
+    <span class="n">nranks</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">nranks</span><span class="p">)</span>
+    <span class="n">nprocs</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">))</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">nprocs</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">))</span>
+
+    <span class="n">appdata</span> <span class="o">=</span> <span class="n">ApplicationLayout</span><span class="p">(</span><span class="n">nranks</span><span class="p">,</span> <span class="n">nprocs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">appdata</span>
+
+
+<span class="k">def</span> <span class="nf">_parse_paraver_headerline</span><span class="p">(</span><span class="n">headerline</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">headerline</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">headerline</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid headerline format&quot;</span><span class="p">)</span>
+
+    <span class="n">elems</span> <span class="o">=</span> <span class="n">headerline</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="s2">&quot;;&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">TraceMetadata</span><span class="p">(</span>
+        <span class="n">_format_timedate</span><span class="p">(</span><span class="n">elems</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+        <span class="n">_format_timing</span><span class="p">(</span><span class="n">elems</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+        <span class="o">*</span><span class="n">_split_nodestring</span><span class="p">(</span><span class="n">elems</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span>
+        <span class="n">_format_num_apps</span><span class="p">(</span><span class="n">elems</span><span class="p">[</span><span class="mi">3</span><span class="p">]),</span>
+        <span class="n">_format_app_list</span><span class="p">(</span><span class="n">elems</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">metadata</span>
+
+
+<div class="viewcode-block" id="get_prv_header_info"><a class="viewcode-back" href="../../api_ll.html#pypop.prv.get_prv_header_info">[docs]</a><span class="k">def</span> <span class="nf">get_prv_header_info</span><span class="p">(</span><span class="n">prv_file</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get basic run information from the prv file header</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    prv_file: str</span>
+<span class="sd">        Path to prv trace file.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    --------</span>
+<span class="sd">    metadata: NamedTuple</span>
+<span class="sd">        Named tuple containing the header information.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">with</span> <span class="n">zipopen</span><span class="p">(</span><span class="n">prv_file</span><span class="p">,</span> <span class="s2">&quot;rt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_parse_paraver_headerline</span><span class="p">(</span><span class="n">fh</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, The Numerical Algorithms Group, Ltd..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
