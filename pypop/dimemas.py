@@ -21,8 +21,8 @@ from pkg_resources import resource_filename
 from .prv import _parse_paraver_headerline, zipopen
 from .extrae import remove_trace
 
-IDEAL_CONF_PATH = "cfgs/dimemas_ideal.cfg"
-IDEAL_COLL_PATH = "cfgs/ideal.collectives"
+IDEAL_CONF_PATH = resource_filename(__name__, "cfgs/dimemas_ideal.cfg")
+IDEAL_COLL_PATH = resource_filename(__name__, "cfgs/ideal.collectives")
 
 
 def dimemas_idealise(tracefile, outpath=None):
@@ -61,13 +61,13 @@ def dimemas_idealise(tracefile, outpath=None):
         "@NUM_NODES@": metadata.nodes,
         "@PROCS_PER_NODE@": metadata.procs_per_node[0],
         "@RANKS_PER_NODE@": ranks_per_node,
-        "@COLLECTIVES_PATH@": resource_filename(__name__, IDEAL_COLL_PATH),
+        "@COLLECTIVES_PATH@": IDEAL_COLL_PATH,
     }
 
     # Pass trace, run config and path to idealisation skeleton config and let
     # dimemas_analyze work its subtle magic(k)s
     return dimemas_analyse(
-        tracefile, resource_filename(__name__, IDEAL_CONF_PATH), outpath, subs
+        tracefile, IDEAL_CONF_PATH, outpath, subs
     )
 
 
@@ -164,12 +164,11 @@ def dimemas_analyse(tracefile, configfile, outpath=None, substrings=None):
     sim_prv = ".sim".join(splitext(tmp_prv))
     dimemas_params = [
         "Dimemas",
-        "-S",
-        "32k",
         "--dim",
         basename(tmp_dim),
-        "-p",
+        "--prv-trace",
         basename(sim_prv),
+        "--config-file",
         basename(dimconfig),
     ]
 
@@ -177,7 +176,10 @@ def dimemas_analyse(tracefile, configfile, outpath=None, substrings=None):
 
     if not os.path.exists(sim_prv) or result.returncode != 0:
         raise RuntimeError(
-            "Dimemas execution failed:\n{}" "".format(result.stdout.decode())
+            "Dimemas execution failed:\n{}\n"
+            "Input was:\n{}\n"
+            "See {}"
+            "".format(result.stdout.decode(), dimemas_params, workdir)
         )
 
     # remove all the temporary files we created
