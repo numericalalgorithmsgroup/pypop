@@ -9,6 +9,7 @@ PRV Trace Loader
 Support for directly loading PRV trace data as Pandas dataframes
 """
 
+from warnings import warn
 from collections import namedtuple, OrderedDict
 from csv import writer as csvwriter
 import gzip
@@ -118,6 +119,9 @@ class PRV:
                 next(prv_fh)
 
             for line in prv_fh:
+                # Skip comment lines
+                if line.startswith('#'):
+                    continue
                 line = [int(x) for x in line.split(":")]
                 line_processors[line[0]](line, temp_writers[line[0] - 1])
 
@@ -197,6 +201,23 @@ class PRV:
 
             region_starts = thread_events.index[thread_events["value"] != 0]
             region_ends = thread_events.index[thread_events["value"] == 0]
+
+            # Now sanity check regions and try to repair issues caused by missing events:
+
+            # First region start should be earlier than first region end
+            if region_starts[0] > region_ends[0]:
+                warn("Incomplete OpenMP region found. This likely means the trace was "
+                     "cut through a region")
+                region_starts = region_starts[1:]
+            # Last region end should be after last region start
+            if region_ends[-1] < region_starts[-1]:
+                warn("Incomplete OpenMP region found. This likely means the trace was "
+                     "cut through a region")
+                region_ends = region_ends[:-1]
+
+            if np.any(region_starts > region_ends):
+                raise ValueError("Unable to make sense of OpenMP region events.")
+
             region_lengths = region_ends - region_starts
             region_computation_mean = np.zeros_like(region_starts)
             region_computation_max = np.zeros_like(region_starts)
