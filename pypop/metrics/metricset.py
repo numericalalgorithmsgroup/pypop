@@ -169,7 +169,7 @@ class MetricSet:
             if not columns_label:
                 columns_label = columns_key
 
-        label_cell_width = 0.65
+        label_cell_width = 0.60
         body_cell_width = (1 - label_cell_width) / (len(columns_values) - skipfirst)
         body_cell_height = 0.1
         level_pad = 0.075
@@ -203,8 +203,8 @@ class MetricSet:
 
         # Create empty table using full bounding box of axes
         metric_table = mt.Table(ax=ax[0], bbox=(0, 0, 1, 1))
-        metric_table.auto_set_font_size(False)
-        metric_table.set_fontsize(9)
+        metric_table.auto_set_font_size(True)
+#        metric_table.set_fontsize(8)
 
         metric_table.add_cell(
             0,
@@ -306,6 +306,8 @@ class MetricSet:
         ideal_scaling = ideal_scaling_cores / cores_min
         ideal_scaling_80pc = 0.2 + 0.8 * ideal_scaling
 
+        y_max = max(y_max, ideal_scaling.max())
+
         fig = plt.figure(figsize=figparams["single.figsize"])
         ax = fig.add_axes(figparams["single.axlayout"][0])
 
@@ -342,7 +344,7 @@ class MetricSet:
         ax.set_xlabel("Total cores")
         ax.set_ylabel(label)
         ax.xaxis.set_major_locator(mtick.FixedLocator(self.metric_data[x_key], 6))
-        ax.legend()
+        ax.legend(loc='upper left')
 
         if title:
             ax.set_title(title)
