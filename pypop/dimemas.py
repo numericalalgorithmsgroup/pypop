@@ -20,6 +20,7 @@ from pkg_resources import resource_filename
 
 from .prv import _parse_paraver_headerline, zipopen
 from .extrae import remove_trace
+from . import config
 
 IDEAL_CONF_PATH = resource_filename(__name__, "cfgs/dimemas_ideal.cfg")
 IDEAL_COLL_PATH = resource_filename(__name__, "cfgs/ideal.collectives")
@@ -143,9 +144,13 @@ def dimemas_analyse(tracefile, configfile, outpath=None, substrings=None):
     # Now create the dim file for dimemas
     tmp_dim = os.path.join(workdir, splitext(basename(tmp_prv))[0] + ".dim")
 
+    prv2dim_binpath = 'prv2dim'
+    if config._dimemas_path:
+        prv2dim_binpath = os.path.join(config._dimemas_path, prv2dim_binpath)
+
     # Use basenames as running in workdir
     prv2dim_params = [
-        "prv2dim",
+        prv2dim_binpath,
         "--prv-trace",
         basename(tmp_prv),
         "--dim-trace",
@@ -160,10 +165,14 @@ def dimemas_analyse(tracefile, configfile, outpath=None, substrings=None):
             "prv2dim execution failed:\n{}" "".format(result.stderr.decode())
         )
 
+    dimemas_binpath = 'Dimemas'
+    if config._dimemas_path:
+        dimemas_binpath = os.path.join(config._dimemas_path, dimemas_binpath)
+
     # Run in workdir to workaround Dimemas path bug, output to relpath
     sim_prv = ".sim".join(splitext(tmp_prv))
     dimemas_params = [
-        "Dimemas",
+        dimemas_binpath,
         "--dim",
         basename(tmp_dim),
         "--prv-trace",

@@ -21,6 +21,7 @@ import pandas as pd
 import numpy as np
 
 from .prv import get_prv_header_info, _parse_paraver_headerline, zipopen
+from . import config
 
 floatmatch = re.compile(r"[0-9,]+\.[0-9]+")
 keymatch = re.compile(r"@.*@")
@@ -117,8 +118,12 @@ def chop_prv_to_roi(prv_file, outfile=None):
     roi_filter = resource_filename(__name__, ROI_FILTER_XML)
     roi_prv = os.path.join(workdir, ".roifilter".join(splitext(basename(prv_file))))
 
+    paramedir_binpath = 'paramedir'
+    if config._paramedir_path:
+        paramedir_binpath = os.path.join(config._paramedir_path, paramedir_binpath)
+
     filter_cmds = [
-        "paramedir",
+        paramedir_binpath,
         "--filter",
         roi_filter,
         "--output-name",
@@ -150,8 +155,12 @@ def chop_prv_to_roi(prv_file, outfile=None):
 
     wfh.close()
 
+    paramedir_binpath = 'paramedir'
+    if config._paramedir_path:
+        paramedir_binpath = os.path.join(config._paramedir_path, paramedir_binpath)
+
     cutter_cmds = [
-        "paramedir",
+        paramedir_binpath,
         "--cutter",
         prv_file,
         cutter_xml,
@@ -351,7 +360,11 @@ def run_paramedir(tracefile, config, outfile=None, variables=None):
     if not outfile:
         outfile = os.path.join(tmpdir, os.path.splitext(os.path.basename(config))[0])
 
-    paramedir_params = ["paramedir", tracefile, tmp_config, outfile]
+    paramedir_binpath = 'paramedir'
+    if config._paramedir_path:
+        paramedir_binpath = os.path.join(config._paramedir_path, paramedir_binpath)
+
+    paramedir_params = [paramedir_binpath, tracefile, tmp_config, outfile]
 
     result = sp.run(paramedir_params, stdout=sp.PIPE, stderr=sp.STDOUT)
 

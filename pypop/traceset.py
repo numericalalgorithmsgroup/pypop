@@ -200,7 +200,7 @@ class TraceSet:
                 )
 
     def by_key(self, key):
-        """Return a dictionary of traces with given key
+        """Return a dictionary of traces keyed by a user supplied key derivation function
 
         Parameters
         ----------
@@ -229,6 +229,21 @@ class TraceSet:
         """
 
         return self.by_key(lambda x: x.metadata.application_layout.commsize)
+
+    def by_threads_per_process(self):
+        """Return a dictionary of traces keyed by threads per process
+
+        This is a helper function equivalent to
+
+        by_key(lambda x: x.metadata.application_layout.rank_threads[0][0])
+
+        Returns
+        -------
+        traces_by_key: dict
+            A dictionary of traces organised by the requested key
+        """
+
+        return self.by_key(lambda x: x.metadata.application_layout.rank_threads[0][0])
 
     def _collect_statistics(self, trace, cache_stats, ignore_cache, chop_to_roi):
 
