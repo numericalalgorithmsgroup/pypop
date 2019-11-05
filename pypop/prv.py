@@ -89,7 +89,7 @@ class PRV:
 
     def __init__(self, prv_path):
 
-        if prv_path and prv_path.endswith(".prv"):
+        if prv_path and prv_path.endswith((".prv", ".prv.gz")):
             self._event_names = {}
             self._event_vals = {}
             self._parse_pcf(prv_path)
@@ -146,7 +146,7 @@ class PRV:
             for k, v in PRV.record_types.items()
         }
 
-        with zipopen(prv_path, "r") as prv_fh:
+        with zipopen(prv_path, "rt") as prv_fh:
             headerline = next(prv_fh)
             self.metadata = _parse_paraver_headerline(headerline)
 
@@ -328,15 +328,26 @@ class PRV:
                 if np.any(region_computation_max > region_lengths):
                     raise ValueError("Oversized region")
 
-            region_load_balance = region_computation_mean / region_computation_max
+            region_load_balance = 1 - (
+                (region_computation_max - region_computation_mean) / region_lengths
+            )
+
+            region_parallel_efficiency = 1 - (
+                (region_lengths - region_computation_mean) / region_lengths
+            )
 
             rank_stats[irank] = pd.DataFrame(
                 {
                     "Region Start": region_starts,
                     "Region End": region_ends,
+                    "Region Length": region_lengths,
                     "Load Balance": region_load_balance,
+                    "Parallel Efficiency": region_parallel_efficiency,
                     "Average Computation Time": region_computation_mean,
                     "Maximum Computation Time": region_computation_max,
+                    "Computation Delay Time": region_computation_max
+                    - region_computation_mean,
+                    "Region Delay Time": region_lengths - region_computation_mean,
                     "Region Fingerprint": region_fingerprints,
                 }
             )
@@ -363,19 +374,32 @@ class PRV:
 
     def openmp_region_summary(self):
 
+        runtime = self.metadata.ns_elapsed
+
         self.profile_openmp_regions()
 
         summary = self._omp_region_data.groupby("Region Fingerprint").agg(
             **{
-                "Instances": ("Maximum Computation Time", 'count'),
-                "Load Balance": (
+                "Instances": ("Maximum Computation Time", "count"),
+                "Relative Load Balance Efficiency": (
                     "Load Balance",
                     lambda x: np.average(
-                        x,
-                        weights=self._omp_region_data.loc[
-                            x.index, "Average Computation Time"
-                        ],
+                        x, weights=self._omp_region_data.loc[x.index, "Region Length"],
                     ),
+                ),
+                "Relative Parallel Efficiency": (
+                    "Parallel Efficiency",
+                    lambda x: np.average(
+                        x, weights=self._omp_region_data.loc[x.index, "Region Length"]
+                    ),
+                ),
+                "Load Balance Efficiency": (
+                    "Computation Delay Time",
+                    lambda x: 1 - np.sum(x / runtime),
+                ),
+                "Parallel Efficiency": (
+                    "Region Delay Time",
+                    lambda x: 1 - np.sum(x / runtime),
                 ),
                 "Average Computation Time": ("Average Computation Time", np.average),
                 "Maximum Computation Time": ("Maximum Computation Time", np.max),
@@ -386,7 +410,7 @@ class PRV:
             }
         )
 
-        return summary.sort_values('Load Balance')
+        return summary.sort_values("Load Balance Efficiency")
 
 
 def _format_timedate(prv_td):
