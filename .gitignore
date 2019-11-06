@@ -2,6 +2,7 @@ __pycache__
 *.egg-info
 *.pkl
 *.png
+*.tiff
 gh-pages
 
 ## Core latex/pdflatex auxiliary files:
