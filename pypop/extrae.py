@@ -284,6 +284,57 @@ def paramedir_analyze(
     raise ValueError('Unsupported analysis type "{}"'.format(datatype))
 
 
+def paramedir_analyze_any_of(
+    tracefile,
+    paramedir_configs,
+    variables=None,
+    index_by_thread=False,
+    statistic_names=None,
+):
+    """Analyze a tracefile with paramedir, returning first success from an interable of
+    possible config files.
+
+    This routine is intended to allow elegant use of fallback to simpler configs to work
+    around a paramedir bug where all event types must be present to avoid a fatal error
+    in analysis. (see https://github.com/bsc-performance-tools/paraver-kernel/issues/5)
+
+    Parameters
+    ----------
+    tracefile: str
+        Path to `*.prv` tracefile from Extrae
+    paramedir_configs: iterable or str
+        Path to Paraver/Paramedir `*.cfg` files.
+    variables: dict or None
+        Optional dict of key-value pairs for replacement in config file prior
+        to running paramedir.
+    index_by_thread: bool
+        If True return data organised by a multilevel index of MPI ranks and
+        threads.  Note that this discards Paramedir calculated statistical
+        info.
+    statistic_names: list of str or None
+        Optional list of string names for the statistics returned by the config
+        file.  If not provided names will be taken from paramedir output.
+
+    Returns
+    -------
+    result: pandas.DataFrame
+        Result data loaded from the resulting csv.
+    """
+
+    if isinstance(paramedir_configs, str):
+        paramedir_configs = [paramedir_configs]
+
+    for paramedir_config in paramedir_configs:
+        try:
+            return paramedir_analyze(
+                tracefile, paramedir_config, variables, index_by_thread, statistic_names
+            )
+        except RuntimeError as err:
+            error = err
+
+    raise error
+
+
 def _analyze_hist2D(tracefile, paramedir_config, variables, index_by_thread, stat_names):
     """Run a paramedir config producing a 2D histogram and return result DataFrame
     """

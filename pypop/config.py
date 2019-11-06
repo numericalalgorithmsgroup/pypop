@@ -5,6 +5,8 @@
 """Configuration options for PyPOP
 """
 
+from os.path import normpath, expanduser
+
 __all__ = ['set_paramedir_path', 'set_dimemas_path']
 
 _dimemas_path = None
@@ -16,7 +18,7 @@ def set_dimemas_path(path):
     if not isinstance(path, str):
         raise ValueError("path must be a string")
 
-    _dimemas_path = path
+    _dimemas_path = normpath(expanduser(path))
 
 
 def set_paramedir_path(path):
@@ -24,4 +26,4 @@ def set_paramedir_path(path):
     if not isinstance(path, str):
         raise ValueError("path must be a string")
 
-    _paramedir_path = path
+    _paramedir_path = normpath(expanduser(path))
