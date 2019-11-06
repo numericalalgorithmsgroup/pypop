@@ -29,6 +29,8 @@ K_STATE_RUNNING = "1"
 K_EVENT_OMP_PARALLEL = "60000001"
 K_EVENT_OMP_TASK_FUNCTION = "60000018"
 K_EVENT_OMP_LOOP_FUNCTION = "60000023"
+K_EVENT_OMP_TASK_FILE_AND_LINE = "60000118"
+K_EVENT_OMP_LOOP_FILE_AND_LINE = "60000123"
 
 Trace = namedtuple("Trace", field_names=["info", "data"])
 
@@ -212,6 +214,8 @@ class PRV:
             raise ValueError("Invalid pickle -- missing data")
 
     def profile_openmp_regions(self, no_progress=False):
+        """Profile OpenMP Region Info
+        """
 
         if self._omp_region_data is not None:
             return self._omp_region_data
@@ -240,10 +244,30 @@ class PRV:
             .groupby(level="task")
         )  # OMP Functions
 
+        rank_func_loc_groups = (
+            self.event.query(
+                "event == {} or event == {}".format(
+                    K_EVENT_OMP_TASK_FILE_AND_LINE, K_EVENT_OMP_LOOP_FILE_AND_LINE
+                )
+            )
+            .query("value != 0")
+            .groupby(level="task")
+        )  # OMP Functions
+
         # Now start collecting OMP regions
         rank_stats = {}
-        for (irank, rank_events), (_, rank_states), (_, rank_funcs) in tqdm(
-            zip(rank_event_groups, rank_state_groups, rank_func_groups),
+        for (
+            (irank, rank_events),
+            (_, rank_states),
+            (_, rank_funcs),
+            (_, rank_func_locs),
+        ) in tqdm(
+            zip(
+                rank_event_groups,
+                rank_state_groups,
+                rank_func_groups,
+                rank_func_loc_groups,
+            ),
             total=self.metadata.application_layout.commsize,
             disable=no_progress,
             leave=None,
@@ -260,14 +284,14 @@ class PRV:
             # Now sanity check regions and try to repair issues caused by missing events:
 
             # First region start should be earlier than first region end
-            if region_ends[0] < region_starts[0]:
+            if region_ends[0] <= region_starts[0]:
                 warn(
                     "Incomplete OpenMP region found. This likely means the trace was "
                     "cut through a region"
                 )
                 region_ends = region_ends[1:]
             # Last region end should be after last region start
-            if region_starts[-1] > region_ends[-1]:
+            if region_starts[-1] >= region_ends[-1]:
                 warn(
                     "Incomplete OpenMP region found. This likely means the trace was "
                     "cut through a region"
@@ -280,6 +304,7 @@ class PRV:
             region_lengths = region_ends - region_starts
             region_computation_mean = np.zeros_like(region_starts)
             region_computation_max = np.zeros_like(region_starts)
+            region_computation_sum = np.zeros_like(region_starts)
 
             regionintervals = pd.IntervalIndex.from_arrays(region_starts, region_ends)
 
@@ -287,7 +312,18 @@ class PRV:
                 rank_funcs.droplevel(("task", "thread")).index, regionintervals
             ).codes
             region_funcs = rank_funcs.droplevel(("task", "thread")).groupby(funcbins)
-            region_fingerprints = region_funcs.apply(
+            region_fingerprints_func = region_funcs.apply(
+                # {"value": lambda x: ":".join("{}".format(int(y) for y in x.unique()))}
+                lambda x: ":".join(["{:d}".format(int(y)) for y in x["value"].unique()])
+            )
+
+            funclocbins = pd.cut(
+                rank_func_locs.droplevel(("task", "thread")).index, regionintervals
+            ).codes
+            region_func_locs = rank_func_locs.droplevel(("task", "thread")).groupby(
+                funclocbins
+            )
+            region_fingerprints_loc = region_func_locs.apply(
                 # {"value": lambda x: ":".join("{}".format(int(y) for y in x.unique()))}
                 lambda x: ":".join(["{:d}".format(int(y)) for y in x["value"].unique()])
             )
@@ -325,6 +361,8 @@ class PRV:
                         region_computation_max[idx], useful_length
                     )
 
+                    region_computation_sum[idx] += useful_length
+
                 if np.any(region_computation_max > region_lengths):
                     raise ValueError("Oversized region")
 
@@ -347,14 +385,32 @@ class PRV:
                     "Maximum Computation Time": region_computation_max,
                     "Computation Delay Time": region_computation_max
                     - region_computation_mean,
+                    "Region Total Computation": region_computation_sum,
                     "Region Delay Time": region_lengths - region_computation_mean,
-                    "Region Fingerprint": region_fingerprints,
+                    "Region Function Fingerprint": region_fingerprints_func,
+                    "Region Location Fingerprint": region_fingerprints_loc,
                 }
             )
 
         self._omp_region_data = pd.concat(rank_stats, names=["rank", "region"])
 
         return self._omp_region_data
+
+    def region_location_from_fingerprint(self, fingerprint):
+        if self._event_vals:
+            fpvals = fingerprint.split(":")
+            fpstrings = [self.omp_location_by_value(fpk, "MISSINGVAL") for fpk in fpvals]
+            return ":".join(fpstrings)
+
+        return fingerprint
+
+    def omp_location_by_value(self, value, default="MISSINGVAL"):
+        value_dict = {
+            **self._event_vals.get(K_EVENT_OMP_TASK_FILE_AND_LINE, {}),
+            **self._event_vals.get(K_EVENT_OMP_LOOP_FILE_AND_LINE, {}),
+        }
+
+        return value_dict.get(value, default)
 
     def region_function_from_fingerprint(self, fingerprint):
         if self._event_vals:
@@ -372,13 +428,29 @@ class PRV:
 
         return value_dict.get(value, default)
 
-    def openmp_region_summary(self):
+    def openmp_region_summary(self, by_location=False):
+        """Summarize OpenMP regions, grouped by either the function name or location
+        (filename and line number) within the source.
+
+        Parameters
+        ----------
+        by_location: bool
+            If true, aggregate functions based on their location within the source,
+            otherwise aggregate by function name alone.
+        """
+
+        if by_location:
+            fingerprint_key = "Region Location Fingerprint"
+            fingerprint_to_text_function = self.region_location_from_fingerprint
+        else:
+            fingerprint_key = "Region Function Fingerprint"
+            fingerprint_to_text_function = self.region_function_from_fingerprint
 
         runtime = self.metadata.ns_elapsed
 
         self.profile_openmp_regions()
 
-        summary = self._omp_region_data.groupby("Region Fingerprint").agg(
+        summary = self._omp_region_data.groupby(fingerprint_key).agg(
             **{
                 "Instances": ("Maximum Computation Time", "count"),
                 "Relative Load Balance Efficiency": (
@@ -401,11 +473,13 @@ class PRV:
                     "Region Delay Time",
                     lambda x: 1 - np.sum(x / runtime),
                 ),
+                "Accumulated Region Time": ("Region Length", np.sum),
+                "Accumulated Computation Time": ("Region Total Computation", np.sum),
                 "Average Computation Time": ("Average Computation Time", np.average),
                 "Maximum Computation Time": ("Maximum Computation Time", np.max),
                 "Region Functions": (
-                    "Region Fingerprint",
-                    lambda x: self.region_function_from_fingerprint(x[0]),
+                    fingerprint_key,
+                    lambda x: fingerprint_to_text_function(x[0])
                 ),
             }
         )
