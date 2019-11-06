@@ -47,7 +47,7 @@
 
     \begin{center}
     \Large\bf\color[rgb]{0.44, 0.71, 0.04}
-    \textsf{\@application~performance assessment report}
+    \textsf{\@title}
     \end{center}
 
     \vspace{1.5cm}
