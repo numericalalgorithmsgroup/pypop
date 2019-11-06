@@ -51,7 +51,8 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
-    'sphinxcontrib.programoutput'
+    'sphinxcontrib.programoutput',
+    'sphinx.ext.auosectionlabel',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -173,6 +174,8 @@ texinfo_documents = [
 # -- Extension configuration -------------------------------------------------
 
 autoclass_content = 'both'
+
+autosectionlabel_prefix_document = True
 
 # -- Options for intersphinx extension ---------------------------------------
 
