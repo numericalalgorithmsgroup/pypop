@@ -1,0 +1,10 @@
+LEVEL CPU SIZE 2
+1.vetinari
+2.vetinari
+
+LEVEL NODE SIZE 1
+vetinari
+
+LEVEL THREAD SIZE 2
+THREAD 1.1.1
+THREAD 1.1.2

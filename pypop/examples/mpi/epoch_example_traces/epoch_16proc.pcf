@@ -1,0 +1,1178 @@
+DEFAULT_OPTIONS
+
+LEVEL               THREAD
+UNITS               NANOSEC
+LOOK_BACK           100
+SPEED               1
+FLAG_ICONS          ENABLED
+NUM_OF_STATE_COLORS 1000
+YMAX_SCALE          37
+
+
+DEFAULT_SEMANTIC
+
+THREAD_FUNC          State As Is
+
+
+STATES
+0    Idle
+1    Running
+2    Not created
+3    Waiting a message
+4    Blocking Send
+5    Synchronization
+6    Test/Probe
+7    Scheduling and Fork/Join
+8    Wait/WaitAll
+9    Blocked
+10    Immediate Send
+11    Immediate Receive
+12    I/O
+13    Group Communication
+14    Tracing Disabled
+15    Others
+16    Send Receive
+17    Memory transfer
+18    Profiling
+19    On-line analysis
+20    Remote memory access
+21    Atomic memory operation
+22    Memory ordering operation
+23    Distributed locking
+24    Overhead
+25    One-sided op
+26    Startup latency
+27    Waiting links
+28    Data copy
+29    RTT
+30    Allocating memory
+31    Freeing memory
+
+
+STATES_COLOR
+0    {117,195,255}
+1    {0,0,255}
+2    {255,255,255}
+3    {255,0,0}
+4    {255,0,174}
+5    {179,0,0}
+6    {0,255,0}
+7    {255,255,0}
+8    {235,0,0}
+9    {0,162,0}
+10    {255,0,255}
+11    {100,100,177}
+12    {172,174,41}
+13    {255,144,26}
+14    {2,255,177}
+15    {192,224,0}
+16    {66,66,66}
+17    {255,0,96}
+18    {169,169,169}
+19    {169,0,0}
+20    {0,109,255}
+21    {200,61,68}
+22    {200,66,0}
+23    {0,41,0}
+24    {139,121,177}
+25    {116,116,116}
+26    {200,50,89}
+27    {255,171,98}
+28    {0,68,189}
+29    {52,43,0}
+30    {255,46,0}
+31    {100,216,32}
+
+
+EVENT_TYPE
+9   50000001    MPI Point-to-point
+VALUES
+2   MPI_Recv
+1   MPI_Send
+41   MPI_Sendrecv
+0   Outside MPI
+
+
+EVENT_TYPE
+9   50000002    MPI Collective Comm
+VALUES
+10   MPI_Allreduce
+8   MPI_Barrier
+7   MPI_Bcast
+0   Outside MPI
+
+
+EVENT_TYPE
+9   50000003    MPI Other
+VALUES
+22   MPI_Comm_dup
+25   MPI_Comm_free
+19   MPI_Comm_rank
+20   MPI_Comm_size
+32   MPI_Finalize
+31   MPI_Init
+43   MPI_Cart_create
+0   Outside MPI
+
+
+EVENT_TYPE
+1    50100001    Send Size in MPI Global OP
+1    50100002    Recv Size in MPI Global OP
+1    50100003    Root in MPI Global OP
+1    50100004    Communicator in MPI Global OP
+
+
+EVENT_TYPE
+6    40000033    Executing CPU
+6    40000133    CPU-Event sampling interval
+
+
+EVENT_TYPE
+6    40000001    Application
+VALUES
+0      End
+1      Begin
+
+
+EVENT_TYPE
+6    40000050    RAW clock() value from system
+
+
+EVENT_TYPE
+6    40000003    Flushing Traces
+VALUES
+0      End
+1      Begin
+
+
+EVENT_TYPE
+6    40000002    Trace initialization
+VALUES
+0      End
+1      Begin
+
+
+EVENT_TYPE
+6    40000036    Process IDentifier
+6    40000037    Parent Process IDentifier
+6    40000038    fork() depth
+
+
+EVENT_TYPE
+7  42000050 PAPI_TOT_INS [Instr completed]
+7  42000059 PAPI_TOT_CYC [Total cycles]
+7  42000000 PAPI_L1_DCM [L1D cache misses]
+7  42000002 PAPI_L2_DCM [L2D cache misses]
+7  42000008 PAPI_L3_TCM [L3 cache misses]
+7  42000055 PAPI_BR_INS [Branches]
+7  42000046 PAPI_BR_MSP [Cond br mspredictd]
+7  42001047 RESOURCE_STALLS [Cycles Allocation is stalled due to Resource Related reason]
+7  41999999 Active hardware counter set
+
+
+GRADIENT_COLOR
+0    {0,255,2}
+1    {0,244,13}
+2    {0,232,25}
+3    {0,220,37}
+4    {0,209,48}
+5    {0,197,60}
+6    {0,185,72}
+7    {0,173,84}
+8    {0,162,95}
+9    {0,150,107}
+10    {0,138,119}
+11    {0,127,130}
+12    {0,115,142}
+13    {0,103,154}
+14    {0,91,166}
+
+
+GRADIENT_NAMES
+0    Gradient 0
+1    Grad. 1/MPI Events
+2    Grad. 2/OMP Events
+3    Grad. 3/OMP locks
+4    Grad. 4/User func
+5    Grad. 5/User Events
+6    Grad. 6/General Events
+7    Grad. 7/Hardware Counters
+8    Gradient 8
+9    Gradient 9
+10    Gradient 10
+11    Gradient 11
+12    Gradient 12
+13    Gradient 13
+14    Gradient 14
+
+
+EVENT_TYPE
+0    70000001    Caller at level 1
+0    70000002    Caller at level 2
+0    70000003    Caller at level 3
+VALUES
+0   End
+1 Unresolved
+2 _NOT_Found
+3 __mpi_ro..mal_init [__mpi_routines_MOD_mpi_minimal_init]
+4 MAIN__
+5 main
+6 __deck_M..ead_deck [__deck_MOD_read_deck]
+7 __mpi_ro..unicator [__mpi_routines_MOD_setup_communicator]
+8 __mpi_ro..t_domain [__mpi_routines_MOD_split_domain]
+9 __mpi_ro..itialise [__mpi_routines_MOD_mpi_initialise]
+10 __bounda.._lengths [__boundary_MOD_do_field_mpi_with_lengths]
+11 __bounda..field_bc [__boundary_MOD_field_bc]
+12 __helper.._density [__helper_MOD_setup_particle_density]
+13 __balanc..get_load [__balance_MOD_get_load]
+14 __setup_.._balance [__setup_MOD_pre_load_balance]
+15 __balanc..mbalance [__balance_MOD_calculate_new_load_imbalance]
+16 __balanc..l_layout [__balance_MOD_get_optimal_layout]
+17 __balanc..workload [__balance_MOD_pre_balance_workload]
+18 __redbla..o_send2d [__redblack_module_MOD_do_send2d]
+19 __balanc..field_2d [__balance_MOD_redistribute_field_2d]
+20 __balanc..ap_field [__balance_MOD_remap_field]
+21 __redbla..o_recv2d [__redblack_module_MOD_do_recv2d]
+22 __redbla..ack_main [__redblack_module_MOD_redblack_main]
+23 __balanc..e_fields [__balance_MOD_redistribute_fields]
+24 __redbla..o_recv1d [__redblack_module_MOD_do_recv1d]
+25 __balanc..field_1d [__balance_MOD_redistribute_field_1d]
+26 __redbla..o_send1d [__redblack_module_MOD_do_send1d]
+27 __balanc..ld_slice [__balance_MOD_remap_field_slice]
+28 __bounda..hs_slice [__boundary_MOD_do_field_mpi_with_lengths_slice]
+29 __helper..articles [__helper_MOD_load_particles]
+30 __helper..uto_load [__helper_MOD_auto_load]
+31 __partli..sendrecv [__partlist_MOD_partlist_sendrecv]
+32 __bounda..icle_bcs [__boundary_MOD_particle_bcs]
+33 set_plas..uency_dt [set_plasma_frequency_dt]
+34 __partli..le_count [__partlist_MOD_update_particle_count]
+35 __balanc..workload [__balance_MOD_balance_workload]
+36 __fields..lds_half [__fields_MOD_update_eb_fields_half]
+37 __partic..articles [__particles_MOD_push_particles]
+38 __bounda..odic_bcs [__boundary_MOD_particle_periodic_bcs]
+39 __bounda..tion_bcs [__boundary_MOD_processor_summation_bcs]
+40 __bounda..rent_bcs [__boundary_MOD_current_bcs]
+41 __curren..t_finish [__current_smooth_MOD_current_finish]
+42 __fields..ds_final [__fields_MOD_update_eb_fields_final]
+43 __window..ft_field [__window_MOD_shift_field]
+44 __window..g_window [__window_MOD_moving_window]
+45 __diagno..ondition [__diagnostics_MOD_check_for_stop_condition]
+46 deallocate_memory
+47 __finish..finalise [__finish_MOD_finalise]
+
+
+EVENT_TYPE
+0    80000001    Caller line at level 1
+0    80000002    Caller line at level 2
+0    80000003    Caller line at level 3
+VALUES
+0   End
+1 0 (Unresolved)
+2 0 (_NOT_Found)
+3 71 (balance.F90, epoch2d)
+4 149 (balance.F90, epoch2d)
+5 150 (balance.F90, epoch2d)
+6 193 (balance.F90, epoch2d)
+7 276 (balance.F90, epoch2d)
+8 331 (balance.F90, epoch2d)
+9 503 (balance.F90, epoch2d)
+10 509 (balance.F90, epoch2d)
+11 515 (balance.F90, epoch2d)
+12 530 (balance.F90, epoch2d)
+13 535 (balance.F90, epoch2d)
+14 540 (balance.F90, epoch2d)
+15 545 (balance.F90, epoch2d)
+16 550 (balance.F90, epoch2d)
+17 555 (balance.F90, epoch2d)
+18 803 (balance.F90, epoch2d)
+19 808 (balance.F90, epoch2d)
+20 813 (balance.F90, epoch2d)
+21 818 (balance.F90, epoch2d)
+22 823 (balance.F90, epoch2d)
+23 828 (balance.F90, epoch2d)
+24 835 (balance.F90, epoch2d)
+25 840 (balance.F90, epoch2d)
+26 845 (balance.F90, epoch2d)
+27 850 (balance.F90, epoch2d)
+28 855 (balance.F90, epoch2d)
+29 860 (balance.F90, epoch2d)
+30 931 (balance.F90, epoch2d)
+31 936 (balance.F90, epoch2d)
+32 941 (balance.F90, epoch2d)
+33 946 (balance.F90, epoch2d)
+34 951 (balance.F90, epoch2d)
+35 956 (balance.F90, epoch2d)
+36 963 (balance.F90, epoch2d)
+37 968 (balance.F90, epoch2d)
+38 973 (balance.F90, epoch2d)
+39 978 (balance.F90, epoch2d)
+40 983 (balance.F90, epoch2d)
+41 988 (balance.F90, epoch2d)
+42 1103 (balance.F90, epoch2d)
+43 1111 (balance.F90, epoch2d)
+44 1114 (balance.F90, epoch2d)
+45 1114 (balance.F90, epoch2d)
+46 1136 (balance.F90, epoch2d)
+47 1138 (balance.F90, epoch2d)
+48 1324 (balance.F90, epoch2d)
+49 1566 (balance.F90, epoch2d)
+50 1937 (balance.F90, epoch2d)
+51 1937 (balance.F90, epoch2d)
+52 1937 (balance.F90, epoch2d)
+53 2339 (balance.F90, epoch2d)
+54 2340 (balance.F90, epoch2d)
+55 2409 (balance.F90, epoch2d)
+56 150 (boundary.F90, epoch2d)
+57 150 (boundary.F90, epoch2d)
+58 150 (boundary.F90, epoch2d)
+59 150 (boundary.F90, epoch2d)
+60 150 (boundary.F90, epoch2d)
+61 150 (boundary.F90, epoch2d)
+62 150 (boundary.F90, epoch2d)
+63 150 (boundary.F90, epoch2d)
+64 150 (boundary.F90, epoch2d)
+65 150 (boundary.F90, epoch2d)
+66 150 (boundary.F90, epoch2d)
+67 150 (boundary.F90, epoch2d)
+68 150 (boundary.F90, epoch2d)
+69 195 (boundary.F90, epoch2d)
+70 206 (boundary.F90, epoch2d)
+71 251 (boundary.F90, epoch2d)
+72 264 (boundary.F90, epoch2d)
+73 264 (boundary.F90, epoch2d)
+74 286 (boundary.F90, epoch2d)
+75 299 (boundary.F90, epoch2d)
+76 689 (boundary.F90, epoch2d)
+77 697 (boundary.F90, epoch2d)
+78 733 (boundary.F90, epoch2d)
+79 741 (boundary.F90, epoch2d)
+80 802 (boundary.F90, epoch2d)
+81 802 (boundary.F90, epoch2d)
+82 802 (boundary.F90, epoch2d)
+83 1338 (boundary.F90, epoch2d)
+84 1338 (boundary.F90, epoch2d)
+85 1338 (boundary.F90, epoch2d)
+86 1338 (boundary.F90, epoch2d)
+87 1338 (boundary.F90, epoch2d)
+88 1338 (boundary.F90, epoch2d)
+89 1338 (boundary.F90, epoch2d)
+90 1338 (boundary.F90, epoch2d)
+91 1363 (boundary.F90, epoch2d)
+92 31 (current_..ooth.F90) [31 (current_smooth.F90, epoch2d)]
+93 33 (current_..ooth.F90) [33 (current_smooth.F90, epoch2d)]
+94 34 (current_..ooth.F90) [34 (current_smooth.F90, epoch2d)]
+95 35 (current_..ooth.F90) [35 (current_smooth.F90, epoch2d)]
+96 700 (deck.F90, epoch2d)
+97 701 (deck.F90, epoch2d)
+98 703 (deck.F90, epoch2d)
+99 705 (deck.F90, epoch2d)
+100 716 (deck.F90, epoch2d)
+101 735 (deck.F90, epoch2d)
+102 737 (deck.F90, epoch2d)
+103 739 (deck.F90, epoch2d)
+104 741 (deck.F90, epoch2d)
+105 751 (deck.F90, epoch2d)
+106 810 (deck.F90, epoch2d)
+107 3306 (diagnostics.F90, epoch2d)
+108 33 (epoch2d.F90, epoch2d)
+109 72 (epoch2d.F90, epoch2d)
+110 91 (epoch2d.F90, epoch2d)
+111 97 (epoch2d.F90, epoch2d)
+112 109 (epoch2d.F90, epoch2d)
+113 117 (epoch2d.F90, epoch2d)
+114 127 (epoch2d.F90, epoch2d)
+115 130 (epoch2d.F90, epoch2d)
+116 138 (epoch2d.F90, epoch2d)
+117 141 (epoch2d.F90, epoch2d)
+118 142 (epoch2d.F90, epoch2d)
+119 157 (epoch2d.F90, epoch2d)
+120 208 (epoch2d.F90, epoch2d)
+121 239 (epoch2d.F90, epoch2d)
+122 246 (epoch2d.F90, epoch2d)
+123 268 (epoch2d.F90, epoch2d)
+124 548 (fields.f90, epoch2d)
+125 576 (fields.f90, epoch2d)
+126 42 (finish.f90, epoch2d)
+127 133 (finish.f90, epoch2d)
+128 130 (helper.F90, epoch2d)
+129 630 (helper.F90, epoch2d)
+130 643 (helper.F90, epoch2d)
+131 675 (helper.F90, epoch2d)
+132 689 (helper.F90, epoch2d)
+133 32 (mpi_routines.F90, epoch2d)
+134 33 (mpi_routines.F90, epoch2d)
+135 34 (mpi_routines.F90, epoch2d)
+136 173 (mpi_routines.F90, epoch2d)
+137 222 (mpi_routines.F90, epoch2d)
+138 223 (mpi_routines.F90, epoch2d)
+139 224 (mpi_routines.F90, epoch2d)
+140 282 (mpi_routines.F90, epoch2d)
+141 563 (particles.F90, epoch2d)
+142 829 (partlist.F90, epoch2d)
+143 856 (partlist.F90, epoch2d)
+144 975 (partlist.F90, epoch2d)
+145 77 (redblack..dule.f90) [77 (redblack_module.f90, epoch2d)]
+146 77 (redblack..dule.f90) [77 (redblack_module.f90, epoch2d)]
+147 91 (redblack..dule.f90) [91 (redblack_module.f90, epoch2d)]
+148 104 (redblack..dule.f90) [104 (redblack_module.f90, epoch2d)]
+149 104 (redblack..dule.f90) [104 (redblack_module.f90, epoch2d)]
+150 118 (redblack..dule.f90) [118 (redblack_module.f90, epoch2d)]
+151 396 (redblack..dule.f90) [396 (redblack_module.f90, epoch2d)]
+152 396 (redblack..dule.f90) [396 (redblack_module.f90, epoch2d)]
+153 409 (redblack..dule.f90) [409 (redblack_module.f90, epoch2d)]
+154 409 (redblack..dule.f90) [409 (redblack_module.f90, epoch2d)]
+155 414 (redblack..dule.f90) [414 (redblack_module.f90, epoch2d)]
+156 414 (redblack..dule.f90) [414 (redblack_module.f90, epoch2d)]
+157 668 (setup.F90, epoch2d)
+158 2004 (setup.F90, epoch2d)
+159 2012 (setup.F90, epoch2d)
+160 2013 (setup.F90, epoch2d)
+161 2014 (setup.F90, epoch2d)
+162 2015 (setup.F90, epoch2d)
+163 188 (window.F90, epoch2d)
+164 394 (window.F90, epoch2d)
+
+
+EVENT_TYPE
+0 41000000 Object addresses for task 1.1
+VALUES
+1 force_dump.4299 [0x007ef9c8-0x007ef9cb]
+2 halt.4300 [0x007ef9cc-0x007ef9cf]
+3 options.13.4482 [0x005610d0-0x005610eb]
+4 completed.7278 [0x007de3a0-0x007de3a0]
+5 A.114.4842 [0x00558c30-0x00558c47]
+6 A.115.4844 [0x00558c10-0x00558c27]
+7 A.116.4846 [0x00558bf0-0x00558c07]
+8 terminate.4831 [0x007de7c4-0x007de7c7]
+9 elements.4812 [0x007de7c8-0x007de7cb]
+10 warn_ascii.4836 [0x007de7cc-0x007de7cf]
+11 err_count.4486 [0x007de7c0-0x007de7c3]
+12 field_name.3876 [0x0055af40-0x0055af93]
+13 part_name.3861 [0x0055afa0-0x0055b005]
+14 grid_name.4106 [0x0055bf00-0x0055bf1d]
+15 sdf_handle.4045 [0x007de880-0x007e6a87]
+16 fullmask.3973 [0x007e6c60-0x007e6c63]
+17 nstep_next.9465 [0x007ef970-0x007ef973]
+18 check_counter.4670 [0x007ef9c4-0x007ef9c7]
+19 all_completed.4577 [0x007ef9c0-0x007ef9c3]
+20 completed.4578 [0x007ef980-0x007ef9bf]
+21 wall0.4587 [0x007ef978-0x007ef97f]
+22 A.978.10329 [0x00560290-0x00560293]
+23 A.980.10334 [0x0056028c-0x0056028f]
+24 A.982.10339 [0x00560288-0x0056028b]
+25 A.984.10346 [0x00560284-0x00560287]
+26 A.986.10351 [0x00560280-0x00560283]
+27 A.988.10356 [0x0056027c-0x0056027f]
+28 A.990.10362 [0x00560278-0x0056027b]
+29 A.992.10367 [0x00560274-0x00560277]
+30 A.994.10372 [0x00560270-0x00560273]
+31 A.9.4566 [0x00560240-0x0056026f]
+32 current_list.4011 [0x007effd0-0x007effd7]
+33 cur.4010 [0x007effc8-0x007effcf]
+34 current_list.4118 [0x007effc0-0x007effc7]
+35 cur.4117 [0x007effb8-0x007effbf]
+36 current_list.4234 [0x007effb0-0x007effb7]
+37 cur.4233 [0x007effa8-0x007effaf]
+38 A.2.3867 [0x00562ce0-0x00562d1f]
+39 A.3.3869 [0x00562ca0-0x00562cd7]
+40 A.4.3871 [0x00562c60-0x00562c87]
+41 A.5.3873 [0x00562c40-0x00562c5f]
+42 A.6.3875 [0x00562c00-0x00562c2f]
+43 A.15.4002 [0x00562bc0-0x00562bff]
+44 A.16.4004 [0x00562b80-0x00562bbf]
+45 A.17.4006 [0x00562b40-0x00562b77]
+46 last_count.4448 [0x007f0080-0x007f0083]
+47 ipart.4145 [0x007f00f0-0x007f00f7]
+48 cpos.4141 [0x007f00e8-0x007f00ef]
+49 cur.4141 [0x007f0110-0x007f0117]
+50 cur.4174 [0x007f0108-0x007f010f]
+51 cached_random_value.3854 [0x007f0140-0x007f0147]
+52 cached.3853 [0x007f0148-0x007f014b]
+53 cur.4766 [0x007f17a0-0x007f17a7]
+54 sdf_handle.5025 [0x007f17c0-0x007f99c7]
+55 sdf_handle.4793 [0x007f99e0-0x00801be7]
+56 value.4059 [0x00808570-0x00808577]
+57 value.4068 [0x00808568-0x0080856b]
+58 value.4077 [0x00808560-0x00808567]
+59 tty.3789 [0x00808578-0x0080857b]
+60 errcode.3893 [0x00829000-0x00829003]
+61 nstat_list_max.4079 [0x00829428-0x0082942b]
+62 days_since_new_year.3822 [0x005776e0-0x0057770f]
+63 k.3892 [0x005778a0-0x0057799f]
+64 r.3895 [0x005777a0-0x0057789f]
+65 intn.9324 [0x00829440-0x00829443]
+66 intn.9324 [0x00829444-0x00829447]
+67 sz.5658 [0x00829448-0x0082944f]
+68 n3.4901 [0x00829458-0x0082945b]
+69 sz.5564 [0x00829450-0x00829457]
+70 A.4.4031 [0x00578b20-0x00578b4f]
+71 __FRAME_END__ [0x00590114-0x00590113]
+72 __GNU_EH_FRAME_HDR [0x00578cf0-0x00578cef]
+73 __shared_data_MOD_proc_x_min [0x00804480-0x00804483]
+74 __shared_data_MOD___def_init_shared_data_Io_block_type [0x00566d60-0x0056b5bf]
+75 __timer_MOD_timer_walltime [0x00808580-0x00808587]
+76 __balance_MOD_new_cell_y_min [0x007de3e0-0x007de41f]
+77 __shared_data_MOD_use_current_correction [0x00802194-0x00802197]
+78 __ionise_MOD_k_photons_exponent [0x007efce0-0x007efd1f]
+79 __collisions_MOD_meany [0x007de5c0-0x007de617]
+80 __setup_MOD_iterator_list [0x007f1790-0x007f1797]
+81 __stack_MOD_eval_stack_stack_point [0x008084c8-0x008084cb]
+82 __shared_data_MOD_subarray_field_big [0x00802288-0x0080228b]
+83 __shared_data_MOD_cpml_y_max_end [0x008074a0-0x008074a3]
+84 __shared_data_MOD_fng [0x00805b7c-0x00805b7f]
+85 __deck_stencil_block_MOD_dt_set [0x007e7300-0x007e7303]
+86 __deck_control_block_MOD_got_nproc [0x007de868-0x007de86b]
+87 __shared_data_MOD_cpml_kappa_bx [0x008079a0-0x008079df]
+88 __deck_species_block_MOD_bc_particle_array [0x007e7260-0x007e72b7]
+89 __sdf_common_MOD___def_init_sdf_common_Sdf_run_type [0x0056e640-0x0056e85f]
+90 __shared_data_MOD_stop_at_walltime [0x00802290-0x00802297]
+91 __deck_species_block_MOD_species_names [0x007e6d80-0x007e6dbf]
+92 __shared_data_MOD_status [0x008032b0-0x008032c7]
+93 __shared_data_MOD_jz [0x008047c0-0x00804817]
+94 __timer_MOD_timer_first [0x008085c0-0x008085df]
+95 __shared_data_MOD_subset_list [0x00802240-0x0080227f]
+96 __shared_data_MOD___vtab_shared_data_Injector_block [0x00564ec0-0x00564ef7]
+97 __shared_data_MOD_smooth_strides [0x00803380-0x008033bf]
+98 __shared_data_MOD_status_filename [0x008022a0-0x008032af]
+99 __shared_data_MOD_file_numbers [0x00805be0-0x00805c1f]
+100 __shared_data_MOD_coulomb_log_auto [0x00807b00-0x00807b03]
+101 __shared_data_MOD_use_injectors [0x00802184-0x00802187]
+102 __particle_id_hash_mod_MOD_id_registry [0x007f0040-0x007f007f]
+103 __shared_data_MOD_x_grid_max [0x00802008-0x0080200f]
+104 __shared_data_MOD_cpml_sigma_bx [0x008075a0-0x008075df]
+105 __fields_MOD_hdt [0x007efa00-0x007efa07]
+106 __shared_data_MOD___def_init_shared_data_Subset [0x00565040-0x00565ba7]
+107 __partlist_MOD___vtab_partlist_Pointer_list [0x00563820-0x00563857]
+108 __deck_io_block_MOD_io_block [0x007e6c40-0x007e6c47]
+109 __shared_data_MOD_cpml_y_min_end [0x0080748c-0x0080748f]
+110 __partlist_MOD___def_init_partlist_Pointer_list [0x005638a0-0x005638af]
+111 __shared_data_MOD_n_custom_loaders [0x0080475c-0x0080475f]
+112 __diagnostics_MOD_iodumpmask [0x007ef7e0-0x007ef837]
+113 __diagnostics_MOD_skipped_any_set [0x007e7420-0x007e7423]
+114 __shared_data_MOD___vtab_shared_data_String_type [0x00564bc0-0x00564bf7]
+115 __shared_data_MOD___def_init_shared_data_Particle_species_migration [0x00565d40-0x00565e2f]
+116 __shared_data_MOD_sdf_buffer_size [0x008033d0-0x008033d7]
+117 __diagnostics_MOD_dump_source_code [0x007ef918-0x007ef91b]
+118 __shared_data_MOD___vtab_shared_data_Stack_element [0x00564c00-0x00564c37]
+119 __shared_data_MOD_global_species_drift [0x00804a80-0x00804aef]
+120 __shared_data_MOD_dir_max_local [0x00806360-0x0080636f]
+121 __shared_data_MOD_cpml_y_max_laser_idx [0x0080749c-0x0080749f]
+122 __deck_io_global_block_MOD_got_dump_first_after_restart [0x007e6c68-0x007e6c6b]
+123 __shared_data_MOD_cpml_y_max [0x008074a4-0x008074a7]
+124 __shared_data_MOD_laser_x_max [0x00804790-0x00804797]
+125 __epoch_source_info_MOD_epoch_diff_bytes [0x00829010-0x00829017]
+126 __window_MOD_density [0x00828fc0-0x00828fff]
+127 __redblack_module_MOD_field_in3d [0x007f05a0-0x007f060f]
+128 __ionise_MOD_smallest_e_mag [0x007efbc0-0x007efbff]
+129 __ionise_MOD_ionisation_constant [0x007efd60-0x007efd9f]
+130 __shared_data_MOD_particles_max_id [0x00804498-0x0080449f]
+131 __shared_data_MOD_ejected_list [0x00806160-0x0080619f]
+132 __diagnostics_MOD_restart_flag [0x007ef648-0x007ef64b]
+133 __version_data_MOD_version_string [0x00828e60-0x00828e6f]
+134 __sdf_md5_MOD_h3 [0x00829430-0x00829433]
+135 __random_generator_MOD___vtab_random_generator_Random_state_type [0x00563940-0x00563977]
+136 __shared_data_MOD_dt_from_restart [0x00806300-0x00806307]
+137 __fields_MOD_betayx [0x007efa38-0x007efa3f]
+138 __shared_data_MOD_step [0x00802298-0x0080229b]
+139 __diagnostics_MOD___def_init_diagnostics_String_entry [0x00560340-0x00560447]
+140 __timer_MOD_timer_average [0x00808600-0x0080861f]
+141 __shared_data_MOD___def_init_shared_data_Particle [0x00566aa0-0x00566adf]
+142 __shared_data_MOD_blank [0x00808100-0x008081ff]
+143 __shared_data_MOD_cpml_a_max [0x008079e8-0x008079ef]
+144 __evaluator_MOD_sl_tail [0x007ef9d0-0x007ef9d7]
+145 __version_data_MOD_ascii_header [0x00828e80-0x00828ec5]
+146 __shared_data_MOD_ex_y_max [0x00806020-0x0080605f]
+147 __redblack_module_MOD_field_out2dr4 [0x007f03e0-0x007f0437]
+148 __evaluator_MOD___vtab_evaluator_Stack_list [0x005611a0-0x005611d7]
+149 __shared_data_MOD_bx_y_min [0x00807fa0-0x00807fdf]
+150 __shared_data_MOD_io_list [0x00804920-0x0080495f]
+151 __shared_data_MOD_bz_x_min [0x00807d60-0x00807d9f]
+152 __shared_data_MOD_comm [0x00807b18-0x00807b1b]
+153 __shared_data_MOD___vtab_shared_data_Initial_condition_block [0x00564f00-0x00564f37]
+154 __shared_data_MOD_stdout_frequency [0x0080229c-0x0080229f]
+155 __shared_data_MOD___def_init_shared_data_Stack_element [0x00565cc0-0x00565ccf]
+156 __shared_data_MOD_n_laser_y_min [0x00804730-0x00804733]
+157 __shared_data_MOD_cpml_y_max_offset [0x00807498-0x0080749b]
+158 __stack_MOD_eval_stack_nvalues [0x008084cc-0x008084cf]
+159 __mpi_routines_MOD_start_time [0x007effd8-0x007effdf]
+160 __fields_MOD_deltay [0x007efa18-0x007efa1f]
+161 __shared_data_MOD_bz_y_min [0x00807ce0-0x00807d1f]
+162 __shared_data_MOD_bz_y_max [0x00807d20-0x00807d5f]
+163 __shared_data_MOD_data_dir [0x00806420-0x0080742f]
+164 mpi_fortran_errcodes_ignore_ [0x00829500-0x00829507]
+165 __shared_data_MOD_proc_y_min [0x00804478-0x0080447b]
+166 __shared_data_MOD___vtab_shared_data_Custom_particle_loader [0x00564fc0-0x00564ff7]
+167 __shared_data_MOD_window_v_x_stack [0x008020c0-0x00802117]
+168 __shared_data_MOD___vtab_shared_data_Particle_species [0x00564cc0-0x00564cf7]
+169 __deck_subset_block_MOD_offset [0x007e73c0-0x007e73c7]
+170 __evaluator_MOD___def_init_evaluator_Stack_list [0x005611e0-0x00561247]
+171 __shared_data_MOD_ez [0x00805d20-0x00805d77]
+172 __shared_data_MOD_x_grid_min_local [0x00801fa0-0x00801fa7]
+173 __shared_data_MOD_cpml_psi_bzy [0x00807760-0x008077b7]
+174 __shared_data_MOD_use_window_stack [0x00802158-0x0080215b]
+175 __collisions_MOD_meanz [0x007de560-0x007de5b7]
+176 __shared_data_MOD_nprocdir [0x00804618-0x0080461f]
+177 __shared_data_MOD_laser_x_min [0x00804788-0x0080478f]
+178 _IO_stdin_used [0x00556420-0x00556423]
+179 __diagnostics_MOD_species_offset [0x007e73e0-0x007e741f]
+180 __deck_species_block_MOD_release_species [0x007e7000-0x007e703f]
+181 mpi_fortran_statuses_ignore_ [0x00829480-0x00829497]
+182 __shared_data_MOD_jy [0x00804820-0x00804877]
+183 __redblack_module_MOD_field_in1d [0x007f0720-0x007f075f]
+184 __deck_io_global_block_MOD_dump_first_after_restart [0x007e6c74-0x007e6c77]
+185 __shared_data_MOD_time_start [0x00802218-0x0080221f]
+186 __deck_dist_fn_block_MOD_got_name [0x007e6a94-0x007e6a97]
+187 __shared_data_MOD_npart_each_rank [0x008046a0-0x008046df]
+188 __shared_data_MOD_check_walltime [0x00807bb8-0x00807bbb]
+189 __shared_data_MOD_maxwell_solver [0x00804764-0x00804767]
+190 __iterators_MOD_current_species [0x007effa0-0x007effa7]
+191 __shared_data_MOD_use_pre_balance [0x00802164-0x00802167]
+192 __ionise_MOD_multi_constant [0x007efc60-0x007efc9f]
+193 __shared_data_MOD_cpml_psi_ezx [0x00807640-0x00807697]
+194 __shared_data_MOD_use_qed [0x00802160-0x00802163]
+195 __shared_data_MOD___def_init_shared_data_Averaged_data_block [0x0056c480-0x0056c577]
+196 __shared_data_MOD_new_style_io_block [0x008046e0-0x008046e3]
+197 __shared_data_MOD_averaged_var_dims [0x00808240-0x0080835b]
+198 __shared_data_MOD_y_max_boundary [0x00801ce0-0x00801ce3]
+199 __diagnostics_MOD_dump_input_decks [0x007ef960-0x007ef963]
+200 __shared_data_MOD_ey_y_max [0x00805dc0-0x00805dff]
+201 __diagnostics_MOD___def_init_diagnostics_String_list [0x00560320-0x00560337]
+202 __shared_data_MOD_n_laser_y_max [0x00804734-0x00804737]
+203 __deck_particle_probe_block_MOD_point2 [0x007e6d50-0x007e6d5f]
+204 __shared_data_MOD_npart_per_cell_array [0x00804640-0x00804697]
+205 __shared_data_MOD_cpml_x_min_offset [0x008074ac-0x008074af]
+206 __deck_control_block_MOD_got_optimal_layout [0x007de864-0x007de867]
+207 __deck_species_block_MOD_got_name [0x007e71a0-0x007e71a3]
+208 __timer_MOD_timer_time [0x008085a0-0x008085bf]
+209 __shared_data_MOD_use_multiphoton [0x0080217c-0x0080217f]
+210 __particle_id_hash_mod_MOD___def_init_particle_id_hash_mod_Particle_id_inner_list [0x00563020-0x0056305f]
+211 __shared_data_MOD_initial_jy [0x008049d8-0x008049df]
+212 __sdf_md5_MOD_h2 [0x00829434-0x00829437]
+213 __shared_data_MOD_n_zeros_control [0x00804728-0x0080472b]
+214 __redblack_module_MOD_field_out3dr4 [0x007f02e0-0x007f034f]
+215 __shared_data_MOD_dt_laser [0x008062f8-0x008062ff]
+216 __deck_species_block_MOD_part_count [0x007e7080-0x007e70bf]
+217 __shared_data_MOD_old_y_max [0x008044c0-0x008044ff]
+218 __shared_data_MOD___vtab_shared_data_Particle [0x00564dc0-0x00564df7]
+219 __deck_MOD___def_init_deck_File_buffer [0x00559b80-0x0055ac07]
+220 __particle_id_hash_mod_MOD_random_state [0x007f0020-0x007f003f]
+221 __shared_data_MOD_dir_grid_min [0x00806380-0x0080638f]
+222 __setup_MOD_got_y_grid_min [0x007f1798-0x007f179b]
+223 __shared_data_MOD_dir_grid_max [0x00806390-0x0080639f]
+224 __shared_data_MOD_dt [0x00806310-0x00806317]
+225 __shared_data_MOD_cpml_kappa_ey [0x008078e0-0x0080791f]
+226 __shared_data_MOD_y_max_local [0x00801cd8-0x00801cdf]
+227 __ionise_MOD_keldysh [0x007efca0-0x007efcdf]
+228 __balance_MOD_load_av [0x007de4e8-0x007de4ef]
+229 __shared_data_MOD_laser_inject_local [0x008047a0-0x008047a7]
+230 __shared_data_MOD_cpml_x_min_end [0x008074b4-0x008074b7]
+231 __shared_data_MOD_cpml_psi_byx [0x00807820-0x00807877]
+232 __deck_species_block_MOD_species_charge_set [0x007e6e40-0x007e6e7f]
+233 __diagnostics_MOD_got_request_dump_restart [0x007ef838-0x007ef83b]
+234 __redblack_module_MOD_field_out1d [0x007f04e0-0x007f051f]
+235 __deck_io_block_MOD_got_name [0x007e6c48-0x007e6c4b]
+236 __deck_particle_probe_block_MOD_got_point [0x007e6d64-0x007e6d67]
+237 __fields_MOD_betaxy [0x007efa40-0x007efa47]
+238 __shared_data_MOD_window_offset [0x00802138-0x0080213f]
+239 __sdf_common_MOD___def_init_sdf_common_Sdf_hash_list [0x0056e860-0x0056e86f]
+240 __shared_data_MOD_n_laser_x_max [0x0080473c-0x0080473f]
+241 __collisions_MOD_part_count [0x007de500-0x007de557]
+242 __shared_data_MOD_nprocx [0x00804614-0x00804617]
+243 __shared_data_MOD_use_more_setup_memory [0x00802180-0x00802183]
+244 __shared_data_MOD_dist_fns [0x00806330-0x00806337]
+245 __stack_MOD_flag [0x008084c4-0x008084c7]
+246 __shared_data_MOD_cpml_x_max_start [0x008074bc-0x008074bf]
+247 __sdf_common_MOD_open_handles [0x00829420-0x00829423]
+248 mpi_fortran_unweighted_ [0x00829520-0x00829527]
+249 __shared_data_MOD_cpml_sigma_max [0x008074d8-0x008074df]
+250 __sdf_md5_MOD_total_length [0x0082942c-0x0082942f]
+251 __shared_data_MOD_ey [0x00805e80-0x00805ed7]
+252 __shared_data_MOD_balance_first [0x00808230-0x00808233]
+253 __shared_data_MOD_cpml_psi_bzx [0x008077c0-0x00807817]
+254 __shared_data_MOD_injector_y_max [0x008049a8-0x008049af]
+255 __balance_MOD_old_coordinates [0x007de3d0-0x007de3d7]
+256 __shared_data_MOD_old_x_max [0x00804500-0x0080453f]
+257 __balance_MOD_old_slice_coord [0x007de3c8-0x007de3cb]
+258 __shared_data_MOD_n_laser_x_min [0x00804738-0x0080473b]
+259 __sdf_common_MOD_c_type_sizes [0x0056d960-0x0056d983]
+260 __diagnostics_MOD_max_string_length [0x007ef6a0-0x007ef6a3]
+261 __shared_data_MOD_io_block_list [0x00804960-0x0080499f]
+262 __deck_MOD___vtab_deck_File_buffer [0x00559b40-0x00559b77]
+263 __shared_data_MOD_nproc [0x00804620-0x00804623]
+264 __shared_data_MOD_yb_global [0x00801c40-0x00801c7f]
+265 __shared_data_MOD___vtab_shared_data_Particle_species_migration [0x00564c80-0x00564cb7]
+266 __shared_data_MOD_errcode [0x00806138-0x0080613b]
+267 __deck_species_block_MOD_ionise_to_species [0x007e7120-0x007e715f]
+268 __diagnostics_MOD_file_list [0x007ef840-0x007ef87f]
+269 __shared_data_MOD_jx [0x00804880-0x008048d7]
+270 __shared_data_MOD_bz [0x00807de0-0x00807e37]
+271 __shared_data_MOD_length_y [0x00804768-0x0080476f]
+272 __shared_data_MOD_use_particle_migration [0x00802168-0x0080216b]
+273 __tokenizer_blocks_MOD_new_constant_code [0x00828a40-0x00828e3f]
+274 __shared_data_MOD_dir_min [0x00806350-0x0080635f]
+275 __shared_data_MOD___vtab_shared_data_Particle_probe [0x00564d40-0x00564d77]
+276 __shared_data_MOD_x_max_boundary [0x00801f40-0x00801f43]
+277 __shared_data_MOD_x_min_boundary [0x00801f28-0x00801f2b]
+278 __sdf_common_MOD_errhandler_handle [0x00829424-0x00829427]
+279 __shared_data_MOD_use_exact_restart [0x00802190-0x00802193]
+280 __ionise_MOD_adk_multiphoton_cap [0x007efee0-0x007eff1f]
+281 __deck_dist_fn_block_MOD_ndims [0x007e6a90-0x007e6a93]
+282 __deck_collision_block_MOD_got_nanbu [0x007de7e0-0x007de7e3]
+283 __shared_data_MOD_inject_particles [0x008049c0-0x008049c3]
+284 __shared_data_MOD_cpml_psi_ezy [0x008075e0-0x00807637]
+285 __diagnostics_MOD_done_subset_init [0x007ef968-0x007ef96b]
+286 __partlist_MOD___def_init_partlist_Pointer_item [0x005638b0-0x005638bf]
+287 __tokenizer_blocks_MOD_n_new_func [0x00828e40-0x00828e43]
+288 __shared_data_MOD_xb_offset_global [0x00801e60-0x00801e9f]
+289 __shared_data_MOD_x_coords [0x00802060-0x00802063]
+290 __particle_id_hash_mod_MOD___vtab_particle_id_hash_mod_Particle_id_inner_list [0x00562ec0-0x00562f0f]
+291 __shared_data_MOD_jobid [0x008048d8-0x008048df]
+292 __deck_control_block_MOD_got_time [0x007de860-0x007de863]
+293 __shared_data_MOD___vtab_shared_data_Parameter_pack [0x00564e00-0x00564e37]
+294 __shared_data_MOD_y_min_local [0x00801cc0-0x00801cc7]
+295 __shared_data_MOD_y_coords [0x00801e00-0x00801e03]
+296 __timer_MOD_timer_collect [0x008085e0-0x008085e3]
+297 __shared_data_MOD___def_init_shared_data_Particle_sort_element [0x00566880-0x00566887]
+298 __shared_data_MOD_full_restart_filename [0x00804b60-0x00805b6f]
+299 __shared_data_MOD_ny_global_max [0x0080454c-0x0080454f]
+300 __shared_data_MOD_yb [0x00801c80-0x00801cbf]
+301 __shared_data_MOD___def_init_shared_data_Deck_constant [0x0056bcc0-0x0056be17]
+302 __shared_data_MOD_track_ejected_particles [0x008021b0-0x008021b3]
+303 __tokenizer_blocks_MOD_tokenize_stagger [0x00808620-0x00808623]
+304 __shared_data_MOD_y_min_boundary [0x00801cc8-0x00801ccb]
+305 __balance_MOD_new_cell_x_max [0x007de4a0-0x007de4df]
+306 __deck_part_from_file_block_MOD_got_species [0x007e6d20-0x007e6d23]
+307 mpi_fortran_status_ignore_ [0x008294a0-0x008294b7]
+308 __shared_data_MOD_initial_jx [0x008049e0-0x008049e7]
+309 __sdf_md5_MOD_h1 [0x00829438-0x0082943b]
+310 __shared_data_MOD_nx_each_rank [0x008045c0-0x008045ff]
+311 __shared_data_MOD_ez_x_min [0x00805ca0-0x00805cdf]
+312 __deck_dist_fn_block_MOD_working_block [0x007e6a88-0x007e6a8f]
+313 __shared_data_MOD_ez_x_max [0x00805ce0-0x00805d1f]
+314 __shared_data_MOD_ex_x_max [0x008060a0-0x008060df]
+315 __shared_data_MOD_window_started [0x00802128-0x0080212b]
+316 __stack_MOD_eval_stack_entries [0x00808520-0x0080855f]
+317 __shared_data_MOD_use_bremsstrahlung [0x008021a4-0x008021a7]
+318 __shared_data_MOD_y_max [0x00801ce8-0x00801cef]
+319 __shared_data_MOD_cpml_kappa_ex [0x00807920-0x0080795f]
+320 __deck_species_block_MOD_species_blocks [0x007e6ea0-0x007e6edf]
+321 __probes_MOD_current_species [0x007f00f8-0x007f00ff]
+322 __partlist_MOD_nvar [0x007f00e0-0x007f00e3]
+323 __diagnostics_MOD_done_species_offset_init [0x007ef96c-0x007ef96f]
+324 __deck_species_block_MOD_angular [0x007e72c0-0x007e72ff]
+325 __diagnostics_MOD_ejected_offset [0x007ef880-0x007ef8bf]
+326 __shared_data_MOD_cpml_y_max_start [0x00807494-0x00807497]
+327 __shared_data_MOD_n_io_blocks [0x00804740-0x00804743]
+328 __ionise_MOD_released_mass_fraction [0x007efc00-0x007efc3f]
+329 __deck_species_block_MOD_release_species_list [0x007e6f00-0x007e6fff]
+330 __shared_data_MOD_simplify_deck [0x008033c8-0x008033cb]
+331 __shared_data_MOD_dlb_force_interval [0x0080632c-0x0080632f]
+332 __shared_data_MOD_stagger [0x008032e0-0x0080333f]
+333 mpi_fortran_bottom_ [0x008294c0-0x008294c3]
+334 __shared_data_MOD_cpml_a_bx [0x00807ac0-0x00807aff]
+335 __shared_data_MOD_use_particle_lists [0x0080216c-0x0080216f]
+336 __particle_id_hash_mod_MOD___vtab_particle_id_hash_mod_Particle_id_hash_holder [0x00562f20-0x00562f57]
+337 __shared_data_MOD_laser_injected [0x00804798-0x0080479f]
+338 __shared_data_MOD_nprocy [0x00804610-0x00804613]
+339 __shared_data_MOD_global_species_temp [0x00804a00-0x00804a6f]
+340 __constants_MOD_opcode_assoc [0x005590a0-0x005590d3]
+341 __shared_data_MOD_done_mpi_initialise [0x00806318-0x0080631b]
+342 __shared_data_MOD_dt_min_average [0x008062f0-0x008062f7]
+343 __shared_data_MOD_dt_plasma_frequency [0x008062e0-0x008062e7]
+344 __shared_data_MOD_cpml_kappa_by [0x00807960-0x0080799f]
+345 __particle_id_hash_mod_MOD___def_init_particle_id_hash_mod_Particle_id_list_registry [0x00562fe0-0x0056301f]
+346 __shared_data_MOD_ex [0x008060e0-0x00806137]
+347 __shared_data_MOD_print_eta_string [0x00804488-0x0080448b]
+348 __fields_MOD_field_order [0x007efa08-0x007efa0b]
+349 __shared_data_MOD_cpml_a_ex [0x00807a40-0x00807a7f]
+350 __deck_part_from_file_block_MOD_current_block_num [0x007e6d34-0x007e6d37]
+351 __shared_data_MOD___vtab_shared_data_Laser_block [0x00564e40-0x00564e77]
+352 __version_data_MOD_c_revision [0x00828e74-0x00828e77]
+353 __shared_data_MOD_x [0x00802080-0x008020bf]
+354 __shared_data_MOD_cpml_x_max_laser_idx [0x008074c4-0x008074c7]
+355 __shared_data_MOD_dt_custom [0x00806308-0x0080630f]
+356 __sdf_common_MOD_mpi_error_codes [0x0056d900-0x0056d953]
+357 __redblack_module_MOD_field_in1dr4 [0x007f06e0-0x007f071f]
+358 __shared_data_MOD_x_max [0x00801f48-0x00801f4f]
+359 __shared_data_MOD_x_min [0x00801f30-0x00801f37]
+360 __shared_data_MOD_smooth_comp_its [0x008033c4-0x008033c7]
+361 __shared_data_MOD_injector_x_max [0x008049b8-0x008049bf]
+362 __shared_data_MOD_cpml_y_min_offset [0x00807484-0x00807487]
+363 __shared_data_MOD_length_x [0x00804770-0x00804777]
+364 __shared_data_MOD_laser_absorb_local [0x008047b0-0x008047b7]
+365 __shared_data_MOD_realsize [0x008043f8-0x008043fb]
+366 __shared_data_MOD_by [0x00807f40-0x00807f97]
+367 __collisions_MOD_meanx [0x007de620-0x007de677]
+368 __ionise_MOD_bsi_constant [0x007efe60-0x007efe9f]
+369 __shared_data_MOD_dir_d [0x008063a0-0x008063af]
+370 __shared_data_MOD_ey_x_min [0x00805e00-0x00805e3f]
+371 __shared_data_MOD_total_field_energy [0x00802208-0x0080220f]
+372 __deck_io_global_block_MOD_got_dump_last [0x007e6c64-0x007e6c67]
+373 __shared_data_MOD_n_subsets [0x0080472c-0x0080472f]
+374 __constants_MOD_io_units [0x005590e0-0x005590e7]
+375 __shared_data_MOD_restart_dump_every [0x008043f0-0x008043f3]
+376 __shared_data_MOD_by_y_max [0x00807e80-0x00807ebf]
+377 __shared_data_MOD_cpml_kappa_max [0x008078d8-0x008078df]
+378 __balance_MOD_overriding [0x007de3c4-0x007de3c7]
+379 __deck_subset_block_MOD_current_block [0x007e73cc-0x007e73cf]
+380 __deck_MOD_file_buffer_head [0x007de6b0-0x007de6b7]
+381 __deck_particle_probe_block_MOD_working_probe [0x007e6d40-0x007e6d47]
+382 __deck_species_block_MOD_n_secondary_species_in_block [0x007e70c8-0x007e70cb]
+383 __shared_data_MOD_x_global [0x00802020-0x0080205f]
+384 __sdf_common_MOD___vtab_sdf_common_Sdf_run_type [0x0056e500-0x0056e537]
+385 __shared_data_MOD_cpml_psi_bxy [0x00807880-0x008078d7]
+386 __shared_data_MOD___vtab_shared_data_Primitive_stack [0x00564c40-0x00564c77]
+387 __deck_io_block_MOD_io_block_done [0x007e6b20-0x007e6c3b]
+388 __shared_data_MOD_io_list_data [0x008048e0-0x0080491f]
+389 __shared_data_MOD_species_list [0x00803340-0x0080337f]
+390 __sdf_common_MOD_sdf_handles [0x00829020-0x0082941f]
+391 __shared_data_MOD_laser_y_min [0x00804778-0x0080477f]
+392 __shared_data_MOD_cpml_thickness [0x008074d0-0x008074d3]
+393 __shared_data_MOD_cell_x_max [0x00807ca0-0x00807cdf]
+394 __shared_data_MOD_proc_x_max [0x00804484-0x00804487]
+395 __sdf_md5_MOD_h0 [0x0082943c-0x0082943f]
+396 __shared_data_MOD_x_grid_mins [0x00801f60-0x00801f9f]
+397 __deck_io_block_MOD_got_dump_input_decks [0x007e6c50-0x007e6c53]
+398 __setup_MOD_got_x_grid_min [0x007f179c-0x007f179f]
+399 __sdf_common_MOD___vtab_sdf_common_Sdf_hash_list [0x0056e540-0x0056e577]
+400 __shared_data_MOD_y_grid_max [0x00801da8-0x00801daf]
+401 __ionise_MOD_bsi_threshold [0x007efde0-0x007efe1f]
+402 __shared_data_MOD_total_particle_energy [0x00802200-0x00802207]
+403 __shared_data_MOD_cell_x_min [0x00807c60-0x00807c9f]
+404 __shared_data_MOD_y_global [0x00801dc0-0x00801dff]
+405 __deck_io_global_block_MOD_got_dump_first [0x007e6c6c-0x007e6c6f]
+406 __window_MOD_window_shift_fraction [0x00828ee0-0x00828ee7]
+407 __shared_data_MOD_subarray_field [0x0080228c-0x0080228f]
+408 __shared_data_MOD_cell_y_max [0x00807c20-0x00807c5f]
+409 __version_data_MOD_c_version [0x00828e70-0x00828e73]
+410 __shared_data_MOD_pre_loading [0x00804490-0x00804493]
+411 __shared_data_MOD_ic_from_restart [0x008049e8-0x008049eb]
+412 __shared_data_MOD_cpml_boundaries [0x008079e0-0x008079e3]
+413 __diagnostics_MOD_isubset [0x007ef6a4-0x007ef6a7]
+414 __shared_data_MOD_by_x_max [0x00807f00-0x00807f3f]
+415 __shared_data_MOD_by_x_min [0x00807ec0-0x00807eff]
+416 __shared_data_MOD_use_exact_restart_set [0x0080218c-0x0080218f]
+417 __shared_data_MOD_reset_walltime [0x008043f4-0x008043f7]
+418 __shared_data_MOD_t_end [0x00802230-0x00802237]
+419 __shared_data_MOD_nsteps [0x00804604-0x00804607]
+420 __shared_data_MOD_ny_global [0x00804550-0x00804553]
+421 __shared_data_MOD_particle_push_start_time [0x008044a0-0x008044a7]
+422 __shared_data_MOD___vtab_shared_data_Io_block_type [0x00564e80-0x00564eb7]
+423 __shared_data_MOD_rank [0x00804408-0x0080440b]
+424 __diagnostics_MOD_sdf_handle [0x007e7440-0x007ef647]
+425 __deck_collision_block_MOD_coll_pairs_touched [0x007de800-0x007de857]
+426 __deck_io_block_MOD_got_dump_source_code [0x007e6c4c-0x007e6c4f]
+427 __deck_species_block_MOD_species_ionisation_energies [0x007e6de0-0x007e6e1f]
+428 __stack_MOD_stack_size [0x008084c0-0x008084c3]
+429 __deck_laser_block_MOD_boundary_set [0x007e6c88-0x007e6c8b]
+430 __shared_data_MOD_coll_sort_array_size [0x00807b1c-0x00807b1f]
+431 __balance_MOD_old_comm [0x007de3d8-0x007de3db]
+432 __sdf_common_MOD___def_init_sdf_common_Sdf_handle_type [0x0056e870-0x0056e87f]
+433 __shared_data_MOD_force_final_to_be_restartable [0x00805b78-0x00805b7b]
+434 __deck_species_block_MOD_species_mass [0x007e6dc0-0x007e6dc7]
+435 __balance_MOD_new_cell_y_max [0x007de420-0x007de45f]
+436 __shared_data_MOD_total_particle_energy_species [0x008021c0-0x008021ff]
+437 __shared_data_MOD_cpml_a_ey [0x00807a00-0x00807a3f]
+438 __helper_MOD_species_density [0x007efb60-0x007efbb7]
+439 __shared_data_MOD_bx_x_max [0x00808060-0x0080809f]
+440 __shared_data_MOD_bx_x_min [0x00808020-0x0080805f]
+441 __shared_data_MOD_y [0x00801e20-0x00801e5f]
+442 __shared_data_MOD_allow_missing_restart [0x00808488-0x0080848b]
+443 __shared_data_MOD_any_persistent_subset [0x0080847c-0x0080847f]
+444 __shared_data_MOD_cpml_y_min_start [0x00807480-0x00807483]
+445 __shared_data_MOD_restart_number [0x008033dc-0x008033df]
+446 __shared_data_MOD_bc_allspecies [0x00808220-0x0080822f]
+447 __deck_species_block_MOD_offset [0x007e70c0-0x007e70c7]
+448 __deck_species_block_MOD_charge [0x007e7220-0x007e725f]
+449 __shared_data_MOD_force_first_to_be_restartable [0x00805b74-0x00805b77]
+450 __shared_data_MOD_subarray_field_r4 [0x00802280-0x00802283]
+451 __shared_data_MOD_allow_cpu_reduce [0x0080848c-0x0080848f]
+452 __sdf_source_info_MOD_sdf_diff_bytes [0x00829460-0x00829467]
+453 __deck_subset_block_MOD_subset_names [0x007e7320-0x007e735f]
+454 __sdf_common_MOD___vtab_sdf_common_Sdf_handle_type [0x0056e580-0x0056e5b7]
+455 __deck_injector_block_MOD_boundary [0x007e6aac-0x007e6aaf]
+456 __shared_data_MOD_bx [0x008080a0-0x008080f7]
+457 __deck_species_block_MOD_species_bc_particle [0x007e6ee0-0x007e6eef]
+458 __shared_data_MOD_r4array [0x00804420-0x00804477]
+459 __shared_data_MOD_use_balance [0x008021a8-0x008021ab]
+460 __deck_subset_block_MOD_check_block [0x007e73d0-0x007e73d3]
+461 __deck_species_block_MOD_species_id [0x007e6e20-0x007e6e23]
+462 __deck_injector_block_MOD_boundary_set [0x007e6aa8-0x007e6aab]
+463 __setup_MOD_x_grid_min_val [0x007f0768-0x007f076f]
+464 __deck_MOD_has_errors [0x007de6a8-0x007de6ab]
+465 __shared_data_MOD_walltime_start [0x00802150-0x00802157]
+466 __shared_data_MOD_ny [0x008045a0-0x008045a3]
+467 __shared_data_MOD_need_random_state [0x00804724-0x00804727]
+468 __constants_MOD_opcode_precedence [0x00559060-0x00559093]
+469 __redblack_module_MOD_field_in2d [0x007f0680-0x007f06d7]
+470 __shared_data_MOD_use_field_ionisation [0x00802188-0x0080218b]
+471 __balance_MOD_max_boundary [0x007de4e0-0x007de4e3]
+472 __particle_id_hash_mod_MOD___vtab_particle_id_hash_mod_Particle_id_hash [0x00562f60-0x00562fcf]
+473 __shared_data_MOD___def_init_shared_data_Initial_condition_block [0x0056b8c0-0x0056ba3f]
+474 __sdf_common_MOD___def_init_sdf_common_Sdf_file_handle [0x0056e880-0x00576a87]
+475 __random_generator_MOD_global_random [0x007f0120-0x007f013f]
+476 __shared_data_MOD___vtab_shared_data_Deck_constant [0x00564f80-0x00564fb7]
+477 __shared_data_MOD_cpml_y_min [0x00807490-0x00807493]
+478 __sdf_common_MOD___def_init_sdf_common_Sdf_block_type [0x00576aa0-0x005773df]
+479 __deck_MOD_nbuffers [0x007de6a0-0x007de6a3]
+480 __helper_MOD_species_drift [0x007efae0-0x007efb4f]
+481 __shared_data_MOD_cpml_psi_eyx [0x008076a0-0x008076f7]
+482 __shared_data_MOD_averaged_var_block [0x00808360-0x0080847b]
+483 __deck_particle_probe_block_MOD_got_x [0x007e6d60-0x007e6d63]
+484 __redblack_module_MOD_field_out2d [0x007f0440-0x007f0497]
+485 __shared_data_MOD_initial_jz [0x008049d0-0x008049d7]
+486 mpi_fortran_argv_null_ [0x00829540-0x00829547]
+487 __shared_data_MOD_nx_global_max [0x008045a8-0x008045ab]
+488 __shared_data_MOD_smooth_currents [0x008033c0-0x008033c3]
+489 __shared_data_MOD___vtab_shared_data_Distribution_function_block [0x00564f40-0x00564f77]
+490 __shared_data_MOD_nx_global_min [0x008045a4-0x008045a7]
+491 __deck_io_global_block_MOD_dump_first [0x007e6c78-0x007e6c7b]
+492 __shared_data_MOD_dlb_threshold [0x00806320-0x00806327]
+493 mpi_fortran_weights_empty_ [0x00829560-0x00829567]
+494 __diagnostics_MOD___vtab_diagnostics_String_entry [0x005602e0-0x00560317]
+495 __deck_MOD_invalid_block [0x007de6a4-0x007de6a7]
+496 __epoch_source_info_MOD_i [0x00829008-0x0082900b]
+497 __shared_data_MOD_ex_y_min [0x00805fe0-0x0080601f]
+498 __shared_data_MOD_use_collisions [0x00802198-0x0080219b]
+499 __ionise_MOD_k_photons_energy [0x007efd20-0x007efd5f]
+500 __shared_data_MOD_proc_y_max [0x0080447c-0x0080447f]
+501 __shared_data_MOD_dy [0x008061a0-0x008061a7]
+502 __redblack_module_MOD_field_out1dr4 [0x007f04a0-0x007f04df]
+503 __shared_data_MOD_bz_x_max [0x00807da0-0x00807ddf]
+504 __shared_data_MOD_xb_global [0x00801ea0-0x00801edf]
+505 __shared_data_MOD_x_grid_min [0x00801fa8-0x00801faf]
+506 __shared_data_MOD___def_init_shared_data_String_type [0x00565bc0-0x00565cbf]
+507 __shared_data_MOD_cpml_x_min_start [0x008074a8-0x008074ab]
+508 __shared_data_MOD_window_start_time [0x00802130-0x00802137]
+509 __shared_data_MOD_use_accurate_n_zeros [0x008021ac-0x008021af]
+510 __shared_data_MOD_use_optimal_layout [0x00802174-0x00802177]
+511 __sdf_job_info_MOD___vtab_sdf_job_info_Jobid_type [0x00577720-0x00577757]
+512 __shared_data_MOD_full_dump_every [0x00805b70-0x00805b73]
+513 __shared_data_MOD_bx_y_max [0x00807fe0-0x0080801f]
+514 __collisions_MOD_inter_coll_fn [0x007de680-0x007de687]
+515 __redblack_module_MOD_pointers_send [0x007f0260-0x007f029f]
+516 __ionise_MOD_bsi_scaling [0x007efe20-0x007efe5f]
+517 __particle_id_hash_mod_MOD___vtab_particle_id_hash_mod_Particle_id_list_registry [0x00562e20-0x00562ea7]
+518 __deck_species_block_MOD_current_block [0x007e7200-0x007e7203]
+519 __balance_MOD_slice_dir [0x007de3c0-0x007de3c3]
+520 __setup_MOD_y_grid_min_val [0x007f0760-0x007f0767]
+521 __redblack_module_MOD_sendtypes [0x007f0160-0x007f019f]
+522 __shared_data_MOD___vtab_shared_data_Subset [0x00564b80-0x00564bb7]
+523 __shared_data_MOD_laser_absorbed [0x008047a8-0x008047af]
+524 __version_data_MOD_c_minor_rev [0x00828e78-0x00828e7b]
+525 __shared_data_MOD___def_init_shared_data_Particle_probe [0x005668a0-0x00566a57]
+526 __tokenizer_blocks_MOD_new_func_name [0x00808640-0x0081863f]
+527 __shared_data_MOD_custom_loaders_list [0x00807440-0x0080747f]
+528 __deck_laser_block_MOD_boundary [0x007e6c8c-0x007e6c8f]
+529 __shared_data_MOD_x_grid_maxs [0x00801fc0-0x00801fff]
+530 __mpi_routines_MOD_end_time [0x007effe0-0x007effe7]
+531 __deck_subset_block_MOD_subset_id [0x007e7360-0x007e7363]
+532 __diagnostics_MOD_got_request_dump_name [0x007ef83c-0x007ef83f]
+533 __window_MOD_drift [0x00828f60-0x00828fb7]
+534 __deck_io_block_MOD_nfile_prefixes [0x007e6ac8-0x007e6acb]
+535 __collisions_MOD_a_bell [0x00558e80-0x00558ec7]
+536 __shared_data_MOD_deck_constant_list [0x008063c0-0x008063ff]
+537 __collisions_MOD_l_bell [0x00558c50-0x00558c67]
+538 __partlist_MOD_packed_particle_data [0x007f00a0-0x007f00df]
+539 __shared_data_MOD_window_stop_time [0x00802120-0x00802127]
+540 __shared_data_MOD_nx [0x00804600-0x00804603]
+541 __shared_data_MOD_defines [0x008063b0-0x008063b7]
+542 __deck_part_from_file_block_MOD_loader_block_ids [0x007e6ce0-0x007e6d1f]
+543 __window_MOD_temperature [0x00828f00-0x00828f57]
+544 _end [0x00829588-0x00829587]
+545 __ionise_MOD_effective_n_exponent [0x007efda0-0x007efddf]
+546 __shared_data_MOD_use_random_seed [0x0080215c-0x0080215f]
+547 __shared_data_MOD___def_init_shared_data_Custom_particle_loader [0x0056be20-0x0056c467]
+548 __shared_data_MOD___def_init_shared_data_Parameter_pack [0x00566ae0-0x00566b17]
+549 __shared_data_MOD_any_open [0x00808480-0x00808483]
+550 __tokenizer_blocks_MOD_last_block_type [0x00828e48-0x00828e4b]
+551 __diagnostics_MOD_iomask [0x007ef6c0-0x007ef7db]
+552 __shared_data_MOD_time [0x00802220-0x00802227]
+553 __shared_data_MOD_bc_particle [0x00808200-0x0080820f]
+554 __shared_data_MOD_cpml_psi_exy [0x00807700-0x00807757]
+555 __redblack_module_MOD_sendcounts [0x007f01a0-0x007f01df]
+556 __diagnostics_MOD___vtab_diagnostics_String_list [0x005602a0-0x005602d7]
+557 __shared_data_MOD_cpml_x_min_laser_idx [0x008074b0-0x008074b3]
+558 __sdf_job_info_MOD___def_init_sdf_job_info_Jobid_type [0x00577758-0x0057775f]
+559 __diagnostics_MOD_reset_ejected [0x007ef64c-0x007ef64f]
+560 __deck_species_block_MOD_dumpmask_array [0x007e71c0-0x007e71ff]
+561 __evaluator_MOD_sl_head [0x007ef9e0-0x007ef9e7]
+562 __deck_part_from_file_block_MOD_current_loader_id [0x007e6d30-0x007e6d33]
+563 __fields_MOD_hdty [0x007ef9f0-0x007ef9f7]
+564 __shared_data_MOD_n_global_min [0x00804748-0x0080474f]
+565 __shared_data_MOD_dx [0x008061a8-0x008061af]
+566 __particle_id_hash_mod_MOD___def_init_particle_id_hash_mod_Particle_id_hash [0x00563080-0x00563117]
+567 __shared_data_MOD_cpml_x_max_offset [0x008074c0-0x008074c3]
+568 __diagnostics_MOD_prefix_first_call [0x007ef660-0x007ef69f]
+569 __shared_data_MOD_y_grid_min_local [0x00801d40-0x00801d47]
+570 __shared_data_MOD_print_deck_constants [0x0080448c-0x0080448f]
+571 __evaluator_blocks_MOD_window_expression [0x007ef9e8-0x007ef9eb]
+572 __shared_data_MOD_n_global_max [0x00804750-0x00804757]
+573 __shared_data_MOD_any_average [0x00808484-0x00808487]
+574 __deck_injector_block_MOD_working_injector [0x007e6aa0-0x007e6aa7]
+575 __redblack_module_MOD_recvtypes [0x007f01e0-0x007f021f]
+576 __shared_data_MOD_use_bsi [0x008021a0-0x008021a3]
+577 __shared_data_MOD_file_prefixes [0x00805ba0-0x00805bdf]
+578 __shared_data_MOD_coll_sort_array [0x00807b20-0x00807b5f]
+579 __bss_start [0x007de398-0x007de397]
+580 __shared_data_MOD_deck_state [0x008063b8-0x008063bb]
+581 __diagnostics_MOD_dumped_skip_dir [0x007ef8c0-0x007ef917]
+582 __setup_MOD_stat_file [0x007f0780-0x007f178f]
+583 __shared_data_MOD___vtab_shared_data_Particle_list [0x00564d80-0x00564db7]
+584 __collisions_MOD_intra_coll_fn [0x007de678-0x007de67f]
+585 __redblack_module_MOD_recvcounts [0x007f0220-0x007f025f]
+586 __stack_MOD_eval_stack_flags [0x008084e0-0x0080851f]
+587 __shared_data_MOD_walltime_stop [0x00802140-0x00802147]
+588 __sdf_common_MOD_c_datatypes_char [0x0056dfa0-0x0056e065]
+589 __deck_part_from_file_block_MOD_check_block [0x007e6d38-0x007e6d3b]
+590 __deck_subset_block_MOD_subset_blocks [0x007e7380-0x007e73bf]
+591 __shared_data_MOD_extended_error_string [0x00805ee0-0x00805fdf]
+592 __shared_data_MOD_ey_y_min [0x00805d80-0x00805dbf]
+593 __sdf_common_MOD_c_errcodes_char [0x0056d9a0-0x0056df83]
+594 __timer_MOD_timer_avg_first [0x008085f0-0x008085ff]
+595 __shared_data_MOD_yb_offset_global [0x00801c00-0x00801c3f]
+596 __shared_data_MOD_y_grid_max_local [0x00801da0-0x00801da7]
+597 __shared_data_MOD_dir_max [0x00806370-0x0080637f]
+598 __shared_data_MOD_injector_y_min [0x008049a0-0x008049a7]
+599 __deck_particle_probe_block_MOD_got_name [0x007e6d6c-0x007e6d6f]
+600 __deck_species_block_MOD_species_charge [0x007e6e80-0x007e6e87]
+601 __deck_io_block_MOD_dumpmask_warned [0x007e6c58-0x007e6c5b]
+602 __shared_data_MOD_initialdisp [0x008049c8-0x008049cf]
+603 __tokenizer_blocks_MOD_new_func_code [0x00818640-0x00818a3f]
+604 __shared_data_MOD_coordinates [0x00807b10-0x00807b17]
+605 __deck_particle_probe_block_MOD_got_normal [0x007e6d68-0x007e6d6b]
+606 __shared_data_MOD_y_grid_mins [0x00801d00-0x00801d3f]
+607 __deck_part_from_file_block_MOD_loader_species [0x007e6ca0-0x007e6cdf]
+608 __partlist_MOD___vtab_partlist_Pointer_item [0x00563860-0x00563897]
+609 __split_particle_MOD_use_split [0x008084b0-0x008084b3]
+610 __redblack_module_MOD_field_in3dr4 [0x007f0520-0x007f058f]
+611 __deck_species_block_MOD_check_block [0x007e7204-0x007e7207]
+612 __shared_data_MOD_elapsed_time [0x00806140-0x00806147]
+613 __deck_MOD_current_block_name [0x007de6c0-0x007de7bf]
+614 __shared_data_MOD_y_min [0x00801cd0-0x00801cd7]
+615 __shared_data_MOD_ny_global_min [0x00804548-0x0080454b]
+616 __deck_species_block_MOD_principle [0x007e7040-0x007e707f]
+617 __shared_data_MOD_ny_each_rank [0x00804560-0x0080459f]
+618 __shared_data_MOD_ex_x_min [0x00806060-0x0080609f]
+619 __shared_data_MOD_cpml_x_max_end [0x008074c8-0x008074cb]
+620 __shared_data_MOD_all_deck_errcodes_fatal [0x00808490-0x00808493]
+621 __shared_data_MOD_nstep_start [0x0080460c-0x0080460f]
+622 __shared_data_MOD_cfl [0x00807bc0-0x00807bc7]
+623 __shared_data_MOD___def_init_shared_data_Laser_block [0x00566b20-0x00566d57]
+624 __shared_data_MOD_old_elapsed_time [0x00804540-0x00804547]
+625 __balance_MOD_new_cell_x_min [0x007de460-0x007de49f]
+626 __diagnostics_MOD_dump_point_grid [0x007ef920-0x007ef95f]
+627 __shared_data_MOD_cpml_sigma_ey [0x008074e0-0x0080751f]
+628 __shared_data_MOD_ez_y_max [0x00805c60-0x00805c9f]
+629 __shared_data_MOD_ez_y_min [0x00805c20-0x00805c5f]
+630 __ionise_MOD_adk_bsi_cap [0x007eff60-0x007eff9f]
+631 __deck_control_block_MOD_got_grid [0x007de870-0x007de87f]
+632 __deck_species_block_MOD_ionisation_energies [0x007e7160-0x007e719f]
+633 __deck_io_block_MOD_rolling_restart_io_block [0x007e6ac4-0x007e6ac7]
+634 __shared_data_MOD_n_deck_constants [0x00804758-0x0080475b]
+635 __deck_part_from_file_block_MOD_current_offset [0x007e6d28-0x007e6d2f]
+636 __shared_data_MOD_restart_filename [0x008033e0-0x008043ef]
+637 __shared_data_MOD_filesystem [0x00805b80-0x00805b8f]
+638 __fields_MOD_cny [0x007efa28-0x007efa2f]
+639 __shared_data_MOD_subtype_field [0x0080223c-0x0080223f]
+640 __fields_MOD_hdtx [0x007ef9f8-0x007ef9ff]
+641 __deck_io_block_MOD_got_dt_average [0x007e6c54-0x007e6c57]
+642 __evaluator_MOD_sl_size [0x007ef9d8-0x007ef9db]
+643 mpi_fortran_argvs_null_ [0x00829580-0x00829587]
+644 __fields_MOD_fac [0x007efa10-0x007efa17]
+645 __collisions_MOD_b_bell [0x00558c80-0x00558e77]
+646 __shared_data_MOD_dt_multiplier [0x008062e8-0x008062ef]
+647 __shared_data_MOD_neighbour [0x00804700-0x00804723]
+648 __shared_data_MOD_dumpmask [0x008061c0-0x008062db]
+649 __diagnostics_MOD_sdf_max_string_length [0x007e7424-0x007e7427]
+650 __shared_data_MOD___def_init_shared_data_Distribution_function_block [0x0056ba40-0x0056bcbf]
+651 __sdf_common_MOD_c_blocktypes_char [0x0056e080-0x0056e4fa]
+652 __ionise_MOD_omega [0x007efc40-0x007efc47]
+653 __shared_data_MOD___def_init_shared_data_Primitive_stack [0x00565ce0-0x00565d37]
+654 __tokenizer_blocks_MOD_new_constant_name [0x00818a40-0x00828a3f]
+655 __shared_data_MOD___def_init_shared_data_Particle_list [0x00566a60-0x00566a97]
+656 __particle_id_hash_mod_MOD_random_state_set [0x007f0000-0x007f0003]
+657 __shared_data_MOD_bc_field [0x00808210-0x0080821f]
+658 __shared_data_MOD___vtab_shared_data_Particle_sort_element [0x00564d00-0x00564d37]
+659 __shared_data_MOD_time_stop [0x00802210-0x00802217]
+660 __shared_data_MOD_debug_mode [0x00806400-0x00806403]
+661 __redblack_module_MOD_field_in2dr4 [0x007f0620-0x007f0677]
+662 __shared_data_MOD_y_grid_maxs [0x00801d60-0x00801d9f]
+663 mpi_fortran_in_place_ [0x008294e0-0x008294e3]
+664 __sdf_common_MOD___vtab_sdf_common_Sdf_file_handle [0x0056e5c0-0x0056e5f7]
+665 __shared_data_MOD___def_init_shared_data_Injector_block [0x0056b5c0-0x0056b8b7]
+666 __shared_data_MOD_laser_y_max [0x00804780-0x00804787]
+667 __shared_data_MOD_window_v_x [0x00802118-0x0080211f]
+668 __shared_data_MOD_x_min_local [0x00801f20-0x00801f27]
+669 __shared_data_MOD_xb [0x00801ee0-0x00801f1f]
+670 __shared_data_MOD_x_max_local [0x00801f38-0x00801f3f]
+671 __shared_data_MOD_cpml_sigma_by [0x00807560-0x0080759f]
+672 __shared_data_MOD_run_date [0x008033d8-0x008033db]
+673 __deck_laser_block_MOD_working_laser [0x007e6c80-0x007e6c87]
+674 __shared_data_MOD_cpml_x_max [0x008074cc-0x008074cf]
+675 __ionise_MOD_adk_maximum [0x007eff20-0x007eff5f]
+676 __ionise_MOD_adk_scaling [0x007efea0-0x007efedf]
+677 __redblack_module_MOD_field_out3d [0x007f0360-0x007f03cf]
+678 __balance_MOD_new_slice_coord [0x007de3dc-0x007de3df]
+679 __shared_data_MOD_nstep_stop [0x00804608-0x0080460b]
+680 __deck_fields_block_MOD_offset [0x007e6a98-0x007e6a9f]
+681 __shared_data_MOD_by_y_min [0x00807e40-0x00807e7f]
+682 __sdf_common_MOD___vtab_sdf_common_Sdf_block_type [0x0056e600-0x0056e637]
+683 __shared_data_MOD_injector_x_min [0x008049b0-0x008049b7]
+684 __redblack_module_MOD_pointers_recv [0x007f02a0-0x007f02df]
+685 __shared_data_MOD_add_laser [0x008084a0-0x008084af]
+686 __deck_io_block_MOD_io_prefixes [0x007e6ae0-0x007e6b1f]
+687 __shared_data_MOD_npart_global [0x00804698-0x0080469f]
+688 __deck_particle_probe_block_MOD_xs [0x0055d898-0x0055d89f]
+689 __deck_species_block_MOD_species_dumpmask [0x007e6e24-0x007e6e27]
+690 __shared_data_MOD_ey_x_max [0x00805e40-0x00805e7f]
+691 __shared_data_MOD_y_grid_min [0x00801d48-0x00801d4f]
+692 __shared_data_MOD_cpml_sigma_ex [0x00807520-0x0080755f]
+693 __random_generator_MOD___def_init_random_generator_Random_state_type [0x00563980-0x0056399f]
+694 __diagnostics_MOD_dump_field_grid [0x007ef964-0x007ef967]
+695 __deck_species_block_MOD_mass [0x007e70e0-0x007e711f]
+696 __probes_MOD_current_list [0x007f0100-0x007f0107]
+697 __particle_pointer_advance_MOD_current_head [0x007f0088-0x007f008f]
+698 __deck_io_block_MOD_block_number [0x007e6c5c-0x007e6c5f]
+699 __constants_MOD_ios_units [0x005590d8-0x005590df]
+700 __shared_data_MOD_subarray_field_big_r4 [0x00802284-0x00802287]
+701 __fields_MOD_cnx [0x007efa30-0x007efa37]
+702 __shared_data_MOD_coll_pairs [0x00807b60-0x00807bb7]
+703 __shared_data_MOD_check_stop_frequency [0x00807bbc-0x00807bbf]
+704 __shared_data_MOD_dir_min_local [0x00806340-0x0080634f]
+705 __shared_data_MOD_global_species_density [0x00804b00-0x00804b57]
+706 __shared_data_MOD_cpml_y_min_laser_idx [0x00807488-0x0080748b]
+707 __shared_data_MOD_use_offset_grid [0x00802178-0x0080217b]
+708 __deck_io_block_MOD_warning_printed [0x007e6ac0-0x007e6ac3]
+709 __shared_data_MOD___def_init_shared_data_Particle_species [0x00565e40-0x0056687f]
+710 __shared_data_MOD_real_walltime_start [0x00804400-0x00804407]
+711 __shared_data_MOD_use_collisional_ionisation [0x0080219c-0x0080219f]
+712 __shared_data_MOD_use_particle_count_update [0x00802170-0x00802173]
+713 __shared_data_MOD_x_grid_max_local [0x00802000-0x00802007]
+714 __shared_data_MOD_cpml_x_min [0x008074b8-0x008074bb]
+715 __shared_data_MOD_cell_y_min [0x00807be0-0x00807c1f]
+716 __sdf_source_info_MOD_i [0x00829468-0x0082946b]
+717 __shared_data_MOD_tag [0x00802228-0x0080222b]
+718 __shared_data_MOD_nx_global [0x008045ac-0x008045af]
+719 __fields_MOD_deltax [0x007efa20-0x007efa27]
+720 __shared_data_MOD_walltime_started [0x00802148-0x0080214f]
+721 __tokenizer_blocks_MOD_n_new_constant [0x00828e44-0x00828e47]
+722 __shared_data_MOD_cpml_a_by [0x00807a80-0x00807abf]
+723 __particle_id_hash_mod_MOD___def_init_particle_id_hash_mod_Particle_id_hash_holder [0x00563060-0x00563067]
+724 __shared_data_MOD_dump_absorption [0x008062dc-0x008062df]
+725 __helper_MOD_species_temp [0x007efa60-0x007efacf]
+726 __deck_subset_block_MOD_got_name [0x007e73c8-0x007e73cb]
+727 __shared_data_MOD___vtab_shared_data_Averaged_data_block [0x00565000-0x00565037]
+728 __deck_io_global_block_MOD_dump_last [0x007e6c70-0x007e6c73]
+729 __shared_data_MOD_dlb_maximum_interval [0x00806328-0x0080632b]
+730 __shared_data_MOD_subtype_field_r4 [0x00802238-0x0080223b]
+731 __shared_data_MOD_move_window [0x00804760-0x00804763]
+732 __shared_data_MOD_coulomb_log [0x00807b08-0x00807b0f]
+
+EVENT_TYPE
+9    40000018    Tracing mode:
+VALUES
+1      Detailed
+2      CPU Bursts
+
+

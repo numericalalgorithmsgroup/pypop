@@ -30,7 +30,7 @@ except ImportError:
     from .utils import return_first_arg as tqdm
 
 from .dimemas import dimemas_idealise
-from .extrae import paramedir_analyze, chop_prv_to_roi, remove_trace
+from .extrae import paramedir_analyze_any_of, chop_prv_to_roi, remove_trace
 from .prv import get_prv_header_info
 from .utils import chunked_md5sum
 
@@ -70,28 +70,37 @@ class RunData:
 
 
 base_configs = {
-    k: resource_filename(__name__, v)
+    k: tuple(resource_filename(__name__, w) for w in v)
     for k, v in {
-        "Serial Useful Computation": "cfgs/serial_useful_computation.cfg",
-        "Total Runtime": "cfgs/total_runtime.cfg",
-        "Useful Instructions": "cfgs/useful_instructions.cfg",
-        "Useful Cycles": "cfgs/useful_cycles.cfg",
+        "Serial Useful Computation": (
+            "cfgs/serial_useful_computation.cfg",
+            "cfgs/serial_useful_computation_omp_loop.cfg",
+            "cfgs/serial_useful_computation_omp_task.cfg",
+            "cfgs/serial_useful_computation_no_omp.cfg",
+        ),
+        "Total Runtime": ("cfgs/total_runtime.cfg",),
+        "Useful Instructions": ("cfgs/useful_instructions.cfg",),
+        "Useful Cycles": ("cfgs/useful_cycles.cfg",),
     }.items()
 }
 
 omp_configs = {
-    k: resource_filename(__name__, v)
+    k: tuple(resource_filename(__name__, w) for w in v)
     for k, v in {
-        "OpenMP Total Runtime": "cfgs/omp_total_runtime.cfg",
-        "OpenMP Useful Computation": "cfgs/omp_useful_computation.cfg",
+        "OpenMP Total Runtime": ("cfgs/omp_total_runtime.cfg",),
+        "OpenMP Useful Computation": (
+            "cfgs/omp_useful_computation.cfg",
+            "cfgs/omp_useful_computation_loop.cfg",
+            "cfgs/omp_useful_computation_task.cfg",
+        ),
     }.items()
 }
 
 ideal_configs = {
-    k: resource_filename(__name__, v)
+    k: tuple(resource_filename(__name__, w) for w in v)
     for k, v in {
-        "Ideal Useful Computation": "cfgs/total_useful_computation.cfg",
-        "Ideal Runtime": "cfgs/total_runtime.cfg",
+        "Ideal Useful Computation": ("cfgs/total_useful_computation.cfg",),
+        "Ideal Runtime": ("cfgs/total_runtime.cfg",),
     }.items()
 }
 
@@ -200,7 +209,7 @@ class TraceSet:
                 )
 
     def by_key(self, key):
-        """Return a dictionary of traces with given key
+        """Return a dictionary of traces keyed by a user supplied key derivation function
 
         Parameters
         ----------
@@ -229,6 +238,21 @@ class TraceSet:
         """
 
         return self.by_key(lambda x: x.metadata.application_layout.commsize)
+
+    def by_threads_per_process(self):
+        """Return a dictionary of traces keyed by threads per process
+
+        This is a helper function equivalent to
+
+        by_key(lambda x: x.metadata.application_layout.rank_threads[0][0])
+
+        Returns
+        -------
+        traces_by_key: dict
+            A dictionary of traces organised by the requested key
+        """
+
+        return self.by_key(lambda x: x.metadata.application_layout.rank_threads[0][0])
 
     def _collect_statistics(self, trace, cache_stats, ignore_cache, chop_to_roi):
 
@@ -271,7 +295,7 @@ class TraceSet:
             cut_trace = trace
 
         stats = [
-            paramedir_analyze(
+            paramedir_analyze_any_of(
                 cut_trace, cfg, index_by_thread=True, statistic_names=[name]
             )
             for name, cfg in base_configs.items()
@@ -280,7 +304,7 @@ class TraceSet:
         hybrid = False
         try:
             omp_stats = [
-                paramedir_analyze(
+                paramedir_analyze_any_of(
                     cut_trace, cfg, index_by_thread=True, statistic_names=[name]
                 )
                 for name, cfg in omp_configs.items()
@@ -302,7 +326,7 @@ class TraceSet:
                 cut_ideal_trace = ideal_trace
             stats.extend(
                 [
-                    paramedir_analyze(
+                    paramedir_analyze_any_of(
                         cut_ideal_trace,
                         cfg,
                         index_by_thread=True,

@@ -8,3 +8,4 @@
 from . import traceset
 from . import metrics
 from . import prv
+from . import config

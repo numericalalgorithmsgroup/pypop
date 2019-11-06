@@ -21,6 +21,7 @@ import pandas as pd
 import numpy as np
 
 from .prv import get_prv_header_info, _parse_paraver_headerline, zipopen
+from . import config
 
 floatmatch = re.compile(r"[0-9,]+\.[0-9]+")
 keymatch = re.compile(r"@.*@")
@@ -117,8 +118,12 @@ def chop_prv_to_roi(prv_file, outfile=None):
     roi_filter = resource_filename(__name__, ROI_FILTER_XML)
     roi_prv = os.path.join(workdir, ".roifilter".join(splitext(basename(prv_file))))
 
+    paramedir_binpath = "paramedir"
+    if config._paramedir_path:
+        paramedir_binpath = os.path.join(config._paramedir_path, paramedir_binpath)
+
     filter_cmds = [
-        "paramedir",
+        paramedir_binpath,
         "--filter",
         roi_filter,
         "--output-name",
@@ -150,8 +155,12 @@ def chop_prv_to_roi(prv_file, outfile=None):
 
     wfh.close()
 
+    paramedir_binpath = "paramedir"
+    if config._paramedir_path:
+        paramedir_binpath = os.path.join(config._paramedir_path, paramedir_binpath)
+
     cutter_cmds = [
-        "paramedir",
+        paramedir_binpath,
         "--cutter",
         prv_file,
         cutter_xml,
@@ -228,7 +237,11 @@ def _get_roi_times(roi_prv):
 
 
 def paramedir_analyze(
-    tracefile, config, variables=None, index_by_thread=False, statistic_names=None
+    tracefile,
+    paramedir_config,
+    variables=None,
+    index_by_thread=False,
+    statistic_names=None,
 ):
     """Analyze a tracefile with paramedir
 
@@ -236,7 +249,7 @@ def paramedir_analyze(
     ----------
     tracefile: str
         Path to `*.prv` tracefile from Extrae
-    config: str
+    paramedir_config: str
         Path to Paraver/Paramedir `*.cfg`
     variables: dict or None
         Optional dict of key-value pairs for replacement in config file prior
@@ -255,7 +268,7 @@ def paramedir_analyze(
         Result data loaded from the resulting csv.
     """
 
-    with open(config, "r") as fh:
+    with open(paramedir_config, "r") as fh:
         confstring = " ".join(fh)
 
     if "Analyzer2D.3D" in confstring:
@@ -263,7 +276,7 @@ def paramedir_analyze(
     elif "Analyzer2D" in confstring:
         datatype = "Hist2D"
         return _analyze_hist2D(
-            tracefile, config, variables, index_by_thread, statistic_names
+            tracefile, paramedir_config, variables, index_by_thread, statistic_names
         )
     else:
         datatype = "Raw counts"
@@ -271,11 +284,62 @@ def paramedir_analyze(
     raise ValueError('Unsupported analysis type "{}"'.format(datatype))
 
 
-def _analyze_hist2D(tracefile, config, variables, index_by_thread, stat_names):
-    """Run config producing a 2D histogram and return result DataFrame
+def paramedir_analyze_any_of(
+    tracefile,
+    paramedir_configs,
+    variables=None,
+    index_by_thread=False,
+    statistic_names=None,
+):
+    """Analyze a tracefile with paramedir, returning first success from an interable of
+    possible config files.
+
+    This routine is intended to allow elegant use of fallback to simpler configs to work
+    around a paramedir bug where all event types must be present to avoid a fatal error
+    in analysis. (see https://github.com/bsc-performance-tools/paraver-kernel/issues/5)
+
+    Parameters
+    ----------
+    tracefile: str
+        Path to `*.prv` tracefile from Extrae
+    paramedir_configs: iterable or str
+        Path to Paraver/Paramedir `*.cfg` files.
+    variables: dict or None
+        Optional dict of key-value pairs for replacement in config file prior
+        to running paramedir.
+    index_by_thread: bool
+        If True return data organised by a multilevel index of MPI ranks and
+        threads.  Note that this discards Paramedir calculated statistical
+        info.
+    statistic_names: list of str or None
+        Optional list of string names for the statistics returned by the config
+        file.  If not provided names will be taken from paramedir output.
+
+    Returns
+    -------
+    result: pandas.DataFrame
+        Result data loaded from the resulting csv.
     """
 
-    histfile = run_paramedir(tracefile, config, variables=variables)
+    if isinstance(paramedir_configs, str):
+        paramedir_configs = [paramedir_configs]
+
+    for paramedir_config in paramedir_configs:
+        try:
+            return paramedir_analyze(
+                tracefile, paramedir_config, variables, index_by_thread, statistic_names
+            )
+        except RuntimeError as err:
+            error = err
+
+    raise error
+
+
+def _analyze_hist2D(tracefile, paramedir_config, variables, index_by_thread, stat_names):
+    """Run a paramedir config producing a 2D histogram and return result DataFrame
+    """
+
+    histfile = run_paramedir(tracefile, paramedir_config, variables=variables)
 
     data = load_paraver_histdata(histfile)
 
@@ -320,14 +384,14 @@ def reindex_by_thread(stats_dframe, thread_prefix="THREAD"):
     return stats_dframe
 
 
-def run_paramedir(tracefile, config, outfile=None, variables=None):
+def run_paramedir(tracefile, paramedir_config, outfile=None, variables=None):
     """Run paramedir on a tracefile
 
     Parameters
     ----------
     tracefile: str
         Path to `*.prv` tracefile from Extrae
-    config: str
+    paramedir_config: str
         Path to Paraver/Paramedir `*.cfg`
     outfile: str or None
         Path to output file. If None or "" a randomly named temporary file will
@@ -346,12 +410,18 @@ def run_paramedir(tracefile, config, outfile=None, variables=None):
 
     # If variables is none, still sub with empty dict
     variables = variables if variables else {}
-    tmp_config = _write_substituted_config(config, tmpdir, variables)
+    tmp_config = _write_substituted_config(paramedir_config, tmpdir, variables)
 
     if not outfile:
-        outfile = os.path.join(tmpdir, os.path.splitext(os.path.basename(config))[0])
+        outfile = os.path.join(
+            tmpdir, os.path.splitext(os.path.basename(paramedir_config))[0]
+        )
 
-    paramedir_params = ["paramedir", tracefile, tmp_config, outfile]
+    paramedir_binpath = "paramedir"
+    if config._paramedir_path:
+        paramedir_binpath = os.path.join(config._paramedir_path, paramedir_binpath)
+
+    paramedir_params = [paramedir_binpath, tracefile, tmp_config, outfile]
 
     result = sp.run(paramedir_params, stdout=sp.PIPE, stderr=sp.STDOUT)
 
@@ -363,19 +433,21 @@ def run_paramedir(tracefile, config, outfile=None, variables=None):
     return outfile
 
 
-def _write_substituted_config(config, tmpdir, variables):
+def _write_substituted_config(template_config, tmpdir, variables):
     """Copy config to tempfile, substituting placeholders from variables dict
     """
-    newconfig = os.path.join(tmpdir, os.path.basename(config))
+    newconfig = os.path.join(tmpdir, os.path.basename(template_config))
 
-    with open(newconfig, "w") as newfh, open(config, "r") as oldfh:
+    with open(newconfig, "w") as newfh, open(template_config, "r") as oldfh:
         for line in oldfh:
             newline = line
             for match in keymatch.findall(line):
                 if match[1:-1] in variables:
                     newline = newline.replace(match, variables[match[1:-1]])
                 else:
-                    raise ValueError("Unhandled key {} in {}" "".format(match, config))
+                    raise ValueError(
+                        "Unhandled key {} in {}" "".format(match, template_config)
+                    )
             newfh.write(newline)
 
     return newconfig
