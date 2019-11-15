@@ -9,7 +9,7 @@ from matplotlib import use
 use("agg")
 
 from .traceset import TraceSet
-from .metrics import MPI_OpenMP_Metrics
+from .metrics import MPI_Metrics, MPI_OpenMP_Metrics
 
 from argparse import ArgumentParser
 
