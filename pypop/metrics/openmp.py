@@ -9,7 +9,46 @@ import pandas
 
 from .metricset import MetricSet, Metric
 
-__all__ = ['OpenMP_Metrics']
+__all__ = ["OpenMP_Metrics"]
+
+k_GE_desc = (
+    "The overall quality of the parallelisation.  This is the product of the "
+    "Parallel Efficiency and Computational Scaling"
+)
+k_PE_desc = (
+    "The overall efficiency with which the computation is parallelised between "
+    "different threads. This is further divided into the OpenMP Region "
+    "Efficiency and the Serial Region Efficiency"
+)
+k_OMPRE_desc = (
+    "The efficiency with which CPU resources are used within OpenMP regions. "
+    "This includes the effect of any load imbalance within OpenMP regions "
+    "as well as any scheduling overhead and critical or single regions."
+)
+k_SERRE_desc = (
+    "The effects of loss of efficiency due to computation being performed outside of "
+    "OpenMP Regions.  This is calculated by comparing with the effective speedup that "
+    "would be achieved if the serial computation were perfectly parallelised over all "
+    "available threads."
+)
+k_COMPSC_desc = (
+    "The way in which the total computational cost varies with the applied parallelism. "
+    "This is a combination of the increased cost due to additional calculations "
+    "performed, and increased costs due to reduced instructions per cycle."
+)
+k_INSSC_desc = (
+    "Inefficiencies introduced due to an increase in the total computational work done, "
+    "measured by the total CPU instructions. Ideally, there would be no additional "
+    "computation required when parallelising, but there is normally some additional "
+    "cost to manage the distribution of work. The Instruction Scaling metric "
+    "represents this by calculating the relative difference in total instructions "
+    "between runs."
+)
+k_IPCSC_desc = (
+    "Inefficiencies due to changes in the instructions per cycle executed by the CPUs. "
+    "The IPC rate can be reduced due to CPU data starvation, inefficient cache usage or "
+    "high rates of branch misprediction."
+)
 
 
 class OpenMP_Metrics(MetricSet):
@@ -17,13 +56,13 @@ class OpenMP_Metrics(MetricSet):
     """
 
     _metric_list = [
-        Metric("Global Efficiency", 0),
-        Metric("Parallel Efficiency", 1),
-        Metric("OpenMP Region Efficiency", 2, "OpenMP Region Efficiency"),
-        Metric("Serial Region Efficiency", 2),
-        Metric("Computational Scaling", 1),
-        Metric("Instruction Scaling", 2),
-        Metric("IPC Scaling", 2, "IPC Scaling"),
+        Metric("Global Efficiency", 0, desc=k_GE_desc),
+        Metric("Parallel Efficiency", 1, desc=k_PE_desc),
+        Metric("OpenMP Region Efficiency", 2, desc=k_OMPRE_desc),
+        Metric("Serial Region Efficiency", 2, desc=k_SERRE_desc),
+        Metric("Computational Scaling", 1, desc=k_COMPSC_desc),
+        Metric("Instruction Scaling", 2, desc=k_INSSC_desc),
+        Metric("IPC Scaling", 2, "IPC Scaling", desc=k_IPCSC_desc),
     ]
 
     def _calculate_metrics(self, ref_key=None, sort_keys=True):

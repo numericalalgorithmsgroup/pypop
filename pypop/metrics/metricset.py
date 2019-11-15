@@ -26,9 +26,10 @@ class Metric:
         correct for node dynamic clocking issues).
     """
 
-    def __init__(self, key, level, displayname=None):
+    def __init__(self, key, level, displayname=None, desc=None):
         self.key = key
         self.level = level
+        self.description = str(desc) if desc else ""
 
         if displayname:
             self.displayname = r"$\hookrightarrow$" * bool(self.level) + displayname
