@@ -289,14 +289,17 @@ class PRV:
                     "Incomplete OpenMP region found. This likely means the trace was "
                     "cut through a region"
                 )
-                region_ends = region_ends[1:]
+                while len(region_ends) > 0 and region_ends[0] <= region_starts[0]:
+                    region_ends = region_ends[1:]
+
             # Last region end should be after last region start
             if region_starts[-1] >= region_ends[-1]:
                 warn(
                     "Incomplete OpenMP region found. This likely means the trace was "
                     "cut through a region"
                 )
-                region_starts = region_starts[:-1]
+                while len(region_starts) > 0 and region_starts[-1] >= region_ends[-1]:
+                    region_starts = region_starts[:-1]
 
             if np.any(region_starts > region_ends):
                 raise ValueError("Unable to make sense of OpenMP region events.")
@@ -330,7 +333,12 @@ class PRV:
 
             # Iterate over threads to get max, average
             thread_state_groups = rank_states.droplevel(0).groupby(level="thread")
-            for thread, thread_states in thread_state_groups:
+            for thread, thread_states in tqdm(
+                thread_state_groups,
+                total=len(thread_state_groups),
+                disable=no_progress,
+                leave=None,
+            ):
 
                 thread_states = thread_states.droplevel(0)
                 if not (
@@ -479,7 +487,7 @@ class PRV:
                 "Maximum Computation Time": ("Maximum Computation Time", np.max),
                 "Region Functions": (
                     fingerprint_key,
-                    lambda x: fingerprint_to_text_function(x[0])
+                    lambda x: fingerprint_to_text_function(x[0]),
                 ),
             }
         )
