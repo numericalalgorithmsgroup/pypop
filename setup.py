@@ -7,13 +7,19 @@ from setuptools import setup, find_packages
 setup(
     name="pypop",
     version="0.1.0",
-    url="https://github.com/ptooley/ezpop.git",
-    author="Phil Tooley",
+    url="https://github.com/numericalalgorithmsgroup/ezpop.git",
+    author="Numerical Algorithms Group",
     author_email="phil.tooley@nag.co.uk",
     description="Python notebook support for POP metrics and reports",
     packages=find_packages(),
-    install_requires=["numpy", "matplotlib >= 2", "pandas >= 0.24", "jupyter"],
-    extras_require={'tqdm': ["tqdm"]},
+    install_requires=[
+        "numpy",
+        "matplotlib >= 2",
+        "pandas >= 0.24",
+        "jupyter",
+        "bokeh >= 1",
+    ],
+    extras_require={"tqdm": ["tqdm"]},
     include_package_data=True,
     entry_points={
         "console_scripts": [

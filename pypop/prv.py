@@ -316,8 +316,12 @@ class PRV:
             ).codes
             region_funcs = rank_funcs.droplevel(("task", "thread")).groupby(funcbins)
             region_fingerprints_func = region_funcs.apply(
-                # {"value": lambda x: ":".join("{}".format(int(y) for y in x.unique()))}
-                lambda x: ":".join(["{:d}".format(int(y)) for y in x["value"].unique()])
+                lambda x: ":".join(
+                    [
+                        self.omp_function_by_value(str(int(y)))
+                        for y in x["value"].unique()
+                    ]
+                )
             )
 
             funclocbins = pd.cut(
@@ -327,8 +331,12 @@ class PRV:
                 funclocbins
             )
             region_fingerprints_loc = region_func_locs.apply(
-                # {"value": lambda x: ":".join("{}".format(int(y) for y in x.unique()))}
-                lambda x: ":".join(["{:d}".format(int(y)) for y in x["value"].unique()])
+                lambda x: ":".join(
+                    [
+                        self.omp_location_by_value(str(int(y)))
+                        for y in x["value"].unique()
+                    ]
+                )
             )
 
             # Iterate over threads to get max, average
@@ -449,10 +457,8 @@ class PRV:
 
         if by_location:
             fingerprint_key = "Region Location Fingerprint"
-            fingerprint_to_text_function = self.region_location_from_fingerprint
         else:
             fingerprint_key = "Region Function Fingerprint"
-            fingerprint_to_text_function = self.region_function_from_fingerprint
 
         runtime = self.metadata.ns_elapsed
 
@@ -485,10 +491,7 @@ class PRV:
                 "Accumulated Computation Time": ("Region Total Computation", np.sum),
                 "Average Computation Time": ("Average Computation Time", np.average),
                 "Maximum Computation Time": ("Maximum Computation Time", np.max),
-                "Region Functions": (
-                    fingerprint_key,
-                    lambda x: fingerprint_to_text_function(x[0]),
-                ),
+                "Region Functions": (fingerprint_key, lambda x: x[0],),
             }
         )
 
