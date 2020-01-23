@@ -25,6 +25,7 @@ setup(
         "console_scripts": [
             "pypop-mpi-metrics = pypop.cli:mpi_cli_metrics",
             "pypop-hybrid-metrics = pypop.cli:hybrid_cli_metrics",
+            "pypop-preprocess = pypop.cli:preprocess_traces"
         ]
     },
 )

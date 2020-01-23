@@ -9,7 +9,7 @@ from matplotlib import use
 use("agg")
 
 from .traceset import TraceSet
-from .metrics import MPI_OpenMP_Metrics
+from .metrics import MPI_Metrics, MPI_OpenMP_Metrics
 
 from argparse import ArgumentParser
 
@@ -55,6 +55,23 @@ def _mpi_parse_args():
     # Output Customisation
     parser.add_argument("--metric-title", type=str, help="Title of metric table")
     parser.add_argument("--scaling-title", type=str, help="Title of scaling plot")
+
+    return parser.parse_args()
+
+
+def _preprocess_traces_parse_args():
+
+    # make an argument parser
+    parser = ArgumentParser(description="Preprocess traces for PyPOP Analysis")
+
+    # First define collection of traces
+    parser.add_argument(
+        "traces", type=str, nargs="+", metavar="trace", help="Tracefiles to preprocess"
+    )
+
+    parser.add_argument(
+        "--overwrite-existing", action="store_true", help="Overwrite existing files"
+    )
 
     return parser.parse_args()
 
@@ -108,3 +125,11 @@ def hybrid_cli_metrics():
     if not config.no_csv:
         metrics.metric_data.to_csv(config.csv, index=False)
 
+
+def preprocess_traces():
+    """Entrypoint for trace preprocessing
+    """
+
+    config = _preprocess_traces_parse_args()
+
+    TraceSet(config.traces, ignore_cache=config.overwrite_existing)
