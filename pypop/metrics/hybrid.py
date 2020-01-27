@@ -233,11 +233,13 @@ class MPI_OpenMP_Metrics(MetricSet):
                 )
 
                 try:
-                    metrics["MPI Serialisation Efficiency"] = (
-                        stats["Total Runtime"].loc[:, 1].max()
-                        - stats["Total Non-MPI Runtime"].loc[:, 1].max()
-                        + stats["Ideal Runtime"].loc[:, 1].max()
-                    ) / stats["Total Runtime"].max()
+                    metrics["MPI Serialisation Efficiency"] = 1 - (
+                        (
+                            stats["Ideal Runtime"].loc[:, 1].max()
+                            - stats["Total Non-MPI Runtime"].loc[:, 1].max()
+                        )
+                        / stats["Total Runtime"].max()
+                    )
                 except KeyError:
                     metrics["MPI Serialisation Efficiency"] = numpy.nan
 
