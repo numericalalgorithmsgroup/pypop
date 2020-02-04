@@ -158,12 +158,14 @@ def dimemas_analyse(tracefile, configfile, outpath=None, substrings=None):
     ]
 
     # Run prv2dim and check for success
-    result = sp.run(prv2dim_params, stdout=sp.PIPE, stderr=sp.PIPE, cwd=workdir)
-
-    if not os.path.exists(tmp_dim) or result.returncode != 0:
-        raise RuntimeError(
-            "prv2dim execution failed:\n{}" "".format(result.stderr.decode())
-        )
+    try:
+        result = sp.run(prv2dim_params, stdout=sp.PIPE, stderr=sp.PIPE, cwd=workdir)
+        if not os.path.exists(tmp_dim) or result.returncode != 0:
+            raise RuntimeError(
+                "prv2dim execution failed:\n{}" "".format(result.stderr.decode())
+            )
+    except Exception as err:
+        raise RuntimeError("prv2dim execution_failed: {}".format(err))
 
     dimemas_binpath = 'Dimemas'
     if config._dimemas_path:
@@ -181,15 +183,17 @@ def dimemas_analyse(tracefile, configfile, outpath=None, substrings=None):
         basename(dimconfig),
     ]
 
-    result = sp.run(dimemas_params, stdout=sp.PIPE, stderr=sp.STDOUT, cwd=workdir)
-
-    if not os.path.exists(sim_prv) or result.returncode != 0:
-        raise RuntimeError(
-            "Dimemas execution failed:\n{}\n"
-            "Input was:\n{}\n"
-            "See {}"
-            "".format(result.stdout.decode(), dimemas_params, workdir)
-        )
+    try:
+        result = sp.run(dimemas_params, stdout=sp.PIPE, stderr=sp.STDOUT, cwd=workdir)
+        if not os.path.exists(sim_prv) or result.returncode != 0:
+            raise RuntimeError(
+                "Dimemas execution failed:\n{}\n"
+                "Input was:\n{}\n"
+                "See {}"
+                "".format(result.stdout.decode(), dimemas_params, workdir)
+            )
+    except Exception as err:
+        raise RuntimeError("dimemas execution failed:\n{}".format(err))
 
     # remove all the temporary files we created
     os.remove(dimconfig)

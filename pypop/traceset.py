@@ -341,7 +341,7 @@ class TraceSet:
             remove_trace(ideal_trace)
         except RuntimeError as err:
             warn(
-                "Failed to run Dimemas:\n{}"
+                "Failed to run Dimemas: {}\n"
                 "Continuing with reduced MPI detail.".format(err)
             )
 
