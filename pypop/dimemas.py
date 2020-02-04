@@ -50,13 +50,6 @@ def dimemas_idealise(tracefile, outpath=None):
     # Calculate ranks per node for Dimemas
     ranks_per_node = metadata.application_layout.commsize // metadata.nodes
 
-    # Check there is not some odd layout we can't deal with
-    if (
-        len(set(metadata.procs_per_node)) != 1
-        or ranks_per_node * metadata.nodes != metadata.application_layout.commsize
-    ):
-        raise ValueError("Can only analyze homogenous sized ranks")
-
     # Populate run specfic config data
     subs = {
         "@NUM_NODES@": metadata.nodes,
@@ -64,6 +57,19 @@ def dimemas_idealise(tracefile, outpath=None):
         "@RANKS_PER_NODE@": ranks_per_node,
         "@COLLECTIVES_PATH@": IDEAL_COLL_PATH,
     }
+
+    # Try to handle odd layouts with one rank per node...
+    if (
+        len(set(metadata.procs_per_node)) != 1
+        or ranks_per_node * metadata.nodes != metadata.application_layout.commsize
+    ):
+        # Populate run specfic config data
+        subs = {
+            "@NUM_NODES@": metadata.application_layout.commsize,
+            "@PROCS_PER_NODE@": 1,
+            "@RANKS_PER_NODE@": 1,
+            "@COLLECTIVES_PATH@": IDEAL_COLL_PATH,
+        }
 
     # Pass trace, run config and path to idealisation skeleton config and let
     # dimemas_analyze work its subtle magic(k)s
