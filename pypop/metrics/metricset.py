@@ -26,10 +26,11 @@ class Metric:
         correct for node dynamic clocking issues).
     """
 
-    def __init__(self, key, level, displayname=None, desc=None):
+    def __init__(self, key, level, displayname=None, desc=None, is_inefficiency=False):
         self.key = key
         self.level = level
         self.description = str(desc) if desc else ""
+        self.is_inefficiency = is_inefficiency
 
         if displayname:
             self.displayname = r"$\hookrightarrow$" * bool(self.level) + displayname
@@ -175,16 +176,32 @@ class MetricSet:
         body_cell_height = 0.1
         level_pad = 0.075
 
-        cmap_points = [
-            (0.0, (0.690, 0.074, 0.074)),
-            (bad_thres, (0.690, 0.074, 0.074)),
-            (good_thres - 1e-20, (0.992, 0.910, 0.910)),
-            (good_thres, (0.910, 0.992, 0.910)),
-            (1.0, (0.074, 0.690, 0.074)),
+        pop_red = (0.690, 0.074, 0.074)
+        pop_fade = (0.992, 0.910, 0.910)
+        pop_green = (0.074, 0.690, 0.074)
+
+        ineff_points = [
+            (0.0, pop_green),
+            (1 - good_thres, pop_fade),
+            (1 - good_thres + 1e-20, pop_fade),
+            (1 - bad_thres, pop_red),
+            (1.0, pop_red),
         ]
 
-        metric_cmap = mc.LinearSegmentedColormap.from_list(
-            "POP_Metrics", colors=cmap_points, N=256, gamma=1
+        eff_points = [
+            (0.0, pop_red),
+            (bad_thres, pop_red),
+            (good_thres - 1e-20, pop_fade),
+            (good_thres, pop_fade),
+            (1.0, pop_green),
+        ]
+
+        ineff_cmap = mc.LinearSegmentedColormap.from_list(
+            "POP_Metrics", colors=ineff_points, N=256, gamma=1
+        )
+
+        eff_cmap = mc.LinearSegmentedColormap.from_list(
+            "POP_Metrics", colors=eff_points, N=256, gamma=1
         )
 
         label_cell_kwargs = {
@@ -205,7 +222,7 @@ class MetricSet:
         # Create empty table using full bounding box of axes
         metric_table = mt.Table(ax=ax[0], bbox=(0, 0, 1, 1))
         metric_table.auto_set_font_size(True)
-#        metric_table.set_fontsize(8)
+        #        metric_table.set_fontsize(8)
 
         metric_table.add_cell(
             0,
@@ -224,6 +241,7 @@ class MetricSet:
             )
 
         for row_num, metric in enumerate(self.metrics, start=1):
+            cmap = ineff_cmap if metric.is_inefficiency else eff_cmap
             c = metric_table.add_cell(
                 row_num, 0, text=metric.displayname, **label_cell_kwargs
             )
@@ -245,7 +263,7 @@ class MetricSet:
                         row_num,
                         col_num - skipfirst,
                         text="{:1.02f}".format(col_data),
-                        facecolor=metric_cmap(col_data),
+                        facecolor=cmap(col_data),
                         **body_cell_kwargs
                     )
 
@@ -345,7 +363,7 @@ class MetricSet:
         ax.set_xlabel("Total cores")
         ax.set_ylabel(label)
         ax.xaxis.set_major_locator(mtick.FixedLocator(self.metric_data[x_key], 6))
-        ax.legend(loc='upper left')
+        ax.legend(loc="upper left")
 
         if title:
             ax.set_title(title)
