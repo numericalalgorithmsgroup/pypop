@@ -48,7 +48,7 @@ class Judit_Hybrid_Metrics(MetricSet):
         for key in keys:
             metadata = self._stats_dict[key].metadata
             stats = self._stats_dict[key].stats
-            metrics = _create_layout_keys(metadata)
+            metrics = self._create_layout_keys(metadata)
             try:
                 metrics["MPI Communication Efficiency"] = (
                     stats["Total Non-MPI Runtime"].loc[:, 1].max()

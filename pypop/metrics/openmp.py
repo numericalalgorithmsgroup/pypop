@@ -82,7 +82,7 @@ class OpenMP_Metrics(MetricSet):
             metadata = self._stats_dict[key].metadata
             stats = self._stats_dict[key].stats
             nthreads = metadata.application_layout.rank_threads[0][0]
-            metrics = _create_layout_keys(metadata)
+            metrics = self._create_layout_keys(metadata)
             try:
 
                 metrics["OpenMP Region Efficiency"] = 1 - (
