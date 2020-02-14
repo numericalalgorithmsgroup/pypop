@@ -335,6 +335,7 @@ class TraceSet:
                     for name, cfg in ideal_configs.items()
                 ]
             )
+
             # Keeping things tidy
             if chop_to_roi:
                 remove_trace(cut_ideal_trace)
@@ -344,6 +345,13 @@ class TraceSet:
                 "Failed to run Dimemas: {}\n"
                 "Continuing with reduced MPI detail.".format(err)
             )
+            # Get an object with the correct layout
+            skel = next(iter(stats.values()))
+            nan_df = pd.Dataframe(index=skel.index)
+            for name in ideal_configs:
+                nan_df[name] = np.nan
+
+            stats.append(nan_df)
 
         stats = pandas.concat(stats).T
         stats["IPC"] = stats["Useful Instructions"] / stats["Useful Cycles"]
@@ -359,6 +367,14 @@ class TraceSet:
             stats["Total Non-MPI Runtime"] += stats["OpenMP Total Runtime"]
 
         stats["Frequency"] = stats["Useful Cycles"] / stats["Total Useful Computation"]
+
+        if not stats["Total Non-MPI Runtime"].loc[:, 1].max().isnan() and (
+            stats["Total Non-MPI Runtime"].loc[:, 1].max()
+            > stats["Ideal Runtime"].loc[:, 1].max()
+        ):
+            raise RuntimeError(
+                "Illegal Ideal Runtime value (less than useful computation)"
+            )
 
         if cache_path:
             with open(cache_path, "wb") as fh:

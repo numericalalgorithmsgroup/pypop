@@ -98,16 +98,6 @@ class MPI_OpenMP_Ineff_Metrics(MetricSet):
                 except KeyError:
                     metrics["MPI Transfer Inefficiency"] = numpy.nan
 
-                try:
-                    if (
-                        stats["Total Non-MPI Runtime"].loc[:, 1].max()
-                        > stats["Ideal Runtime"].loc[:, 1].max()
-                    ):
-                        raise RuntimeError("Illegal Ideal Runtime value")
-                except RuntimeError:
-                    metrics["MPI Serialisation Inefficiency"] = numpy.nan
-                    metrics["MPI Transfer Inefficiency"] = numpy.nan
-
                 metrics["MPI Load Balance Inefficiency"] = (
                     stats["Total Non-MPI Runtime"].loc[:, 1].max()
                     - stats["Total Non-MPI Runtime"].loc[:, 1].mean()
@@ -254,16 +244,6 @@ class MPI_OpenMP_Metrics(MetricSet):
                         / stats["Total Runtime"].max()
                     )
                 except KeyError:
-                    metrics["MPI Transfer Efficiency"] = numpy.nan
-
-                try:
-                    if (
-                        stats["Total Non-MPI Runtime"].loc[:, 1].max()
-                        > stats["Ideal Runtime"].loc[:, 1].max()
-                    ):
-                        raise RuntimeError("Illegal Ideal Runtime value")
-                except RuntimeError:
-                    metrics["MPI Serialisation Efficiency"] = numpy.nan
                     metrics["MPI Transfer Efficiency"] = numpy.nan
 
                 metrics["MPI Load balance"] = 1 - (
