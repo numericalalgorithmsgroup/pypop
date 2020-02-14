@@ -522,3 +522,6 @@ def load_paraver_histdata(hist_file):
                 name, data_dict[name] = _split_countline(count_line, bins)
 
     return pd.DataFrame.from_dict(data_dict)
+
+def is_extrae_tracefile(tracefile):
+    raise NotImplementedError()
