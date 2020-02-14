@@ -301,7 +301,6 @@ class TraceSet:
             for name, cfg in base_configs.items()
         ]
 
-        hybrid = False
         try:
             omp_stats = [
                 paramedir_analyze_any_of(
@@ -309,10 +308,14 @@ class TraceSet:
                 )
                 for name, cfg in omp_configs.items()
             ]
+            omp_stats["Serial Useful Computation"].loc[:, 2:] = 0
             stats += omp_stats
-            hybrid = True
         except RuntimeError:
-            pass
+            skel = next(iter(stats.values()))
+            zero_df = pd.Dataframe(index=skel.index)
+            for name in omp_configs:
+                zero_df[name] = 0
+            stats.append(zero_df)
 
         # Remember to clean up after ourselves
         if chop_to_roi:
@@ -356,15 +359,12 @@ class TraceSet:
         stats = pandas.concat(stats).T
         stats["IPC"] = stats["Useful Instructions"] / stats["Useful Cycles"]
 
-        if hybrid:
-            stats["Serial Useful Computation"].loc[:, 2:] = 0
 
         stats["Total Useful Computation"] = stats["Serial Useful Computation"]
         stats["Total Non-MPI Runtime"] = stats["Serial Useful Computation"]
 
-        if hybrid:
-            stats["Total Useful Computation"] += stats["OpenMP Useful Computation"]
-            stats["Total Non-MPI Runtime"] += stats["OpenMP Total Runtime"]
+        stats["Total Useful Computation"] += stats["OpenMP Useful Computation"]
+        stats["Total Non-MPI Runtime"] += stats["OpenMP Total Runtime"]
 
         stats["Frequency"] = stats["Useful Cycles"] / stats["Total Useful Computation"]
 
