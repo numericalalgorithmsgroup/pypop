@@ -50,6 +50,8 @@ class MetricSet:
 
     """
 
+    _default_metric_key = None
+
     def __init__(self, stats_dict, ref_key=None, sort_keys=True):
         """
         Parameters
@@ -103,9 +105,21 @@ class MetricSet:
         """
         return self._metric_list
 
+    @staticmethod
+    def _create_layout_keys(metadata):
+        layout = metadata.application_layout
+        layout_keys = {
+            "Number of Processes": layout.commsize,
+            "Threads per Process": layout.rank_threads[0][0],
+            "Total Threads": sum(x[0] for x in layout.rank_threads),
+            "Hybrid Layout": "{}x{}".format(layout.commsize, layout.rank_threads[0][0]),
+        }
+
+        return layout_keys
+
     def plot_table(
         self,
-        columns_key="Number of Processes",
+        columns_key="auto",
         title=None,
         columns_label=None,
         good_thres=0.8,
@@ -119,7 +133,8 @@ class MetricSet:
         ----------
         columns_key: str or None
             Key to pandas dataframe column containing column heading data (default
-            "Number of Processes"). If `None` then the index will be used.
+            "Number of Processes"). If `'auto'`, a suitable default for the metric type
+            is used, if `None` then the numerical index will be used.
         title: str or None
             Title for table.
         columns_label: str or None
@@ -139,6 +154,9 @@ class MetricSet:
         figure: `matplotlib.figure.Figure`
             Figure containing the metrics table.
         """
+
+        if columns_key == "auto":
+            columns_key = self._default_metric_key
 
         with mpl.rc_context(pypop_mpl_params):
             return self._plot_table(
@@ -274,9 +292,7 @@ class MetricSet:
 
         return fig
 
-    def plot_scaling(
-        self, x_key="Number of Processes", y_key="Speedup", label=None, title=None
-    ):
+    def plot_scaling(self, x_key="auto", y_key="Speedup", label=None, title=None):
         """Plot scaling graph with region shading.
 
         Plots scaling data from pandas dataframe(s). The 0-80% and 80-100% scaling
@@ -286,7 +302,8 @@ class MetricSet:
         Parameters
         ----------
         x_key: scalar
-            Key of Dataframe column to use as x-axis.
+            Key of Dataframe column to use as x-axis. If 'auto' use a suitable default
+            for the metric.
 
         y_key: scalar
             key of Dataframe column to use as y-axis.
@@ -302,6 +319,9 @@ class MetricSet:
         figure: matplotlib.figure.Figure
             Figure containing complete scaling plot.
         """
+        if x_key == "auto":
+            x_key = self._default_metric_key
+
         with mpl.rc_context(pypop_mpl_params):
             return self._plot_scaling(x_key, y_key, label, title)
 

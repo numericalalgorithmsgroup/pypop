@@ -28,6 +28,8 @@ class MPI_Metrics(MetricSet):
         Metric("Frequency Scaling", 2),
     ]
 
+    _default_metric_key = "Number of Processes"
+
     def _calculate_metrics(self, ref_key=None, sort_keys=True):
 
         if not ref_key:
@@ -43,13 +45,7 @@ class MPI_Metrics(MetricSet):
         for key in keys:
             metadata = self._stats_dict[key].metadata
             stats = self._stats_dict[key].stats
-            metrics = {
-                "Number of Processes": metadata.application_layout.commsize,
-                "Threads per Process": metadata.application_layout.rank_threads[0][0],
-                "Total Threads": sum(
-                    x[0] for x in metadata.application_layout.rank_threads
-                ),
-            }
+            metrics = _create_layout_keys(metadata)
 
             metrics["MPI Communication Efficiency"] = (
                 stats["Total Non-MPI Runtime"].loc[:, 1].max()

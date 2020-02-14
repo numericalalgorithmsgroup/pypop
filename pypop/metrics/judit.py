@@ -32,6 +32,8 @@ class Judit_Hybrid_Metrics(MetricSet):
         Metric("IPC Scaling", 2, "IPC Scaling"),
     ]
 
+    _default_metric_key = "Hybrid Layout"
+
     def _calculate_metrics(self, ref_key=None, sort_keys=True):
         if not ref_key:
             ref_key = min(self._stats_dict.keys())
@@ -46,13 +48,7 @@ class Judit_Hybrid_Metrics(MetricSet):
         for key in keys:
             metadata = self._stats_dict[key].metadata
             stats = self._stats_dict[key].stats
-            metrics = {
-                "Number of Processes": metadata.application_layout.commsize,
-                "Threads per Process": metadata.application_layout.rank_threads[0][0],
-                "Total Threads": sum(
-                    x[0] for x in metadata.application_layout.rank_threads
-                ),
-            }
+            metrics = _create_layout_keys(metadata)
             try:
                 metrics["MPI Communication Efficiency"] = (
                     stats["Total Non-MPI Runtime"].loc[:, 1].max()

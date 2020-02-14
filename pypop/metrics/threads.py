@@ -74,6 +74,8 @@ class Thread_Metrics(MetricSet):
         Metric("IPC Scaling", 2, "IPC Scaling", desc=k_IPCSC_desc),
     ]
 
+    _default_metric_key = "Hybrid Layout"
+
     def _calculate_metrics(self, ref_key=None, sort_keys=True):
 
         total_useful = {
@@ -107,13 +109,7 @@ class Thread_Metrics(MetricSet):
             metadata = self._stats_dict[curr_key].metadata
             stats = self._stats_dict[curr_key].stats
             nthreads = metadata.application_layout.rank_threads[0][0]
-            metrics = {
-                "Number of Processes": metadata.application_layout.commsize,
-                "Threads per Process": metadata.application_layout.rank_threads[0][0],
-                "Total Threads": sum(
-                    x[0] for x in metadata.application_layout.rank_threads
-                ),
-            }
+            metrics = _create_layout_keys(metadata)
             try:
 
                 metrics["Parallel Region Efficiency"] = 1 - (
