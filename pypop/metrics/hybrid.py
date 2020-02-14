@@ -51,9 +51,15 @@ class MPI_OpenMP_Ineff_Metrics(MetricSet):
         for key in keys:
             metadata = self._stats_dict[key].metadata
             stats = self._stats_dict[key].stats
+            nthreads = metadata.application_layout.rank_threads[0][0]
+            metrics = {
+                "Number of Processes": metadata.application_layout.commsize,
+                "Threads per Process": metadata.application_layout.rank_threads[0][0],
+                "Total Threads": sum(
+                    x[0] for x in metadata.application_layout.rank_threads
+                ),
+            }
             try:
-                nthreads = metadata.application_layout.rank_threads[0][0]
-                metrics = {"Number of Processes": sum(metadata.procs_per_node)}
 
                 metrics["OpenMP Region Inefficiency"] = (
                     (
@@ -197,9 +203,15 @@ class MPI_OpenMP_Metrics(MetricSet):
         for key in keys:
             metadata = self._stats_dict[key].metadata
             stats = self._stats_dict[key].stats
+            nthreads = metadata.application_layout.rank_threads[0][0]
+            metrics = {
+                "Number of Processes": metadata.application_layout.commsize,
+                "Threads per Process": metadata.application_layout.rank_threads[0][0],
+                "Total Threads": sum(
+                    x[0] for x in metadata.application_layout.rank_threads
+                ),
+            }
             try:
-                nthreads = metadata.application_layout.rank_threads[0][0]
-                metrics = {"Number of Processes": sum(metadata.procs_per_node)}
 
                 metrics["OpenMP Region Efficiency"] = 1 - (
                     (
@@ -352,9 +364,15 @@ class MPI_OpenMP_Multiplicative_Metrics(MetricSet):
         for key in keys:
             metadata = self._stats_dict[key].metadata
             stats = self._stats_dict[key].stats
+            nthreads = metadata.application_layout.rank_threads[0][0]
+            metrics = {
+                "Number of Processes": metadata.application_layout.commsize,
+                "Threads per Process": metadata.application_layout.rank_threads[0][0],
+                "Total Threads": sum(
+                    x[0] for x in metadata.application_layout.rank_threads
+                ),
+            }
             try:
-                metrics = {"Number of Processes": sum(metadata.procs_per_node)}
-
                 metrics["OpenMP Region Efficiency"] = (
                     stats["OpenMP Useful Computation"].mean()
                     + stats["Serial Useful Computation"].loc[:, 1].mean()

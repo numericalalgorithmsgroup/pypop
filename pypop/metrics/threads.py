@@ -106,9 +106,15 @@ class Thread_Metrics(MetricSet):
         for curr_key in keys:
             metadata = self._stats_dict[curr_key].metadata
             stats = self._stats_dict[curr_key].stats
+            nthreads = metadata.application_layout.rank_threads[0][0]
+            metrics = {
+                "Number of Processes": metadata.application_layout.commsize,
+                "Threads per Process": metadata.application_layout.rank_threads[0][0],
+                "Total Threads": sum(
+                    x[0] for x in metadata.application_layout.rank_threads
+                ),
+            }
             try:
-                nthreads = metadata.application_layout.rank_threads[0][0]
-                metrics = {"Number of Threads": len(stats.index)}
 
                 metrics["Parallel Region Efficiency"] = 1 - (
                     (
