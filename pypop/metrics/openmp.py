@@ -105,7 +105,14 @@ class OpenMP_Metrics(MetricSet):
                 )
 
                 metrics["IPC Scaling"] = (
-                    stats["IPC"].mean() / self._stats_dict[ref_key].stats["IPC"].mean()
+                    ( 
+                        stats["Useful Instructions"].sum()
+                        / stats["Useful Cycles"].sum()
+                    )
+                    / ( 
+                        self._stats_dict[ref_key].stats["Useful Instructions"].sum()
+                        / self._stats_dict[ref_key].stats["Useful Cycles"].sum()
+                    )
                 )
 
                 metrics["Instruction Scaling"] = (
@@ -114,8 +121,14 @@ class OpenMP_Metrics(MetricSet):
                 )
 
                 metrics["Frequency Scaling"] = (
-                    stats["Frequency"].mean()
-                    / self._stats_dict[ref_key].stats["Frequency"].mean()
+                    ( 
+                        stats["Useful Cycles"].sum() 
+                        / stats["Total Useful Computation"].sum()
+                    )
+                    / ( 
+                        self._stats_dict[ref_key].stats["Useful Cycles"].sum()
+                        / self._stats_dict[ref_key].stats["Total Useful Computation"].sum()
+                    )
                 )
 
                 metrics["Computational Scaling"] = (

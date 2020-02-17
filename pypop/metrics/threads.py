@@ -132,6 +132,17 @@ class Thread_Metrics(MetricSet):
                 )
 
                 metrics["IPC Scaling"] = ipc[curr_key].mean() / ipc[ref_key].mean()
+# PHIL: IS THIS CORRECT?
+#                metrics["IPC Scaling"] = (
+#                    ( 
+#                        stats["Useful Instructions"].sum()
+#                        / stats["Useful Cycles"].sum()
+#                    )
+#                    / ( 
+#                        self._stats_dict[ref_key].stats["Useful Instructions"].sum()
+#                        / self._stats_dict[ref_key].stats["Useful Cycles"].sum()
+#                    )
+#                )   
 
                 metrics["Instruction Scaling"] = (
                     self._stats_dict[ref_key].stats["Useful Instructions"].sum()
@@ -139,11 +150,22 @@ class Thread_Metrics(MetricSet):
                 )
 
                 metrics["Frequency"] = frequency[curr_key].loc[1, 1]
-
+               
                 metrics["Frequency Scaling"] = (
                     frequency[curr_key].mean()
                     / frequency[ref_key].mean()
                 )
+# PHIL: IS THIS CORRECT?                
+#                metrics["Frequency Scaling"] = (
+#                    ( 
+#                        stats["Useful Cycles"].sum() 
+#                        / stats["Total Useful Computation"].sum()
+#                    )
+#                    / ( 
+#                        self._stats_dict[ref_key].stats["Useful Cycles"].sum()
+#                        / self._stats_dict[ref_key].stats["Total Useful Computation"].sum()
+#                    )
+#                ) 
 
                 metrics["Computational Scaling"] = (
                     total_useful[ref_key].sum() / total_useful[curr_key].sum()

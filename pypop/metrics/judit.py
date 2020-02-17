@@ -22,7 +22,7 @@ class Judit_Hybrid_Metrics(MetricSet):
         Metric("MPI Parallel Efficiency", 2),
         Metric("MPI Load Balance", 3),
         Metric("MPI Communication Efficiency", 3),
-        Metric("OpenMP Parallel Efficiency", 2),
+        Metric("OpenMP Parallel Efficiency", 3),
         Metric("OpenMP Communication Efficiency", 3),
         Metric("OpenMP Load Balance", 3),
         Metric("Hybrid Communication Efficiency", 2),
@@ -93,7 +93,14 @@ class Judit_Hybrid_Metrics(MetricSet):
                 )
 
                 metrics["IPC Scaling"] = (
-                    stats["IPC"].mean() / self._stats_dict[ref_key].stats["IPC"].mean()
+                    ( 
+                        stats["Useful Instructions"].sum()
+                        / stats["Useful Cycles"].sum()
+                    )
+                    / ( 
+                        self._stats_dict[ref_key].stats["Useful Instructions"].sum()
+                        / self._stats_dict[ref_key].stats["Useful Cycles"].sum()
+                    )
                 )
 
                 metrics["Instruction Scaling"] = (
@@ -102,10 +109,16 @@ class Judit_Hybrid_Metrics(MetricSet):
                 )
 
                 metrics["Frequency Scaling"] = (
-                    stats["Frequency"].mean()
-                    / self._stats_dict[ref_key].stats["Frequency"].mean()
+                    ( 
+                        stats["Useful Cycles"].sum() 
+                        / stats["Total Useful Computation"].sum()
+                    )
+                    / ( 
+                        self._stats_dict[ref_key].stats["Useful Cycles"].sum()
+                        / self._stats_dict[ref_key].stats["Total Useful Computation"].sum()
+                    )
                 )
-
+            
                 metrics["Computational Scaling"] = (
                     self._stats_dict[ref_key].stats["Total Useful Computation"].sum()
                     / stats["Total Useful Computation"].sum()
