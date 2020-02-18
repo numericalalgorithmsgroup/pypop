@@ -18,7 +18,7 @@ __all__ = [
 
 
 class MPI_OpenMP_Ineff_Metrics(MetricSet):
-    """Proposed Hybrid MPI+OpenMP Inefficiency Metrics.
+    """Proposed Hybrid MPI+OpenMP Inefficiency Metrics (additive version).
     """
 
     _metric_list = [
@@ -115,7 +115,14 @@ class MPI_OpenMP_Ineff_Metrics(MetricSet):
                 )
 
                 metrics["IPC Scaling"] = (
-                    stats["IPC"].mean() / self._stats_dict[ref_key].stats["IPC"].mean()
+                    ( 
+                        stats["Useful Instructions"].sum()
+                        / stats["Useful Cycles"].sum()
+                    )
+                    / ( 
+                        self._stats_dict[ref_key].stats["Useful Instructions"].sum()
+                        / self._stats_dict[ref_key].stats["Useful Cycles"].sum()
+                    )
                 )
 
                 metrics["Instruction Scaling"] = (
@@ -124,8 +131,14 @@ class MPI_OpenMP_Ineff_Metrics(MetricSet):
                 )
 
                 metrics["Frequency Scaling"] = (
-                    stats["Frequency"].mean()
-                    / self._stats_dict[ref_key].stats["Frequency"].mean()
+                    ( 
+                        stats["Useful Cycles"].sum() 
+                        / stats["Total Useful Computation"].sum()
+                    )
+                    / ( 
+                        self._stats_dict[ref_key].stats["Useful Cycles"].sum()
+                        / self._stats_dict[ref_key].stats["Total Useful Computation"].sum()
+                    )
                 )
 
                 metrics["Computational Scaling"] = (
@@ -156,7 +169,7 @@ class MPI_OpenMP_Ineff_Metrics(MetricSet):
 
 
 class MPI_OpenMP_Metrics(MetricSet):
-    """Proposed Hybrid MPI+OpenMP Metrics.
+    """Proposed Hybrid MPI+OpenMP Metrics (additive version).
     """
 
     _metric_list = [
@@ -264,7 +277,14 @@ class MPI_OpenMP_Metrics(MetricSet):
                 )
 
                 metrics["IPC Scaling"] = (
-                    stats["IPC"].mean() / self._stats_dict[ref_key].stats["IPC"].mean()
+                    ( 
+                        stats["Useful Instructions"].sum()
+                        / stats["Useful Cycles"].sum()
+                    )
+                    / ( 
+                        self._stats_dict[ref_key].stats["Useful Instructions"].sum()
+                        / self._stats_dict[ref_key].stats["Useful Cycles"].sum()
+                    )
                 )
 
                 metrics["Instruction Scaling"] = (
@@ -273,8 +293,14 @@ class MPI_OpenMP_Metrics(MetricSet):
                 )
 
                 metrics["Frequency Scaling"] = (
-                    stats["Frequency"].mean()
-                    / self._stats_dict[ref_key].stats["Frequency"].mean()
+                    ( 
+                        stats["Useful Cycles"].sum() 
+                        / stats["Total Useful Computation"].sum()
+                    )
+                    / ( 
+                        self._stats_dict[ref_key].stats["Useful Cycles"].sum()
+                        / self._stats_dict[ref_key].stats["Total Useful Computation"].sum()
+                    )
                 )
 
                 metrics["Computational Scaling"] = (
@@ -400,7 +426,14 @@ class MPI_OpenMP_Multiplicative_Metrics(MetricSet):
                 )
 
                 metrics["IPC Scaling"] = (
-                    stats["IPC"].mean() / self._stats_dict[ref_key].stats["IPC"].mean()
+                    ( 
+                        stats["Useful Instructions"].sum()
+                        / stats["Useful Cycles"].sum()
+                    )
+                    / ( 
+                        self._stats_dict[ref_key].stats["Useful Instructions"].sum()
+                        / self._stats_dict[ref_key].stats["Useful Cycles"].sum()
+                    )
                 )
 
                 metrics["Instruction Scaling"] = (
@@ -409,8 +442,14 @@ class MPI_OpenMP_Multiplicative_Metrics(MetricSet):
                 )
 
                 metrics["Frequency Scaling"] = (
-                    stats["Frequency"].mean()
-                    / self._stats_dict[ref_key].stats["Frequency"].mean()
+                    ( 
+                        stats["Useful Cycles"].sum() 
+                        / stats["Total Useful Computation"].sum()
+                    )
+                    / ( 
+                        self._stats_dict[ref_key].stats["Useful Cycles"].sum()
+                        / self._stats_dict[ref_key].stats["Total Useful Computation"].sum()
+                    )
                 )
 
                 metrics["Computational Scaling"] = (
