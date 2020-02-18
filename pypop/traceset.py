@@ -23,6 +23,7 @@ from warnings import warn
 from pkg_resources import resource_filename
 
 import pandas
+import numpy
 
 try:
     from tqdm.auto import tqdm
@@ -311,11 +312,11 @@ class TraceSet:
             omp_stats["Serial Useful Computation"].loc[:, 2:] = 0
             stats += omp_stats
         except RuntimeError:
-            skel = next(iter(stats.values()))
-            zero_df = pd.Dataframe(index=skel.index)
+            skel = next(iter(stats))
+            zero_df = pandas.DataFrame(index=skel.T.index)
             for name in omp_configs:
                 zero_df[name] = 0
-            stats.append(zero_df)
+            stats.append(zero_df.T)
 
         # Remember to clean up after ourselves
         if chop_to_roi:
@@ -350,15 +351,14 @@ class TraceSet:
             )
             # Get an object with the correct layout
             skel = next(iter(stats.values()))
-            nan_df = pd.Dataframe(index=skel.index)
+            nan_df = pandas.Dataframe(index=skel.T.index)
             for name in ideal_configs:
-                nan_df[name] = np.nan
+                nan_df[name] = numpy.nan
 
-            stats.append(nan_df)
+            stats.append(nan_df.T)
 
         stats = pandas.concat(stats).T
         stats["IPC"] = stats["Useful Instructions"] / stats["Useful Cycles"]
-
 
         stats["Total Useful Computation"] = stats["Serial Useful Computation"]
         stats["Total Non-MPI Runtime"] = stats["Serial Useful Computation"]
@@ -368,7 +368,7 @@ class TraceSet:
 
         stats["Frequency"] = stats["Useful Cycles"] / stats["Total Useful Computation"]
 
-        if not stats["Total Non-MPI Runtime"].loc[:, 1].max().isnan() and (
+        if (
             stats["Total Non-MPI Runtime"].loc[:, 1].max()
             > stats["Ideal Runtime"].loc[:, 1].max()
         ):
