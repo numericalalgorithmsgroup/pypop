@@ -523,5 +523,8 @@ def load_paraver_histdata(hist_file):
 
     return pd.DataFrame.from_dict(data_dict)
 
+
 def is_extrae_tracefile(tracefile):
-    raise NotImplementedError()
+    if tracefile.endswith(".prv.gz") or tracefile.endswith(".prv"):
+        return True
+    return False
