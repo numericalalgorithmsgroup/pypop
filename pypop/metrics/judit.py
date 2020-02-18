@@ -22,7 +22,7 @@ class Judit_Hybrid_Metrics(MetricSet):
         Metric("MPI Parallel Efficiency", 2),
         Metric("MPI Load Balance", 3),
         Metric("MPI Communication Efficiency", 3),
-        Metric("OpenMP Parallel Efficiency", 3),
+        Metric("OpenMP Parallel Efficiency", 2),
         Metric("OpenMP Communication Efficiency", 3),
         Metric("OpenMP Load Balance", 3),
         Metric("Hybrid Communication Efficiency", 2),
