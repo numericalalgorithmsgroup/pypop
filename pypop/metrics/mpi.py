@@ -22,7 +22,7 @@ class MPI_Metrics(MetricSet):
         Metric("MPI Communication Efficiency", 2),
         Metric("MPI Transfer Efficiency", 3),
         Metric("MPI Serialisation Efficiency", 3),
-        Metric("Computation Scaling", 1),
+        Metric("Computational Scaling", 1),
         Metric("Instruction Scaling", 2),
         Metric("IPC Scaling", 2),
         Metric("Frequency Scaling", 2),
@@ -85,14 +85,10 @@ class MPI_Metrics(MetricSet):
             )
 
             metrics["IPC Scaling"] = (
-                ( 
-                    stats["Useful Instructions"].sum()
-                    / stats["Useful Cycles"].sum()
-                )
-                / ( 
-                    self._stats_dict[ref_key].stats["Useful Instructions"].sum()
-                    / self._stats_dict[ref_key].stats["Useful Cycles"].sum()
-                )
+                stats["Useful Instructions"].sum() / stats["Useful Cycles"].sum()
+            ) / (
+                self._stats_dict[ref_key].stats["Useful Instructions"].sum()
+                / self._stats_dict[ref_key].stats["Useful Cycles"].sum()
             )
 
             metrics["Instruction Scaling"] = (
@@ -101,14 +97,10 @@ class MPI_Metrics(MetricSet):
             )
 
             metrics["Frequency Scaling"] = (
-                ( 
-                    stats["Useful Cycles"].sum() 
-                    / stats["Total Useful Computation"].sum()
-                )
-                / ( 
-                    self._stats_dict[ref_key].stats["Useful Cycles"].sum()
-                    / self._stats_dict[ref_key].stats["Total Useful Computation"].sum()
-                )
+                stats["Useful Cycles"].sum() / stats["Total Useful Computation"].sum()
+            ) / (
+                self._stats_dict[ref_key].stats["Useful Cycles"].sum()
+                / self._stats_dict[ref_key].stats["Total Useful Computation"].sum()
             )
 
             metrics["Computational Scaling"] = (
@@ -135,6 +127,7 @@ class MPI_Metrics(MetricSet):
 class MPI_Multiplicative_Metrics(MetricSet):
     """Pure MPI Metrics (multiplicative version).
     """
+
     _metric_list = [
         Metric("Global Efficiency", 0),
         Metric("Parallel Efficiency", 1),
@@ -197,8 +190,10 @@ class MPI_Multiplicative_Metrics(MetricSet):
             )
 
             metrics["IPC Scaling"] = (
-                ( stats["Useful Instructions"].sum() / stats["Useful Cycles"].sum() )
-                / ( self._stats_dict[ref_key].stats["Useful Instructions"].sum()/self._stats_dict[ref_key].stats["Useful Cycles"].sum() )
+                stats["Useful Instructions"].sum() / stats["Useful Cycles"].sum()
+            ) / (
+                self._stats_dict[ref_key].stats["Useful Instructions"].sum()
+                / self._stats_dict[ref_key].stats["Useful Cycles"].sum()
             )
 
             metrics["Instruction Scaling"] = (
@@ -207,11 +202,13 @@ class MPI_Multiplicative_Metrics(MetricSet):
             )
 
             metrics["Frequency Scaling"] = (
-                ( stats["Useful Cycles"].sum() / stats["Total Useful Computation"].sum() )
-                / ( self._stats_dict[ref_key].stats["Useful Cycles"].sum()/self._stats_dict[ref_key].stats["Total Useful Computation"].sum() )
+                stats["Useful Cycles"].sum() / stats["Total Useful Computation"].sum()
+            ) / (
+                self._stats_dict[ref_key].stats["Useful Cycles"].sum()
+                / self._stats_dict[ref_key].stats["Total Useful Computation"].sum()
             )
 
-            metrics["Computation Scaling"] = (
+            metrics["Computational Scaling"] = (
                 self._stats_dict[ref_key].stats["Total Useful Computation"].sum()
                 / stats["Total Useful Computation"].sum()
             )
