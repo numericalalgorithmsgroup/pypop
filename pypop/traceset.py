@@ -298,6 +298,12 @@ class TraceSet:
     def _analyze_tracefile(self, trace, cache_path, chop_to_roi, outpath):
 
         metadata = get_prv_header_info(trace)
+        
+        if outpath:
+            try:
+                os.makedirs(outpath, exist_ok=True)
+            except OSError as err:
+                print("FATAL: {}".format(err))
     
         if chop_to_roi:
             if outpath:

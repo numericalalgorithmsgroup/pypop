@@ -20,7 +20,7 @@ from pkg_resources import resource_filename
 import pandas as pd
 import numpy as np
 
-from .prv import get_prv_header_info, _parse_paraver_headerline, zipopen
+from .prv import PRV, get_prv_header_info, _parse_paraver_headerline, zipopen
 from . import config
 
 floatmatch = re.compile(r"[0-9,]+\.[0-9]+")
@@ -169,6 +169,7 @@ def chop_prv_to_roi(prv_file, outfile=None):
     ]
 
     result = sp.run(cutter_cmds, stdout=sp.PIPE, stderr=sp.PIPE)
+    os.remove(cutter_xml)
 
     if result.returncode != 0 or not os.path.exists(outfile):
         raise RuntimeError(
@@ -176,9 +177,35 @@ def chop_prv_to_roi(prv_file, outfile=None):
         )
 
     return outfile
-
-
+    
 def _get_roi_times(roi_prv):
+    """ Extract ROi timing information from a filtered trace
+
+    Expects a trace containing only Extrae On/Off events and returns tuple of
+    earliest and latest time
+    """
+    # Get dataframe of events from filtered trace
+    data = PRV(roi_prv)
+    df = data.event
+
+    # Get the first on and last off events
+    grouped = df.reset_index(level='time').groupby(level=['task','thread'])
+    ons = grouped.nth(1)
+    offs = grouped.last()    
+    
+    # Check the events have the expected values
+    if not (ons['value'] == 1).all():
+        raise ValueError(
+            "Unexpected event value: expected 40000012:1"
+        )
+    if not (offs['value'] == 0).all():
+        raise ValueError(
+            "Unexpected event value: expected 40000012:0"
+        )
+    return ons['time'].min(), 1 + offs['time'].max()
+
+
+def _get_roi_times_old(roi_prv):
     """ Extract ROi timing information from a filtered trace
 
     Expects a trace containing only Extrae On/Off events and returns tuple of
@@ -195,7 +222,7 @@ def _get_roi_times(roi_prv):
         line = fh.readline().strip()
         while line:
             # If we get to a non-communicator line we are done, but seek back
-            if not line.startswith("c"):
+            if not (line.startswith("c") or line.startswith('#')):
                 fh.seek(fh.tell() - len(line))
                 break
             line = fh.readline().strip()
@@ -219,6 +246,8 @@ def _get_roi_times(roi_prv):
             tmptime = int(line.split(":")[5])
 
             starttime = max(starttime, tmptime) if starttime else tmptime
+            
+        # Get the last set of shutdown events
 
         # and the end events
         endtime = None
