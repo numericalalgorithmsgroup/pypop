@@ -205,66 +205,6 @@ def _get_roi_times(roi_prv):
     return ons['time'].min(), 1 + offs['time'].max()
 
 
-def _get_roi_times_old(roi_prv):
-    """ Extract ROi timing information from a filtered trace
-
-    Expects a trace containing only Extrae On/Off events and returns tuple of
-    earliest and latest time
-    """
-    with zipopen(roi_prv, "rt") as fh:
-        headerline = fh.readline()
-        prvheader = _parse_paraver_headerline(headerline)
-
-        # First want commsize
-        commsize = prvheader.application_layout.commsize
-
-        # skip over communicator definition lines
-        line = fh.readline().strip()
-        while line:
-            # If we get to a non-communicator line we are done, but seek back
-            if not (line.startswith("c") or line.startswith('#')):
-                fh.seek(fh.tell() - len(line))
-                break
-            line = fh.readline().strip()
-        # Now skip over commsize shutdown events at beginning of trace:
-        for i in range(commsize):
-            line = fh.readline().strip()
-            if not line.endswith("40000012:0"):
-                raise ValueError(
-                    "Unexpected event or misordered events: " "{}\n".format(line)
-                )
-
-        # Can now grab the start events
-        starttime = None
-        for i in range(commsize):
-            line = fh.readline().strip()
-            if not line.endswith("40000012:1"):
-                raise ValueError(
-                    "Unexpected event or misordered events: " "{}\n".format(line)
-                )
-
-            tmptime = int(line.split(":")[5])
-
-            starttime = max(starttime, tmptime) if starttime else tmptime
-            
-        # Get the last set of shutdown events
-
-        # and the end events
-        endtime = None
-        for i in range(commsize):
-            line = fh.readline().strip()
-            if not line.endswith("40000012:0"):
-                raise ValueError(
-                    "Unexpected event or misordered events :" "{}\n".format(line)
-                )
-
-            tmptime = int(line.split(":")[5])
-
-            endtime = min(endtime, tmptime) if endtime else tmptime
-
-    return (starttime, endtime - 1)
-
-
 def paramedir_analyze(
     tracefile,
     paramedir_config,

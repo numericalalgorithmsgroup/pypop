@@ -211,7 +211,7 @@ def dimemas_analyse(tracefile, configfile, outpath=None, substrings=None):
 
     # Otherwise copy back to requested location
     filestem = basename(splitext(tracefile)[0])
-    outfile = outpath + "/" + filestem + ".sim.prv"
+    outfile = os.path.join(outpath, filestem + ".sim.prv")
     with open(sim_prv, "rb") as ifh, open(outfile, "wb") as ofh:
         while True:
             buff = ifh.read(8589934592)
@@ -222,7 +222,7 @@ def dimemas_analyse(tracefile, configfile, outpath=None, substrings=None):
     # And also copy row and pcf
     for ext in [".row", ".pcf"]:
         infile = splitext(sim_prv)[0] + ext
-        outfile = outpath + "/" + filestem + ".sim" + ext
+        outfile = os.path.join(outpath, filestem + ".sim" + ext)
         with open(infile, "rb") as ifh, open(outfile, "wb") as ofh:
             while True:
                 buff = ifh.read(8589934592)
@@ -234,4 +234,4 @@ def dimemas_analyse(tracefile, configfile, outpath=None, substrings=None):
     remove_trace(sim_prv)
 
     # finally return outpath as promised
-    return outpath + "/" + filestem + ".sim.prv"
+    return os.path.join(outpath,filestem + ".sim.prv")
