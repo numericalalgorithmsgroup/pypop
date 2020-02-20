@@ -35,6 +35,7 @@ class MPI_OpenMP_Ineff_Metrics(MetricSet):
         Metric("Computational Scaling", 1),
         Metric("Instruction Scaling", 2),
         Metric("IPC Scaling", 2, "IPC Scaling"),
+        Metric("Frequency Scaling", 2, "Frequency Scaling"),
     ]
 
     def _calculate_metrics(self, ref_key=None, sort_keys=True):
@@ -181,6 +182,7 @@ class MPI_OpenMP_Metrics(MetricSet):
         Metric("Computational Scaling", 1),
         Metric("Instruction Scaling", 2),
         Metric("IPC Scaling", 2, "IPC Scaling"),
+        Metric("Frequency Scaling", 2, "Frequency Scaling"),
     ]
 
     def _calculate_metrics(self, ref_key=None, sort_keys=True):
@@ -336,6 +338,7 @@ class MPI_OpenMP_Multiplicative_Metrics(MetricSet):
         Metric("Computational Scaling", 1),
         Metric("Instruction Scaling", 2),
         Metric("IPC Scaling", 2, "IPC Scaling"),
+        Metric("Frequency Scaling", 2, "Frequency Scaling"),
     ]
 
     def _calculate_metrics(self, ref_key=None, sort_keys=True):
