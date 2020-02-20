@@ -105,6 +105,9 @@ def _preprocess_traces_parse_args():
     parser.add_argument(
         "--dimemas-path", type=str, metavar="PATH", help="Path to Dimemas executable"
     )
+    parser.add_argument(
+        "--outfile-path", type=str, metavar="PATH", help="Path for saving new chopped and ideal traces"
+    )
 
     return parser.parse_args()
 
@@ -182,8 +185,8 @@ def preprocess_traces():
 
     if config.dimemas_path:
         set_dimemas_path(config.dimemas_path)
-
-    TraceSet(config.traces, ignore_cache=config.overwrite_existing)
+        
+    TraceSet(config.traces, ignore_cache=config.overwrite_existing, outpath=config.outfile_path)
 
 
 def dimemas_idealise():
