@@ -10,7 +10,7 @@
     <original_time>0</original_time>
     <break_states>0</break_states>
     <remove_first_states>1</remove_first_states>
-    <remove_last_states>0</remove_last_states>
+    <remove_last_states>1</remove_last_states>
     <keep_events>1</keep_events>
   </cutter>
 </config>

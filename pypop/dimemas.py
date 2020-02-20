@@ -130,8 +130,7 @@ def dimemas_analyse(tracefile, configfile, outpath=None, substrings=None):
 
     # And also copy row and pcf if available
     for ext in [".row", ".pcf"]:
-        tracestem = splitext(tracefile)[0]
-        tracestem = tracestem[:-3] if tracefile.endswith(".gz") else tracestem
+        tracestem = tracefile[:-3] if tracefile.endswith(".gz") else tracefile
         infile = splitext(tracestem)[0] + ext
         outfile = splitext(tmp_prv)[0] + ext
         try:
@@ -211,7 +210,9 @@ def dimemas_analyse(tracefile, configfile, outpath=None, substrings=None):
         return sim_prv
 
     # Otherwise copy back to requested location
-    with open(sim_prv, "rb") as ifh, open(outpath, "wb") as ofh:
+    filestem = basename(splitext(tracefile)[0])
+    outfile = os.path.join(outpath, filestem + ".sim.prv")
+    with open(sim_prv, "rb") as ifh, open(outfile, "wb") as ofh:
         while True:
             buff = ifh.read(8589934592)
             if not buff:
@@ -221,7 +222,7 @@ def dimemas_analyse(tracefile, configfile, outpath=None, substrings=None):
     # And also copy row and pcf
     for ext in [".row", ".pcf"]:
         infile = splitext(sim_prv)[0] + ext
-        outfile = splitext(outpath)[0] + ext
+        outfile = os.path.join(outpath, filestem + ".sim" + ext)
         with open(infile, "rb") as ifh, open(outfile, "wb") as ofh:
             while True:
                 buff = ifh.read(8589934592)
@@ -233,4 +234,4 @@ def dimemas_analyse(tracefile, configfile, outpath=None, substrings=None):
     remove_trace(sim_prv)
 
     # finally return outpath as promised
-    return outpath
+    return os.path.join(outpath,filestem + ".sim.prv")

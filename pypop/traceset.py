@@ -17,7 +17,7 @@ Currently the following tools are supported:
 import os
 import pickle
 
-from os.path import dirname
+from os.path import dirname, splitext, basename
 from warnings import warn
 
 from pkg_resources import resource_filename
@@ -79,7 +79,9 @@ base_configs = {
             "cfgs/serial_useful_computation_omp_task.cfg",
             "cfgs/serial_useful_computation_no_omp.cfg",
         ),
-        "Total Runtime": ("cfgs/total_runtime.cfg",),
+        "Total Runtime": (
+            "cfgs/total_runtime_excl_disabled.cfg",
+            "cfgs/total_runtime.cfg",),
         "Useful Instructions": ("cfgs/useful_instructions.cfg",),
         "Useful Cycles": ("cfgs/useful_cycles.cfg",),
     }.items()
@@ -137,6 +139,10 @@ class TraceSet:
 
     no_progress: bool
         If true, disable the use of tqdm progress bar
+        
+    outpath: str or None
+        Optional output directory for chopped trace. (If not specified will be
+        created in a temporary folder and deleted.)
 
     """
 
@@ -147,12 +153,13 @@ class TraceSet:
         ignore_cache=False,
         chop_to_roi=False,
         no_progress=False,
+        outpath=None,
     ):
         # Setup data structures
         self.traces = set()
 
         # Add traces
-        self.add_traces(path_list, cache_stats, ignore_cache, chop_to_roi, no_progress)
+        self.add_traces(path_list, cache_stats, ignore_cache, chop_to_roi, no_progress, outpath)
 
     def add_traces(
         self,
@@ -161,6 +168,7 @@ class TraceSet:
         ignore_cache=False,
         chop_to_roi=False,
         no_progress=False,
+        outpath=None,
     ):
         """Collect statistics from provided trace files, currently only Extrae .prv files
         are supported.
@@ -191,6 +199,10 @@ class TraceSet:
 
         no_progress: bool
             If true, disable the use of tqdm progress bar
+            
+        outpath: str or None
+            Optional output directory for chopped trace. (If not specified will be
+            created in a temporary folder and deleted.)
 
         """
         if isinstance(path_list, str):
@@ -205,7 +217,7 @@ class TraceSet:
             for path in tqdm(path_list, total=npath, disable=no_progress, leave=False):
                 self.traces.add(
                     self._collect_statistics(
-                        path, cache_stats, ignore_cache, chop_to_roi
+                        path, cache_stats, ignore_cache, chop_to_roi, outpath,
                     )
                 )
 
@@ -255,7 +267,7 @@ class TraceSet:
 
         return self.by_key(lambda x: x.metadata.application_layout.rank_threads[0][0])
 
-    def _collect_statistics(self, trace, cache_stats, ignore_cache, chop_to_roi):
+    def _collect_statistics(self, trace, cache_stats, ignore_cache, chop_to_roi, outpath):
 
         # Calculate a checksum for cache purposes
         csum = chunked_md5sum(trace)
@@ -284,14 +296,25 @@ class TraceSet:
         # If ignoring cache, or cache not present, do the analysis
         if cache_stats:
             cache_stats = pkl_path
-        return self._analyze_tracefile(trace, cache_stats, chop_to_roi)
+        return self._analyze_tracefile(trace, cache_stats, chop_to_roi, outpath)
 
-    def _analyze_tracefile(self, trace, cache_path, chop_to_roi):
+    def _analyze_tracefile(self, trace, cache_path, chop_to_roi, outpath):
 
         metadata = get_prv_header_info(trace)
-
+        
+        if outpath:
+            try:
+                os.makedirs(outpath, exist_ok=True)
+            except OSError as err:
+                print("FATAL: {}".format(err))
+    
         if chop_to_roi:
-            cut_trace = chop_prv_to_roi(trace)
+            if outpath:
+                tgtname = ".chop".join(splitext(basename(trace)))
+                outfile = os.path.join(outpath, tgtname)
+            else:
+                outfile=None
+            cut_trace = chop_prv_to_roi(trace, outfile)
         else:
             cut_trace = trace
 
@@ -319,13 +342,18 @@ class TraceSet:
             stats.append(zero_df.T)
 
         # Remember to clean up after ourselves
-        if chop_to_roi:
+        if chop_to_roi and not outpath:
             remove_trace(cut_trace)
 
         try:
-            ideal_trace = dimemas_idealise(trace)
+            ideal_trace = dimemas_idealise(trace, outpath)
             if chop_to_roi:
-                cut_ideal_trace = chop_prv_to_roi(ideal_trace)
+                if outpath:
+                    tgtname = ".chop".join(splitext(basename(ideal_trace)))
+                    outfile = os.path.join(outpath, tgtname)
+                else:
+                    outfile=None
+                cut_ideal_trace = chop_prv_to_roi(ideal_trace, outfile)
             else:
                 cut_ideal_trace = ideal_trace
             stats.extend(
@@ -341,9 +369,10 @@ class TraceSet:
             )
 
             # Keeping things tidy
-            if chop_to_roi:
-                remove_trace(cut_ideal_trace)
-            remove_trace(ideal_trace)
+            if not outpath:
+                if chop_to_roi:
+                    remove_trace(cut_ideal_trace)
+                remove_trace(ideal_trace)
         except RuntimeError as err:
             warn(
                 "Failed to run Dimemas: {}\n"
