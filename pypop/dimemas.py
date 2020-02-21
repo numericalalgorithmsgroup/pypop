@@ -123,7 +123,7 @@ def dimemas_analyse(tracefile, configfile, outpath=None, substrings=None):
     tmp_prv = os.path.join(workdir, "input.prv")
     with zipopen(tracefile, "rb") as ifh, open(tmp_prv, "wb") as ofh:
         while True:
-            buff = ifh.read(8589934592)
+            buff = ifh.read(536870912)
             if not buff:
                 break
             ofh.write(buff)
@@ -136,7 +136,7 @@ def dimemas_analyse(tracefile, configfile, outpath=None, substrings=None):
         try:
             with open(infile, "rb") as ifh, open(outfile, "wb") as ofh:
                 while True:
-                    buff = ifh.read(8589934592)
+                    buff = ifh.read(536870912)
                     if not buff:
                         break
                     ofh.write(buff)
@@ -214,7 +214,7 @@ def dimemas_analyse(tracefile, configfile, outpath=None, substrings=None):
     outfile = os.path.join(outpath, filestem + ".sim.prv")
     with open(sim_prv, "rb") as ifh, open(outfile, "wb") as ofh:
         while True:
-            buff = ifh.read(8589934592)
+            buff = ifh.read(536870912)
             if not buff:
                 break
             ofh.write(buff)
@@ -225,7 +225,7 @@ def dimemas_analyse(tracefile, configfile, outpath=None, substrings=None):
         outfile = os.path.join(outpath, filestem + ".sim" + ext)
         with open(infile, "rb") as ifh, open(outfile, "wb") as ofh:
             while True:
-                buff = ifh.read(8589934592)
+                buff = ifh.read(536870912)
                 if not buff:
                     break
                 ofh.write(buff)
