@@ -332,7 +332,6 @@ class TraceSet:
                 )
                 for name, cfg in omp_configs.items()
             ]
-            omp_stats["Serial Useful Computation"].loc[:, 2:] = 0
             stats += omp_stats
         except RuntimeError:
             skel = next(iter(stats))
@@ -379,8 +378,8 @@ class TraceSet:
                 "Continuing with reduced MPI detail.".format(err)
             )
             # Get an object with the correct layout
-            skel = next(iter(stats.values()))
-            nan_df = pandas.Dataframe(index=skel.T.index)
+            skel = next(iter(stats))
+            nan_df = pandas.DataFrame(index=skel.T.index)
             for name in ideal_configs:
                 nan_df[name] = numpy.nan
 
