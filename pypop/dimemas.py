@@ -107,7 +107,14 @@ def dimemas_analyse(tracefile, configfile, outpath=None, substrings=None):
 
     # Perform all work in a tempdir with predictable names,
     # this works around a series of weird dimemas bugs
-    workdir = mkdtemp()
+    if config._tmpdir_path:
+        workdir = os.path.join(config._tmpdir_path, "dimemas_tmpdir")
+        try:
+            os.makedirs(workdir, exist_ok=True)
+        except OSError as err:
+            print("FATAL: {}".format(err))
+    else:
+        workdir = mkdtemp()
 
     # Create temporary config from supplied config and substitution dict
     dimconfig = os.path.join(workdir, ".tmpconfig".join(splitext(basename(configfile))))

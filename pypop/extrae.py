@@ -111,8 +111,16 @@ def chop_prv_to_roi(prv_file, outfile=None):
     if outfile:
         workdir = dirname(normpath(outfile))
     else:
-        tgtname = ".chop".join(splitext(basename(prv_file)))
-        workdir = mkdtemp()
+        tgtname = ".chop".join(splitext(basename(prv_file)))        
+        if config._tmpdir_path:
+            workdir = os.path.join(config._tmpdir_path, "paramedir_tmpdir")
+        try:
+            os.makedirs(tmpdir, exist_ok=True)
+        except OSError as err:
+            print("FATAL: {}".format(err))
+        else:
+            workdir = mkdtemp()
+        
         outfile = os.path.join(workdir, tgtname)
 
     roi_filter = resource_filename(__name__, ROI_FILTER_XML)
@@ -375,8 +383,15 @@ def run_paramedir(tracefile, paramedir_config, outfile=None, variables=None):
     outfile: str
         Path to the output file.
     """
-    tmpdir = mkdtemp()
-
+    if config._tmpdir_path:
+        tmpdir = os.path.join(config._tmpdir_path, "paramedir_tmpdir")
+        try:
+            os.makedirs(tmpdir, exist_ok=True)
+        except OSError as err:
+            print("FATAL: {}".format(err))
+    else:
+        tmpdir = mkdtemp()
+        
     # If variables is none, still sub with empty dict
     variables = variables if variables else {}
     tmp_config = _write_substituted_config(paramedir_config, tmpdir, variables)

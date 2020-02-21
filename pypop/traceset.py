@@ -16,6 +16,7 @@ Currently the following tools are supported:
 
 import os
 import pickle
+import shutil
 
 from os.path import dirname, splitext, basename
 from warnings import warn
@@ -34,6 +35,7 @@ from .dimemas import dimemas_idealise
 from .extrae import paramedir_analyze_any_of, chop_prv_to_roi, remove_trace
 from .prv import get_prv_header_info
 from .utils import chunked_md5sum
+from . import config
 
 
 class RunData:
@@ -407,5 +409,10 @@ class TraceSet:
         if cache_path:
             with open(cache_path, "wb") as fh:
                 pickle.dump((metadata, stats), fh)
+                
+        # Clean up any temporary data
+        if config._tmpdir_path:
+            shutil.rmtree(os.path.join(config._tmpdir_path, "dimemas_tmpdir"),ignore_errors=True)
+            shutil.rmtree(os.path.join(config._tmpdir_path, "paramedir_tmpdir"),ignore_errors=True)
 
         return RunData(metadata, stats, trace)

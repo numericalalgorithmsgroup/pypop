@@ -11,7 +11,7 @@ use("agg")
 from .traceset import TraceSet
 from .metrics import MPI_Metrics, MPI_OpenMP_Metrics
 from .dimemas import dimemas_idealise
-from .config import set_dimemas_path, set_paramedir_path
+from .config import set_dimemas_path, set_paramedir_path, set_tmpdir_path
 
 from argparse import ArgumentParser
 
@@ -106,7 +106,10 @@ def _preprocess_traces_parse_args():
         "--dimemas-path", type=str, metavar="PATH", help="Path to Dimemas executable"
     )
     parser.add_argument(
-        "--outfile-path", type=str, metavar="PATH", help="Path for saving new chopped and ideal traces"
+        "--outfile-path", type=str, metavar="PATH", help="Path in which to saving chopped/ideal traces"
+    )
+    parser.add_argument(
+        "--tmpdir-path", type=str, metavar="PATH", help="Path for PyPOP to save temporary files"
     )
 
     return parser.parse_args()
@@ -185,6 +188,9 @@ def preprocess_traces():
 
     if config.dimemas_path:
         set_dimemas_path(config.dimemas_path)
+        
+    if config.tmpdir_path:
+        set_tmpdir_path(config.tmpdir_path)
         
     TraceSet(config.traces, ignore_cache=config.overwrite_existing, outpath=config.outfile_path)
 

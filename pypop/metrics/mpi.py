@@ -214,7 +214,7 @@ class MPI_Multiplicative_Metrics(MetricSet):
             )
 
             metrics["Global Efficiency"] = (
-                metrics["Computation Scaling"] * metrics["Parallel Efficiency"]
+                metrics["Computational Scaling"] * metrics["Parallel Efficiency"]
             )
 
             metrics["Speedup"] = (
