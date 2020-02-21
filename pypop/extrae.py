@@ -20,7 +20,7 @@ from pkg_resources import resource_filename
 import pandas as pd
 import numpy as np
 
-from .prv import PRV, get_prv_header_info, _parse_paraver_headerline, zipopen
+from .prv import PRV, get_prv_header_info
 from . import config
 
 floatmatch = re.compile(r"[0-9,]+\.[0-9]+")

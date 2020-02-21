@@ -16,7 +16,6 @@ Currently the following tools are supported:
 
 import os
 import pickle
-#import shutil
 
 from os.path import dirname, splitext, basename
 from warnings import warn
@@ -34,8 +33,7 @@ except ImportError:
 from .dimemas import dimemas_idealise
 from .extrae import paramedir_analyze_any_of, chop_prv_to_roi, remove_trace
 from .prv import get_prv_header_info
-from .utils import chunked_md5sum
-from . import config
+from .utils.io import chunked_md5sum
 
 
 class RunData:

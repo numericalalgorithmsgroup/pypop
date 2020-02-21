@@ -19,7 +19,8 @@ import subprocess as sp
 
 from pkg_resources import resource_filename
 
-from .prv import _parse_paraver_headerline, zipopen
+from .prv import _parse_paraver_headerline
+from .utils.io import zipopen
 from .extrae import remove_trace
 from . import config
 
