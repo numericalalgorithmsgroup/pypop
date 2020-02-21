@@ -1,10 +1,53 @@
 #!/usr/bin/env python3
 
 from hashlib import sha1
+from pkg_resources import resource_filename
+from warnings import warn
+
+import numpy
+import pandas
 
 from .trace import Trace
 
 from ..utils.io import zipopen
+
+from ..dimemas import dimemas_idealise
+from ..extrae import paramedir_analyze_any_of, chop_prv_to_roi, remove_trace
+
+base_configs = {
+    k: tuple(resource_filename(__name__, w) for w in v)
+    for k, v in {
+        "Serial Useful Computation": (
+            "../cfgs/serial_useful_computation.cfg",
+            "../cfgs/serial_useful_computation_omp_loop.cfg",
+            "../cfgs/serial_useful_computation_omp_task.cfg",
+            "../cfgs/serial_useful_computation_no_omp.cfg",
+        ),
+        "Total Runtime": ("../cfgs/total_runtime.cfg",),
+        "Useful Instructions": ("../cfgs/useful_instructions.cfg",),
+        "Useful Cycles": ("../cfgs/useful_cycles.cfg",),
+    }.items()
+}
+
+omp_configs = {
+    k: tuple(resource_filename(__name__, w) for w in v)
+    for k, v in {
+        "OpenMP Total Runtime": ("../cfgs/omp_total_runtime.cfg",),
+        "OpenMP Useful Computation": (
+            "../cfgs/omp_useful_computation.cfg",
+            "../cfgs/omp_useful_computation_loop.cfg",
+            "../cfgs/omp_useful_computation_task.cfg",
+        ),
+    }.items()
+}
+
+ideal_configs = {
+    k: tuple(resource_filename(__name__, w) for w in v)
+    for k, v in {
+        "Ideal Useful Computation": ("../cfgs/total_useful_computation.cfg",),
+        "Ideal Runtime": ("../cfgs/total_runtime.cfg",),
+    }.items()
+}
 
 
 class PRVTrace(Trace):
@@ -38,11 +81,11 @@ class PRVTrace(Trace):
         self._metadata.tracefile_name = self._tracefile
 
         hasher = sha1()
-        hasher.update(headerline)
+        hasher.update(headerline.encode())
         self._metadata.fingerprint = hasher.hexdigest()
 
     def _gather_statistics(self):
-        self._statistics = "TODO"
+        self._statistics = self._analyze_tracefile(self._tracefile, False)
 
     @staticmethod
     def _split_nodestring(prv_td):
@@ -62,6 +105,96 @@ class PRVTrace(Trace):
         threads = [int(x.split(":")[0]) for x in layoutstring.split()]
 
         return (commsize, threads)
+
+    @staticmethod
+    def _analyze_tracefile(trace, chop_to_roi):
+
+        if chop_to_roi:
+            cut_trace = chop_prv_to_roi(trace)
+        else:
+            cut_trace = trace
+
+        stats = [
+            paramedir_analyze_any_of(
+                cut_trace, cfg, index_by_thread=True, statistic_names=[name]
+            )
+            for name, cfg in base_configs.items()
+        ]
+
+        try:
+            omp_stats = [
+                paramedir_analyze_any_of(
+                    cut_trace, cfg, index_by_thread=True, statistic_names=[name]
+                )
+                for name, cfg in omp_configs.items()
+            ]
+            stats += omp_stats
+        except RuntimeError:
+            skel = next(iter(stats))
+            zero_df = pandas.DataFrame(index=skel.T.index)
+            for name in omp_configs:
+                zero_df[name] = 0
+            stats.append(zero_df.T)
+
+        # Remember to clean up after ourselves
+        if chop_to_roi:
+            remove_trace(cut_trace)
+
+        try:
+            ideal_trace = dimemas_idealise(trace)
+            if chop_to_roi:
+                cut_ideal_trace = chop_prv_to_roi(ideal_trace)
+            else:
+                cut_ideal_trace = ideal_trace
+            stats.extend(
+                [
+                    paramedir_analyze_any_of(
+                        cut_ideal_trace,
+                        cfg,
+                        index_by_thread=True,
+                        statistic_names=[name],
+                    )
+                    for name, cfg in ideal_configs.items()
+                ]
+            )
+
+            # Keeping things tidy
+            if chop_to_roi:
+                remove_trace(cut_ideal_trace)
+            remove_trace(ideal_trace)
+        except RuntimeError as err:
+            warn(
+                "Failed to run Dimemas: {}\n"
+                "Continuing with reduced MPI detail.".format(err)
+            )
+            # Get an object with the correct layout
+            skel = next(iter(stats))
+            nan_df = pandas.DataFrame(index=skel.T.index)
+            for name in ideal_configs:
+                nan_df[name] = numpy.nan
+
+            stats.append(nan_df.T)
+
+        stats = pandas.concat(stats).T
+        stats["IPC"] = stats["Useful Instructions"] / stats["Useful Cycles"]
+
+        stats["Total Useful Computation"] = stats["Serial Useful Computation"]
+        stats["Total Non-MPI Runtime"] = stats["Serial Useful Computation"]
+
+        stats["Total Useful Computation"] += stats["OpenMP Useful Computation"]
+        stats["Total Non-MPI Runtime"] += stats["OpenMP Total Runtime"]
+
+        stats["Frequency"] = stats["Useful Cycles"] / stats["Total Useful Computation"]
+
+        if (
+            stats["Total Non-MPI Runtime"].loc[:, 1].max()
+            > stats["Ideal Runtime"].loc[:, 1].max()
+        ):
+            raise RuntimeError(
+                "Illegal Ideal Runtime value (less than useful computation)"
+            )
+
+        return stats
 
 
 PRVTrace.register_loader()

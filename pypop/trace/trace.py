@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import warnings
+from warnings import warn
 
 from ..utils.pandas import HDFStoreContext
 from ..utils.exceptions import WrongLoaderError
@@ -102,9 +102,13 @@ class Trace:
 
     @property
     def statistics(self):
-        if self._stats is None:
+        if self._statistics is None:
             self._gather_statistics()
         return self._statistics
+
+    @property
+    def metadata(self):
+        return self._metadata
 
     def write_summary_file(self):
         """Save the trace statistics to a summary file for fast reload next time.
@@ -133,7 +137,7 @@ class Trace:
                     )
 
                 if file_metadata["FormatVersion"][0] > Trace._formatversion:
-                    warnings.warn(
+                    warn(
                         "Trace summary was written with a newer PyPOP version. The "
                         "format is intended to be backward compatible but you may wish "
                         "to upgrade your installed PyPOP version to support all "
