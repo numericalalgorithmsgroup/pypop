@@ -82,7 +82,8 @@ class OpenMP_Metrics(MetricSet):
             metadata = self._stats_dict[key].metadata
             stats = self._stats_dict[key].stats
             nthreads = metadata.application_layout.rank_threads[0][0]
-            metrics = self._create_layout_keys(metadata)
+            metrics = self._create_subdataframe(metadata, key)
+
             try:
 
                 metrics["OpenMP Region Efficiency"] = 1 - (
@@ -156,4 +157,4 @@ class OpenMP_Metrics(MetricSet):
 
             metrics_by_key[key] = metrics
 
-        self._metric_data = pandas.DataFrame(metrics_by_key).T
+        self._metric_data = pandas.concat(metrics_by_key.values())

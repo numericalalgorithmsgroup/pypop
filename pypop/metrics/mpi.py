@@ -42,10 +42,10 @@ class MPI_Metrics(MetricSet):
         else:
             key = self._stats_dict.keys()
 
-        for key in keys:
+        for idx, key in enumerate(keys):
             metadata = self._stats_dict[key].metadata
             stats = self._stats_dict[key].stats
-            metrics = self._create_layout_keys(metadata)
+            metrics = self._create_subdataframe(metadata, key)
 
             metrics["MPI Communication Efficiency"] = (
                 stats["Total Non-MPI Runtime"].loc[:, 1].max()
@@ -56,6 +56,7 @@ class MPI_Metrics(MetricSet):
                 metrics["MPI Serialisation Efficiency"] = 1 - (
                     (
                         stats["Ideal Runtime"].loc[:, 1].max()
+                        
                         - stats["Total Non-MPI Runtime"].loc[:, 1].max()
                     )
                     / stats["Total Runtime"].max()
@@ -121,7 +122,7 @@ class MPI_Metrics(MetricSet):
 
             metrics_by_key[key] = metrics
 
-        self._metric_data = pandas.DataFrame(metrics_by_key).T
+        self._metric_data = pandas.concat(metrics_by_key.values())
 
 
 class MPI_Multiplicative_Metrics(MetricSet):
@@ -156,7 +157,7 @@ class MPI_Multiplicative_Metrics(MetricSet):
         for key in keys:
             metadata = self._stats_dict[key].metadata
             stats = self._stats_dict[key].stats
-            metrics = {"Number of Processes": sum(metadata.procs_per_node)}
+            metrics = self._create_subdataframe(metadata, key)
 
             metrics["MPI Communication Efficiency"] = (
                 stats["Total Non-MPI Runtime"].loc[:, 1].max()
@@ -226,4 +227,4 @@ class MPI_Multiplicative_Metrics(MetricSet):
 
             metrics_by_key[key] = metrics
 
-        self._metric_data = pandas.DataFrame(metrics_by_key, dtype=numpy.float64).T
+        self._metric_data = pandas.concat(metrics_by_key.values())
