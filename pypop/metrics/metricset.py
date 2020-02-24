@@ -6,6 +6,7 @@
 """
 
 import numpy
+import pandas
 
 import matplotlib.pyplot as plt
 import matplotlib.colors as mc
@@ -76,7 +77,7 @@ class MetricSet:
         for df in stats_dict.values():
             if not isinstance(df, RunData):
                 raise ValueError(
-                    "stats_dict must be an iterable of " "pypop.traceset.RunData"
+                    "stats_dict must be an iterable of pypop.traceset.RunData"
                 )
 
         self._stats_dict = stats_dict
@@ -105,17 +106,26 @@ class MetricSet:
         """
         return self._metric_list
 
-    @staticmethod
-    def _create_layout_keys(metadata):
+    def _create_subdataframe(self, metadata, idxkey):
         layout = metadata.application_layout
         layout_keys = {
-            "Number of Processes": layout.commsize,
-            "Threads per Process": layout.rank_threads[0][0],
-            "Total Threads": sum(x[0] for x in layout.rank_threads),
-            "Hybrid Layout": "{}x{}".format(layout.commsize, layout.rank_threads[0][0]),
+            "Number of Processes": pandas.Series(data=[layout.commsize], index=[idxkey]),
+            "Threads per Process": pandas.Series(
+                data=[layout.rank_threads[0][0]], index=[idxkey]
+            ),
+            "Total Threads": pandas.Series(
+                data=[sum(x[0] for x in layout.rank_threads)], index=[idxkey]
+            ),
+            "Hybrid Layout": pandas.Series(
+                data=["{}x{}".format(layout.commsize, layout.rank_threads[0][0])],
+                index=[idxkey],
+            ),
         }
 
-        return layout_keys
+        for metric in self._metric_list:
+            layout_keys[metric.key] = pandas.Series(data=[0.0], index=[idxkey])
+
+        return pandas.DataFrame(layout_keys)
 
     def plot_table(
         self,

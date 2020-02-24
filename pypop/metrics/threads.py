@@ -109,7 +109,8 @@ class Thread_Metrics(MetricSet):
             metadata = self._stats_dict[curr_key].metadata
             stats = self._stats_dict[curr_key].stats
             nthreads = metadata.application_layout.rank_threads[0][0]
-            metrics = self._create_layout_keys(metadata)
+            metrics = self._create_subdataframe(metadata, key)
+
             try:
 
                 metrics["Parallel Region Efficiency"] = 1 - (
@@ -191,4 +192,4 @@ class Thread_Metrics(MetricSet):
 
             metrics_by_key[curr_key] = metrics
 
-        self._metric_data = pandas.DataFrame(metrics_by_key).T
+        self._metric_data = pandas.concat(metrics_by_key.values())
