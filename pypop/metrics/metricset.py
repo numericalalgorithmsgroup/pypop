@@ -96,7 +96,7 @@ class MetricSet:
         """pandas.DataFrame: Calculated metric data.
         """
         if self._metric_data is None:
-            self._calculate_metrics()
+            self._calculate_metrics(ref_key=self._ref_key)
         return self._metric_data
 
     @property
