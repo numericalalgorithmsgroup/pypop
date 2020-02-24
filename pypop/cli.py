@@ -98,7 +98,9 @@ def _preprocess_traces_parse_args():
     parser.add_argument(
         "--overwrite-existing", action="store_true", help="Overwrite existing files"
     )
-
+    parser.add_argument(
+        "--chop-to-roi", action="store_true", help="Chop to region of interest"
+    )
     parser.add_argument(
         "--paramedir-path", type=str, metavar="PATH", help="Path to Paramedir executable"
     )
@@ -106,7 +108,7 @@ def _preprocess_traces_parse_args():
         "--dimemas-path", type=str, metavar="PATH", help="Path to Dimemas executable"
     )
     parser.add_argument(
-        "--outfile-path", type=str, metavar="PATH", help="Path in which to saving chopped/ideal traces"
+        "--outfile-path", type=str, metavar="PATH", help="Path in which to save chopped/ideal traces"
     )
     parser.add_argument(
         "--tmpdir-path", type=str, metavar="PATH", help="Path for PyPOP to save temporary files"
@@ -192,7 +194,7 @@ def preprocess_traces():
     if config.tmpdir_path:
         set_tmpdir_path(config.tmpdir_path)
         
-    TraceSet(config.traces, ignore_cache=config.overwrite_existing, outpath=config.outfile_path)
+    TraceSet(config.traces, ignore_cache=config.overwrite_existing, chop_to_roi=config.chop_to_roi, outpath=config.outfile_path)
 
 
 def dimemas_idealise():

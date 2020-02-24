@@ -111,16 +111,14 @@ def chop_prv_to_roi(prv_file, outfile=None):
     if outfile:
         workdir = dirname(normpath(outfile))
     else:
-        tgtname = ".chop".join(splitext(basename(prv_file)))        
+        tgtname = ".chop".join(splitext(basename(prv_file))) 
+        # Make sure config._tmpdir_path exists before using it
         if config._tmpdir_path:
-            workdir = os.path.join(config._tmpdir_path, "paramedir_tmpdir")
-        try:
-            os.makedirs(tmpdir, exist_ok=True)
-        except OSError as err:
-            print("FATAL: {}".format(err))
-        else:
-            workdir = mkdtemp()
-        
+            try:
+                os.makedirs(config._tmpdir_path, exist_ok=True)
+            except OSError as err:
+                print("FATAL: {}".format(err))
+        workdir = mkdtemp(dir=config._tmpdir_path)        
         outfile = os.path.join(workdir, tgtname)
 
     roi_filter = resource_filename(__name__, ROI_FILTER_XML)
@@ -383,14 +381,15 @@ def run_paramedir(tracefile, paramedir_config, outfile=None, variables=None):
     outfile: str
         Path to the output file.
     """
+ 
+    # Make sure config._tmpdir_path exists before using it
     if config._tmpdir_path:
-        tmpdir = os.path.join(config._tmpdir_path, "paramedir_tmpdir")
         try:
-            os.makedirs(tmpdir, exist_ok=True)
+            os.makedirs(config._tmpdir_path, exist_ok=True)
         except OSError as err:
             print("FATAL: {}".format(err))
-    else:
-        tmpdir = mkdtemp()
+    
+    tmpdir = mkdtemp(dir=config._tmpdir_path)
         
     # If variables is none, still sub with empty dict
     variables = variables if variables else {}

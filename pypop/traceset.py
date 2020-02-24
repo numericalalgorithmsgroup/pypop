@@ -16,7 +16,7 @@ Currently the following tools are supported:
 
 import os
 import pickle
-import shutil
+#import shutil
 
 from os.path import dirname, splitext, basename
 from warnings import warn
@@ -136,8 +136,8 @@ class TraceSet:
         This behaviour can be overridden by setting ignore_cache=True.
 
     chop_to_roi: bool
-        If true, cut trace down to the section bracketed by the first pair of
-        Extrae_startup and Extrae_shutdown commands. Default false.
+        If true, cut trace down to the section bracketed by the first 
+        Extrae_startup and last Extrae_shutdown event. Default false.
 
     no_progress: bool
         If true, disable the use of tqdm progress bar
@@ -410,9 +410,4 @@ class TraceSet:
             with open(cache_path, "wb") as fh:
                 pickle.dump((metadata, stats), fh)
                 
-        # Clean up any temporary data
-        if config._tmpdir_path:
-            shutil.rmtree(os.path.join(config._tmpdir_path, "dimemas_tmpdir"),ignore_errors=True)
-            shutil.rmtree(os.path.join(config._tmpdir_path, "paramedir_tmpdir"),ignore_errors=True)
-
         return RunData(metadata, stats, trace)
