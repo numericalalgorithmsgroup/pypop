@@ -12,6 +12,7 @@ import pypop.examples
 from pypop.extrae import is_extrae_tracefile
 from pypop.traceset import TraceSet
 from pypop.metrics import MPI_Metrics
+from pypop.trace import PRVTrace
 
 MetricData = namedtuple("MetricData", ["testfiles", "metric_data"])
 
@@ -36,7 +37,7 @@ def testdata():
 class TestMPI:
     def test_mpi_trace_analysis(self, testdata):
 
-        statistics = TraceSet(testdata.testfiles, ignore_cache=True)
+        statistics = TraceSet(testdata.testfiles, force_recalculation=True)
 
         metrics = MPI_Metrics(statistics.by_commsize())
 

@@ -22,7 +22,7 @@ class MPI_Metrics(MetricSet):
         Metric("MPI Communication Efficiency", 2),
         Metric("MPI Transfer Efficiency", 3),
         Metric("MPI Serialisation Efficiency", 3),
-        Metric("Computational Scaling", 1),
+        Metric("Computation Scaling", 1),
         Metric("Instruction Scaling", 2),
         Metric("IPC Scaling", 2),
         Metric("Frequency Scaling", 2),
@@ -103,13 +103,13 @@ class MPI_Metrics(MetricSet):
                 / self._stats_dict[ref_key].statistics["Total Useful Computation"].sum()
             )
 
-            metrics["Computational Scaling"] = (
+            metrics["Computation Scaling"] = (
                 self._stats_dict[ref_key].statistics["Total Useful Computation"].sum()
                 / stats["Total Useful Computation"].sum()
             )
 
             metrics["Global Efficiency"] = (
-                metrics["Computational Scaling"] * metrics["Parallel Efficiency"]
+                metrics["Computation Scaling"] * metrics["Parallel Efficiency"]
             )
 
             metrics["Speedup"] = (
@@ -135,7 +135,7 @@ class MPI_Multiplicative_Metrics(MetricSet):
         Metric("MPI Communication Efficiency", 2),
         Metric("MPI Transfer Efficiency", 3),
         Metric("MPI Serialisation Efficiency", 3),
-        Metric("Computational Scaling", 1),
+        Metric("Computation Scaling", 1),
         Metric("Instruction Scaling", 2),
         Metric("IPC Scaling", 2),
         Metric("Frequency Scaling", 2),
@@ -208,13 +208,13 @@ class MPI_Multiplicative_Metrics(MetricSet):
                 / self._stats_dict[ref_key].statistics["Total Useful Computation"].sum()
             )
 
-            metrics["Computational Scaling"] = (
+            metrics["Computation Scaling"] = (
                 self._stats_dict[ref_key].statistics["Total Useful Computation"].sum()
                 / stats["Total Useful Computation"].sum()
             )
 
             metrics["Global Efficiency"] = (
-                metrics["Computational Scaling"] * metrics["Parallel Efficiency"]
+                metrics["Computation Scaling"] * metrics["Parallel Efficiency"]
             )
 
             metrics["Speedup"] = (
