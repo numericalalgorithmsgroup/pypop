@@ -95,14 +95,10 @@ class Judit_Hybrid_Metrics(MetricSet):
                 )
 
                 metrics["IPC Scaling"] = (
-                    ( 
-                        stats["Useful Instructions"].sum()
-                        / stats["Useful Cycles"].sum()
-                    )
-                    / ( 
-                        self._stats_dict[ref_key].stats["Useful Instructions"].sum()
-                        / self._stats_dict[ref_key].stats["Useful Cycles"].sum()
-                    )
+                    stats["Useful Instructions"].sum() / stats["Useful Cycles"].sum()
+                ) / (
+                    self._stats_dict[ref_key].stats["Useful Instructions"].sum()
+                    / self._stats_dict[ref_key].stats["Useful Cycles"].sum()
                 )
 
                 metrics["Instruction Scaling"] = (
@@ -111,16 +107,13 @@ class Judit_Hybrid_Metrics(MetricSet):
                 )
 
                 metrics["Frequency Scaling"] = (
-                    ( 
-                        stats["Useful Cycles"].sum() 
-                        / stats["Total Useful Computation"].sum()
-                    )
-                    / ( 
-                        self._stats_dict[ref_key].stats["Useful Cycles"].sum()
-                        / self._stats_dict[ref_key].stats["Total Useful Computation"].sum()
-                    )
+                    stats["Useful Cycles"].sum()
+                    / stats["Total Useful Computation"].sum()
+                ) / (
+                    self._stats_dict[ref_key].stats["Useful Cycles"].sum()
+                    / self._stats_dict[ref_key].stats["Total Useful Computation"].sum()
                 )
-            
+
                 metrics["Computational Scaling"] = (
                     self._stats_dict[ref_key].stats["Total Useful Computation"].sum()
                     / stats["Total Useful Computation"].sum()

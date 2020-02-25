@@ -56,7 +56,6 @@ class MPI_Metrics(MetricSet):
                 metrics["MPI Serialisation Efficiency"] = 1 - (
                     (
                         stats["Ideal Runtime"].loc[:, 1].max()
-                        
                         - stats["Total Non-MPI Runtime"].loc[:, 1].max()
                     )
                     / stats["Total Runtime"].max()

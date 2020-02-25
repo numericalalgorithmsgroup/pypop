@@ -105,9 +105,9 @@ class Thread_Metrics(MetricSet):
         else:
             keys = self._stats_dict.keys()
 
-        for curr_key in keys:
-            metadata = self._stats_dict[curr_key].metadata
-            stats = self._stats_dict[curr_key].stats
+        for key in keys:
+            metadata = self._stats_dict[key].metadata
+            stats = self._stats_dict[key].stats
             nthreads = metadata.application_layout.rank_threads[0][0]
             metrics = self._create_subdataframe(metadata, key)
 
@@ -130,48 +130,34 @@ class Thread_Metrics(MetricSet):
                 )
 
                 metrics["Parallel Efficiency"] = (
-                    total_useful[curr_key].mean()
+                    total_useful[key].mean()
                     / stats["Total Runtime"].max()  # avg all threads to include Amdahl
                 )
 
-                metrics["IPC Scaling"] = ipc[curr_key].mean() / ipc[ref_key].mean()
-# PHIL: IS THIS CORRECT?
-#                metrics["IPC Scaling"] = (
-#                    ( 
-#                        stats["Useful Instructions"].sum()
-#                        / stats["Useful Cycles"].sum()
-#                    )
-#                    / ( 
-#                        self._stats_dict[ref_key].stats["Useful Instructions"].sum()
-#                        / self._stats_dict[ref_key].stats["Useful Cycles"].sum()
-#                    )
-#                )   
+                metrics["IPC Scaling"] = (
+                    stats["Useful Instructions"].sum() / stats["Useful Cycles"].sum()
+                ) / (
+                    self._stats_dict[ref_key].stats["Useful Instructions"].sum()
+                    / self._stats_dict[ref_key].stats["Useful Cycles"].sum()
+                )
 
                 metrics["Instruction Scaling"] = (
                     self._stats_dict[ref_key].stats["Useful Instructions"].sum()
                     / stats["Useful Instructions"].sum()
                 )
 
-                metrics["Frequency"] = frequency[curr_key].loc[1, 1]
-               
+                metrics["Frequency"] = frequency[key].loc[1, 1]
+
                 metrics["Frequency Scaling"] = (
-                    frequency[curr_key].mean()
-                    / frequency[ref_key].mean()
+                    stats["Useful Cycles"].sum()
+                    / stats["Total Useful Computation"].sum()
+                ) / (
+                    self._stats_dict[ref_key].stats["Useful Cycles"].sum()
+                    / self._stats_dict[ref_key].stats["Total Useful Computation"].sum()
                 )
-# PHIL: IS THIS CORRECT?                
-#                metrics["Frequency Scaling"] = (
-#                    ( 
-#                        stats["Useful Cycles"].sum() 
-#                        / stats["Total Useful Computation"].sum()
-#                    )
-#                    / ( 
-#                        self._stats_dict[ref_key].stats["Useful Cycles"].sum()
-#                        / self._stats_dict[ref_key].stats["Total Useful Computation"].sum()
-#                    )
-#                ) 
 
                 metrics["Computational Scaling"] = (
-                    total_useful[ref_key].sum() / total_useful[curr_key].sum()
+                    total_useful[ref_key].sum() / total_useful[key].sum()
                 )
 
                 metrics["Global Efficiency"] = (
@@ -190,6 +176,6 @@ class Thread_Metrics(MetricSet):
                     "No '{}' statistic. (Wrong analysis type?)" "".format(err.args[0])
                 )
 
-            metrics_by_key[curr_key] = metrics
+            metrics_by_key[key] = metrics
 
         self._metric_data = pandas.concat(metrics_by_key.values())

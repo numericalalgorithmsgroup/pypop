@@ -27,5 +27,5 @@ class HDFStoreContext:
             raise
         return self._hdfstore
 
-    def __exit__(self):
+    def __exit__(self, exc_type, exc_val, exc_tb):
         self._hdfstore.close()

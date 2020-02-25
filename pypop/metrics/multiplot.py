@@ -19,7 +19,7 @@ from ..traceset import TraceSet
 
 def _get_dataframe(obj):
     if isinstance(obj, (TraceSet)):
-        return obj.stats
+        return obj.statistics
 
     if isinstance(obj, MetricSet):
         return obj.metric_data

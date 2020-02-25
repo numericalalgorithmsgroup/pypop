@@ -4,6 +4,9 @@ from hashlib import sha1
 from pkg_resources import resource_filename
 from warnings import warn
 
+from os import makedirs
+from os.path import splitext, basename, join as path_join
+
 import numpy
 import pandas
 
@@ -102,15 +105,25 @@ class PRVTrace(Trace):
         commsize, layoutstring = prv_td.split("(")
 
         commsize = int(commsize)
-        threads = [int(x.split(":")[0]) for x in layoutstring.split()]
+        threads = [int(x.split(":")[0]) for x in layoutstring.split(',')]
 
         return (commsize, threads)
 
     @staticmethod
-    def _analyze_tracefile(trace, chop_to_roi):
+    def _analyze_tracefile(trace, chop_to_roi, outpath):
+        if outpath:
+            try:
+                makedirs(outpath, exist_ok=True)
+            except OSError as err:
+                print("Fatal: {}".format(err))
 
         if chop_to_roi:
-            cut_trace = chop_prv_to_roi(trace)
+            if outpath:
+                tgtname = ".chop".join(splitext(basename(trace)))
+                outfile = path_join(outpath, tgtname)
+            else:
+                outfile = None
+            cut_trace = chop_prv_to_roi(trace, outfile)
         else:
             cut_trace = trace
 
@@ -137,15 +150,21 @@ class PRVTrace(Trace):
             stats.append(zero_df.T)
 
         # Remember to clean up after ourselves
-        if chop_to_roi:
+        if chop_to_roi and not outpath:
             remove_trace(cut_trace)
 
         try:
-            ideal_trace = dimemas_idealise(trace)
+            ideal_trace = dimemas_idealise(trace, outpath)
             if chop_to_roi:
-                cut_ideal_trace = chop_prv_to_roi(ideal_trace)
+                if outpath:
+                    tgtname = ".chop".join(splitext(basename(ideal_trace)))
+                    outfile = path_join(outpath, tgtname)
+                else:
+                    outpath = None
+                cut_ideal_trace = chop_prv_to_roi(ideal_trace, outfile)
             else:
                 cut_ideal_trace = ideal_trace
+
             stats.extend(
                 [
                     paramedir_analyze_any_of(
@@ -159,9 +178,10 @@ class PRVTrace(Trace):
             )
 
             # Keeping things tidy
-            if chop_to_roi:
-                remove_trace(cut_ideal_trace)
-            remove_trace(ideal_trace)
+            if not outpath:
+                if chop_to_roi:
+                    remove_trace(cut_ideal_trace)
+                remove_trace(ideal_trace)
         except RuntimeError as err:
             warn(
                 "Failed to run Dimemas: {}\n"

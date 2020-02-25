@@ -35,7 +35,6 @@ class MPI_OpenMP_Ineff_Metrics(MetricSet):
         Metric("Computational Scaling", 1),
         Metric("Instruction Scaling", 2),
         Metric("IPC Scaling", 2, "IPC Scaling"),
-        Metric("Frequency Scaling", 2, "Frequency Scaling"),
     ]
 
     _default_metric_key = "Hybrid Layout"
@@ -53,10 +52,9 @@ class MPI_OpenMP_Ineff_Metrics(MetricSet):
 
         for key in keys:
             metadata = self._stats_dict[key].metadata
-            stats = self._stats_dict[key].stats
-            nthreads = metadata.application_layout.rank_threads[0][0]
-            metrics = self._create_subdataframe(metadata, key)
-
+            stats = self._stats_dict[key].statistics
+            nthreads = metadata.application_layout.rank_threads[0]
+            metrics = self._create_layout_keys(metadata)
             try:
 
                 metrics["OpenMP Region Inefficiency"] = (
@@ -117,34 +115,31 @@ class MPI_OpenMP_Ineff_Metrics(MetricSet):
                 )
 
                 metrics["IPC Scaling"] = (
-                    ( 
-                        stats["Useful Instructions"].sum()
-                        / stats["Useful Cycles"].sum()
-                    )
-                    / ( 
-                        self._stats_dict[ref_key].stats["Useful Instructions"].sum()
-                        / self._stats_dict[ref_key].stats["Useful Cycles"].sum()
-                    )
+                    stats["Useful Instructions"].sum() / stats["Useful Cycles"].sum()
+                ) / (
+                    self._stats_dict[ref_key].statistics["Useful Instructions"].sum()
+                    / self._stats_dict[ref_key].statistics["Useful Cycles"].sum()
                 )
 
                 metrics["Instruction Scaling"] = (
-                    self._stats_dict[ref_key].stats["Useful Instructions"].sum()
+                    self._stats_dict[ref_key].statistics["Useful Instructions"].sum()
                     / stats["Useful Instructions"].sum()
                 )
 
                 metrics["Frequency Scaling"] = (
-                    ( 
-                        stats["Useful Cycles"].sum() 
-                        / stats["Total Useful Computation"].sum()
-                    )
-                    / ( 
-                        self._stats_dict[ref_key].stats["Useful Cycles"].sum()
-                        / self._stats_dict[ref_key].stats["Total Useful Computation"].sum()
-                    )
+                    stats["Useful Cycles"].sum()
+                    / stats["Total Useful Computation"].sum()
+                ) / (
+                    self._stats_dict[ref_key].statistics["Useful Cycles"].sum()
+                    / self._stats_dict[ref_key]
+                    .statistics["Total Useful Computation"]
+                    .sum()
                 )
 
                 metrics["Computational Scaling"] = (
-                    self._stats_dict[ref_key].stats["Total Useful Computation"].sum()
+                    self._stats_dict[ref_key]
+                    .statistics["Total Useful Computation"]
+                    .sum()
                     / stats["Total Useful Computation"].sum()
                 )
 
@@ -154,7 +149,7 @@ class MPI_OpenMP_Ineff_Metrics(MetricSet):
                 )
 
                 metrics["Speedup"] = (
-                    self._stats_dict[ref_key].stats["Total Runtime"].max()
+                    self._stats_dict[ref_key].statistics["Total Runtime"].max()
                     / stats["Total Runtime"].max()
                 )
 
@@ -167,7 +162,7 @@ class MPI_OpenMP_Ineff_Metrics(MetricSet):
 
             metrics_by_key[key] = metrics
 
-        self._metric_data = pandas.concat(metrics_by_key.values())
+        self._metric_data = pandas.DataFrame(metrics_by_key).T
 
 
 class MPI_OpenMP_Metrics(MetricSet):
@@ -188,7 +183,6 @@ class MPI_OpenMP_Metrics(MetricSet):
         Metric("Computational Scaling", 1),
         Metric("Instruction Scaling", 2),
         Metric("IPC Scaling", 2, "IPC Scaling"),
-        Metric("Frequency Scaling", 2, "Frequency Scaling"),
     ]
 
     _default_metric_key = "Hybrid Layout"
@@ -206,9 +200,9 @@ class MPI_OpenMP_Metrics(MetricSet):
 
         for key in keys:
             metadata = self._stats_dict[key].metadata
-            stats = self._stats_dict[key].stats
-            nthreads = metadata.application_layout.rank_threads[0][0]
-            metrics = self._create_subdataframe(metadata, key)
+            stats = self._stats_dict[key].statistics
+            nthreads = metadata.application_layout.rank_threads[0]
+            metrics = self._create_layout_keys(metadata)
 
             try:
 
@@ -280,34 +274,31 @@ class MPI_OpenMP_Metrics(MetricSet):
                 )
 
                 metrics["IPC Scaling"] = (
-                    ( 
-                        stats["Useful Instructions"].sum()
-                        / stats["Useful Cycles"].sum()
-                    )
-                    / ( 
-                        self._stats_dict[ref_key].stats["Useful Instructions"].sum()
-                        / self._stats_dict[ref_key].stats["Useful Cycles"].sum()
-                    )
+                    stats["Useful Instructions"].sum() / stats["Useful Cycles"].sum()
+                ) / (
+                    self._stats_dict[ref_key].statistics["Useful Instructions"].sum()
+                    / self._stats_dict[ref_key].statistics["Useful Cycles"].sum()
                 )
 
                 metrics["Instruction Scaling"] = (
-                    self._stats_dict[ref_key].stats["Useful Instructions"].sum()
+                    self._stats_dict[ref_key].statistics["Useful Instructions"].sum()
                     / stats["Useful Instructions"].sum()
                 )
 
                 metrics["Frequency Scaling"] = (
-                    ( 
-                        stats["Useful Cycles"].sum() 
-                        / stats["Total Useful Computation"].sum()
-                    )
-                    / ( 
-                        self._stats_dict[ref_key].stats["Useful Cycles"].sum()
-                        / self._stats_dict[ref_key].stats["Total Useful Computation"].sum()
-                    )
+                    stats["Useful Cycles"].sum()
+                    / stats["Total Useful Computation"].sum()
+                ) / (
+                    self._stats_dict[ref_key].statistics["Useful Cycles"].sum()
+                    / self._stats_dict[ref_key]
+                    .statistics["Total Useful Computation"]
+                    .sum()
                 )
 
                 metrics["Computational Scaling"] = (
-                    self._stats_dict[ref_key].stats["Total Useful Computation"].sum()
+                    self._stats_dict[ref_key]
+                    .statistics["Total Useful Computation"]
+                    .sum()
                     / stats["Total Useful Computation"].sum()
                 )
 
@@ -316,7 +307,7 @@ class MPI_OpenMP_Metrics(MetricSet):
                 )
 
                 metrics["Speedup"] = (
-                    self._stats_dict[ref_key].stats["Total Runtime"].max()
+                    self._stats_dict[ref_key].statistics["Total Runtime"].max()
                     / stats["Total Runtime"].max()
                 )
 
@@ -329,7 +320,7 @@ class MPI_OpenMP_Metrics(MetricSet):
 
             metrics_by_key[key] = metrics
 
-        self._metric_data = pandas.concat(metrics_by_key.values())
+        self._metric_data = pandas.DataFrame(metrics_by_key).T
 
 
 class MPI_OpenMP_Multiplicative_Metrics(MetricSet):
@@ -350,7 +341,6 @@ class MPI_OpenMP_Multiplicative_Metrics(MetricSet):
         Metric("Computational Scaling", 1),
         Metric("Instruction Scaling", 2),
         Metric("IPC Scaling", 2, "IPC Scaling"),
-        Metric("Frequency Scaling", 2, "Frequency Scaling"),
     ]
 
     _default_metric_key = "Hybrid Layout"
@@ -368,10 +358,8 @@ class MPI_OpenMP_Multiplicative_Metrics(MetricSet):
 
         for key in keys:
             metadata = self._stats_dict[key].metadata
-            stats = self._stats_dict[key].stats
-            nthreads = metadata.application_layout.rank_threads[0][0]
-            metrics = self._create_subdataframe(metadata, key)
-
+            stats = self._stats_dict[key].statistics
+            metrics = self._create_layout_keys(metadata)
             try:
                 metrics["OpenMP Region Efficiency"] = (
                     stats["OpenMP Useful Computation"].mean()
@@ -431,34 +419,31 @@ class MPI_OpenMP_Multiplicative_Metrics(MetricSet):
                 )
 
                 metrics["IPC Scaling"] = (
-                    ( 
-                        stats["Useful Instructions"].sum()
-                        / stats["Useful Cycles"].sum()
-                    )
-                    / ( 
-                        self._stats_dict[ref_key].stats["Useful Instructions"].sum()
-                        / self._stats_dict[ref_key].stats["Useful Cycles"].sum()
-                    )
+                    stats["Useful Instructions"].sum() / stats["Useful Cycles"].sum()
+                ) / (
+                    self._stats_dict[ref_key].statistics["Useful Instructions"].sum()
+                    / self._stats_dict[ref_key].statistics["Useful Cycles"].sum()
                 )
 
                 metrics["Instruction Scaling"] = (
-                    self._stats_dict[ref_key].stats["Useful Instructions"].sum()
+                    self._stats_dict[ref_key].statistics["Useful Instructions"].sum()
                     / stats["Useful Instructions"].sum()
                 )
 
                 metrics["Frequency Scaling"] = (
-                    ( 
-                        stats["Useful Cycles"].sum() 
-                        / stats["Total Useful Computation"].sum()
-                    )
-                    / ( 
-                        self._stats_dict[ref_key].stats["Useful Cycles"].sum()
-                        / self._stats_dict[ref_key].stats["Total Useful Computation"].sum()
-                    )
+                    stats["Useful Cycles"].sum()
+                    / stats["Total Useful Computation"].sum()
+                ) / (
+                    self._stats_dict[ref_key].statistics["Useful Cycles"].sum()
+                    / self._stats_dict[ref_key]
+                    .statistics["Total Useful Computation"]
+                    .sum()
                 )
 
                 metrics["Computational Scaling"] = (
-                    self._stats_dict[ref_key].stats["Total Useful Computation"].sum()
+                    self._stats_dict[ref_key]
+                    .statistics["Total Useful Computation"]
+                    .sum()
                     / stats["Total Useful Computation"].sum()
                 )
 
@@ -467,7 +452,7 @@ class MPI_OpenMP_Multiplicative_Metrics(MetricSet):
                 )
 
                 metrics["Speedup"] = (
-                    self._stats_dict[ref_key].stats["Total Runtime"].max()
+                    self._stats_dict[ref_key].statistics["Total Runtime"].max()
                     / stats["Total Runtime"].max()
                 )
 
@@ -480,4 +465,4 @@ class MPI_OpenMP_Multiplicative_Metrics(MetricSet):
 
             metrics_by_key[key] = metrics
 
-        self._metric_data = pandas.concat(metrics_by_key.values())
+        self._metric_data = pandas.DataFrame(metrics_by_key).T

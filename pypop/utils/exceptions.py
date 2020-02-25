@@ -3,3 +3,7 @@
 
 class WrongLoaderError(RuntimeError):
     pass
+
+
+class UnknownLoaderError(RuntimeError):
+    pass

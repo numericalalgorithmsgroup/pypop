@@ -5,6 +5,8 @@
 """Shared routines for different Metric Sets
 """
 
+from warnings import warn
+
 import numpy
 import pandas
 
@@ -14,7 +16,7 @@ import matplotlib as mpl
 import matplotlib.table as mt
 import matplotlib.ticker as mtick
 
-from ..traceset import RunData
+from ..trace import Trace
 from .._plotsettings import pypop_mpl_params, figparams
 
 __all__ = ["Metric", "MetricSet"]
@@ -75,7 +77,7 @@ class MetricSet:
             stats_dict = {k: v for k, v in enumerate(stats_dict)}
 
         for df in stats_dict.values():
-            if not isinstance(df, RunData):
+            if not isinstance(df, Trace):
                 raise ValueError(
                     "stats_dict must be an iterable of pypop.traceset.RunData"
                 )
