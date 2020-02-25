@@ -79,19 +79,19 @@ class Thread_Metrics(MetricSet):
     def _calculate_metrics(self, ref_key=None, sort_keys=True):
 
         total_useful = {
-            k: self._stats_dict[k].stats["Serial Useful"]
-            + self._stats_dict[k].stats["Parallel Useful"]
+            k: self._stats_dict[k].statistics["Serial Useful"]
+            + self._stats_dict[k].statistics["Parallel Useful"]
             for k in self._stats_dict
         }
 
         ipc = {
-            k: self._stats_dict[k].stats["Useful Instructions"]
-            / self._stats_dict[k].stats["Useful Cycles"]
+            k: self._stats_dict[k].statistics["Useful Instructions"]
+            / self._stats_dict[k].statistics["Useful Cycles"]
             for k in self._stats_dict
         }
 
         frequency = {
-            k: self._stats_dict[k].stats["Useful Cycles"] / total_useful[k]
+            k: self._stats_dict[k].statistics["Useful Cycles"] / total_useful[k]
             for k in self._stats_dict
         }
 
@@ -107,8 +107,8 @@ class Thread_Metrics(MetricSet):
 
         for key in keys:
             metadata = self._stats_dict[key].metadata
-            stats = self._stats_dict[key].stats
-            nthreads = metadata.application_layout.rank_threads[0][0]
+            stats = self._stats_dict[key].statistics
+            nthreads = metadata.threads_per_process[0]
             metrics = self._create_subdataframe(metadata, key)
 
             try:
@@ -137,12 +137,12 @@ class Thread_Metrics(MetricSet):
                 metrics["IPC Scaling"] = (
                     stats["Useful Instructions"].sum() / stats["Useful Cycles"].sum()
                 ) / (
-                    self._stats_dict[ref_key].stats["Useful Instructions"].sum()
-                    / self._stats_dict[ref_key].stats["Useful Cycles"].sum()
+                    self._stats_dict[ref_key].statistics["Useful Instructions"].sum()
+                    / self._stats_dict[ref_key].statistics["Useful Cycles"].sum()
                 )
 
                 metrics["Instruction Scaling"] = (
-                    self._stats_dict[ref_key].stats["Useful Instructions"].sum()
+                    self._stats_dict[ref_key].statistics["Useful Instructions"].sum()
                     / stats["Useful Instructions"].sum()
                 )
 
@@ -152,8 +152,10 @@ class Thread_Metrics(MetricSet):
                     stats["Useful Cycles"].sum()
                     / stats["Total Useful Computation"].sum()
                 ) / (
-                    self._stats_dict[ref_key].stats["Useful Cycles"].sum()
-                    / self._stats_dict[ref_key].stats["Total Useful Computation"].sum()
+                    self._stats_dict[ref_key].statistics["Useful Cycles"].sum()
+                    / self._stats_dict[ref_key]
+                    .statistics["Total Useful Computation"]
+                    .sum()
                 )
 
                 metrics["Computational Scaling"] = (
@@ -165,7 +167,7 @@ class Thread_Metrics(MetricSet):
                 )
 
                 metrics["Speedup"] = (
-                    self._stats_dict[ref_key].stats["Total Runtime"].max()
+                    self._stats_dict[ref_key].statistics["Total Runtime"].max()
                     / stats["Total Runtime"].max()
                 )
 

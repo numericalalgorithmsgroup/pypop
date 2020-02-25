@@ -88,7 +88,11 @@ class PRVTrace(Trace):
         self._metadata.fingerprint = hasher.hexdigest()
 
     def _gather_statistics(self):
-        self._statistics = self._analyze_tracefile(self._tracefile, False)
+        self._statistics = self._analyze_tracefile(
+            self._tracefile,
+            self._kwargs.get("chop_to_roi", False),
+            self._kwargs.get("outpath", None),
+        )
 
     @staticmethod
     def _split_nodestring(prv_td):
@@ -105,7 +109,7 @@ class PRVTrace(Trace):
         commsize, layoutstring = prv_td.split("(")
 
         commsize = int(commsize)
-        threads = [int(x.split(":")[0]) for x in layoutstring.split(',')]
+        threads = [int(x.split(":")[0]) for x in layoutstring.split(",")]
 
         return (commsize, threads)
 

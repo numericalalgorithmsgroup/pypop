@@ -23,14 +23,20 @@ Currently PyPOP supports calculation of the following Metric types:
 """
 
 from .mpi import MPI_Metrics, MPI_Multiplicative_Metrics
-from .hybrid import MPI_OpenMP_Metrics, MPI_OpenMP_Multiplicative_Metrics, MPI_OpenMP_Ineff_Metrics
+from .hybrid import (
+    MPI_OpenMP_Metrics,
+    MPI_OpenMP_Multiplicative_Metrics,
+    MPI_OpenMP_Ineff_Metrics,
+)
 from .openmp import OpenMP_Metrics
 from .judit import Judit_Hybrid_Metrics
 
-__all__ = ['MPI_Metrics',
-           'MPI_Multiplicative_Metrics',
-           'MPI_OpenMP_Metrics',
-           'MPI_OpenMP_Ineff_Metrics',
-           'MPI_OpenMP_Multiplicative_Metrics',
-           'OpenMP_Metrics',
-           'Judit_Hybrid_Metrics']
+__all__ = [
+    "MPI_Metrics",
+    "MPI_Multiplicative_Metrics",
+    "MPI_OpenMP_Metrics",
+    "MPI_OpenMP_Ineff_Metrics",
+    "MPI_OpenMP_Multiplicative_Metrics",
+    "OpenMP_Metrics",
+    "Judit_Hybrid_Metrics",
+]

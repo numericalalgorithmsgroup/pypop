@@ -44,7 +44,7 @@ class MPI_Metrics(MetricSet):
 
         for idx, key in enumerate(keys):
             metadata = self._stats_dict[key].metadata
-            stats = self._stats_dict[key].stats
+            stats = self._stats_dict[key].statistics
             metrics = self._create_subdataframe(metadata, key)
 
             metrics["MPI Communication Efficiency"] = (
@@ -87,24 +87,24 @@ class MPI_Metrics(MetricSet):
             metrics["IPC Scaling"] = (
                 stats["Useful Instructions"].sum() / stats["Useful Cycles"].sum()
             ) / (
-                self._stats_dict[ref_key].stats["Useful Instructions"].sum()
-                / self._stats_dict[ref_key].stats["Useful Cycles"].sum()
+                self._stats_dict[ref_key].statistics["Useful Instructions"].sum()
+                / self._stats_dict[ref_key].statistics["Useful Cycles"].sum()
             )
 
             metrics["Instruction Scaling"] = (
-                self._stats_dict[ref_key].stats["Useful Instructions"].sum()
+                self._stats_dict[ref_key].statistics["Useful Instructions"].sum()
                 / stats["Useful Instructions"].sum()
             )
 
             metrics["Frequency Scaling"] = (
                 stats["Useful Cycles"].sum() / stats["Total Useful Computation"].sum()
             ) / (
-                self._stats_dict[ref_key].stats["Useful Cycles"].sum()
-                / self._stats_dict[ref_key].stats["Total Useful Computation"].sum()
+                self._stats_dict[ref_key].statistics["Useful Cycles"].sum()
+                / self._stats_dict[ref_key].statistics["Total Useful Computation"].sum()
             )
 
             metrics["Computational Scaling"] = (
-                self._stats_dict[ref_key].stats["Total Useful Computation"].sum()
+                self._stats_dict[ref_key].statistics["Total Useful Computation"].sum()
                 / stats["Total Useful Computation"].sum()
             )
 
@@ -113,7 +113,7 @@ class MPI_Metrics(MetricSet):
             )
 
             metrics["Speedup"] = (
-                self._stats_dict[ref_key].stats["Total Runtime"].max()
+                self._stats_dict[ref_key].statistics["Total Runtime"].max()
                 / stats["Total Runtime"].max()
             )
 
@@ -155,7 +155,7 @@ class MPI_Multiplicative_Metrics(MetricSet):
 
         for key in keys:
             metadata = self._stats_dict[key].metadata
-            stats = self._stats_dict[key].stats
+            stats = self._stats_dict[key].statistics
             metrics = self._create_subdataframe(metadata, key)
 
             metrics["MPI Communication Efficiency"] = (
@@ -192,24 +192,24 @@ class MPI_Multiplicative_Metrics(MetricSet):
             metrics["IPC Scaling"] = (
                 stats["Useful Instructions"].sum() / stats["Useful Cycles"].sum()
             ) / (
-                self._stats_dict[ref_key].stats["Useful Instructions"].sum()
-                / self._stats_dict[ref_key].stats["Useful Cycles"].sum()
+                self._stats_dict[ref_key].statistics["Useful Instructions"].sum()
+                / self._stats_dict[ref_key].statistics["Useful Cycles"].sum()
             )
 
             metrics["Instruction Scaling"] = (
-                self._stats_dict[ref_key].stats["Useful Instructions"].sum()
+                self._stats_dict[ref_key].statistics["Useful Instructions"].sum()
                 / stats["Useful Instructions"].sum()
             )
 
             metrics["Frequency Scaling"] = (
                 stats["Useful Cycles"].sum() / stats["Total Useful Computation"].sum()
             ) / (
-                self._stats_dict[ref_key].stats["Useful Cycles"].sum()
-                / self._stats_dict[ref_key].stats["Total Useful Computation"].sum()
+                self._stats_dict[ref_key].statistics["Useful Cycles"].sum()
+                / self._stats_dict[ref_key].statistics["Total Useful Computation"].sum()
             )
 
             metrics["Computational Scaling"] = (
-                self._stats_dict[ref_key].stats["Total Useful Computation"].sum()
+                self._stats_dict[ref_key].statistics["Total Useful Computation"].sum()
                 / stats["Total Useful Computation"].sum()
             )
 
@@ -218,7 +218,7 @@ class MPI_Multiplicative_Metrics(MetricSet):
             )
 
             metrics["Speedup"] = (
-                self._stats_dict[ref_key].stats["Total Runtime"].max()
+                self._stats_dict[ref_key].statistics["Total Runtime"].max()
                 / stats["Total Runtime"].max()
             )
 

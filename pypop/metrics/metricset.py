@@ -109,17 +109,29 @@ class MetricSet:
         return self._metric_list
 
     def _create_subdataframe(self, metadata, idxkey):
-        layout = metadata.application_layout
+        if len(set(metadata.threads_per_process)) != 1:
+            warn(
+                "The supplied trace has a varying number of threads per process. "
+                "The PyPOP metrics were designed assuming a homogenous number of "
+                "threads per process -- analysis results may be inaccurate."
+            )
+
         layout_keys = {
-            "Number of Processes": pandas.Series(data=[layout.commsize], index=[idxkey]),
+            "Number of Processes": pandas.Series(
+                data=[metadata.num_processes], index=[idxkey]
+            ),
             "Threads per Process": pandas.Series(
-                data=[layout.rank_threads[0][0]], index=[idxkey]
+                data=[metadata.threads_per_process[0]], index=[idxkey]
             ),
             "Total Threads": pandas.Series(
-                data=[sum(x[0] for x in layout.rank_threads)], index=[idxkey]
+                data=[sum(metadata.threads_per_process)], index=[idxkey]
             ),
             "Hybrid Layout": pandas.Series(
-                data=["{}x{}".format(layout.commsize, layout.rank_threads[0][0])],
+                data=[
+                    "{}x{}".format(
+                        metadata.num_processes, metadata.threads_per_process[0]
+                    )
+                ],
                 index=[idxkey],
             ),
         }

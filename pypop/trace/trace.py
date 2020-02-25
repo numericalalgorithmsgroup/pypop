@@ -61,7 +61,9 @@ class Trace:
         # Otherwise iterate to find a suitable loader
         for loader in Trace._loader_registry.values():
             try:
-                return loader(filename, force_recalculation=False, **kwargs)
+                return loader(
+                    filename, force_recalculation=force_recalculation, **kwargs
+                )
             except WrongLoaderError:
                 pass
 

@@ -80,8 +80,8 @@ class OpenMP_Metrics(MetricSet):
 
         for key in keys:
             metadata = self._stats_dict[key].metadata
-            stats = self._stats_dict[key].stats
-            nthreads = metadata.application_layout.rank_threads[0][0]
+            stats = self._stats_dict[key].statistics
+            nthreads = metadata.threads_per_process[0]
             metrics = self._create_subdataframe(metadata, key)
 
             try:
@@ -110,12 +110,12 @@ class OpenMP_Metrics(MetricSet):
                 metrics["IPC Scaling"] = (
                     stats["Useful Instructions"].sum() / stats["Useful Cycles"].sum()
                 ) / (
-                    self._stats_dict[ref_key].stats["Useful Instructions"].sum()
-                    / self._stats_dict[ref_key].stats["Useful Cycles"].sum()
+                    self._stats_dict[ref_key].statistics["Useful Instructions"].sum()
+                    / self._stats_dict[ref_key].statistics["Useful Cycles"].sum()
                 )
 
                 metrics["Instruction Scaling"] = (
-                    self._stats_dict[ref_key].stats["Useful Instructions"].sum()
+                    self._stats_dict[ref_key].statistics["Useful Instructions"].sum()
                     / stats["Useful Instructions"].sum()
                 )
 
@@ -123,12 +123,16 @@ class OpenMP_Metrics(MetricSet):
                     stats["Useful Cycles"].sum()
                     / stats["Total Useful Computation"].sum()
                 ) / (
-                    self._stats_dict[ref_key].stats["Useful Cycles"].sum()
-                    / self._stats_dict[ref_key].stats["Total Useful Computation"].sum()
+                    self._stats_dict[ref_key].statistics["Useful Cycles"].sum()
+                    / self._stats_dict[ref_key]
+                    .statistics["Total Useful Computation"]
+                    .sum()
                 )
 
                 metrics["Computational Scaling"] = (
-                    self._stats_dict[ref_key].stats["Total Useful Computation"].sum()
+                    self._stats_dict[ref_key]
+                    .statistics["Total Useful Computation"]
+                    .sum()
                     / stats["Total Useful Computation"].sum()
                 )
 
@@ -137,7 +141,7 @@ class OpenMP_Metrics(MetricSet):
                 )
 
                 metrics["Speedup"] = (
-                    self._stats_dict[ref_key].stats["Total Runtime"].max()
+                    self._stats_dict[ref_key].statistics["Total Runtime"].max()
                     / stats["Total Runtime"].max()
                 )
 

@@ -53,7 +53,7 @@ class MPI_OpenMP_Ineff_Metrics(MetricSet):
         for key in keys:
             metadata = self._stats_dict[key].metadata
             stats = self._stats_dict[key].statistics
-            nthreads = metadata.application_layout.rank_threads[0]
+            nthreads = metadata.threads_per_process[0]
             metrics = self._create_layout_keys(metadata)
             try:
 
@@ -201,7 +201,7 @@ class MPI_OpenMP_Metrics(MetricSet):
         for key in keys:
             metadata = self._stats_dict[key].metadata
             stats = self._stats_dict[key].statistics
-            nthreads = metadata.application_layout.rank_threads[0]
+            nthreads = metadata.threads_per_process[0]
             metrics = self._create_layout_keys(metadata)
 
             try:

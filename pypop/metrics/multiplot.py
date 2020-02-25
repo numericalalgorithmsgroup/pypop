@@ -78,13 +78,7 @@ def plot_scalings(
 
 
 def _plot_scalings_multiple(
-    scalings,
-    x_key,
-    y_key,
-    x_label,
-    y_label,
-    series_labels,
-    title,
+    scalings, x_key, y_key, x_label, y_label, series_labels, title,
 ):
 
     # Wrap single instance in list if needed
