@@ -55,7 +55,7 @@ class Trace:
                         Trace.get_summary_filename(filename), **kwargs
                     )
                 # Fallback - assume valid trace with no summary
-                except WrongLoaderError:
+                except (WrongLoaderError, FileNotFoundError):
                     pass
 
         # Otherwise iterate to find a suitable loader
@@ -111,7 +111,7 @@ class Trace:
                     self._summaryfile = Trace.get_summary_filename(filename)
                     return
                 # Fallback - drop into full tracefile loader
-                except WrongLoaderError:
+                except (WrongLoaderError, FileNotFoundError):
                     pass
 
         self._metadata = TraceMetadata(self)
