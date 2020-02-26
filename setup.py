@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="pypop",
-    version="0.1.99",
+    version="0.2.0rc2",
     url="https://github.com/numericalalgorithmsgroup/ezpop.git",
     author="Numerical Algorithms Group",
     author_email="phil.tooley@nag.co.uk",
