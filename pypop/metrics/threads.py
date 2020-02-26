@@ -2,14 +2,14 @@
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 # Copyright (c) 2019, The Numerical Algorithms Group, Ltd. All rights reserved.
 
-"""OpenMP only metrics
+"""Shared Memory threaded metrics
 """
 
 import pandas
 
 from .metricset import MetricSet, Metric
 
-__all__ = ["OpenMP_Metrics"]
+__all__ = ["Thread_Metrics"]
 
 k_GE_desc = (
     "The overall quality of the parallelisation.  This is the product of the "
@@ -20,14 +20,14 @@ k_PE_desc = (
     "different threads. This is further divided into the OpenMP Region "
     "Efficiency and the Serial Region Efficiency"
 )
-k_OMPRE_desc = (
+k_PARRE_desc = (
     "The efficiency with which CPU resources are used within OpenMP regions. "
     "This includes the effect of any load imbalance within OpenMP regions "
     "as well as any scheduling overhead and critical or single regions."
 )
 k_SERRE_desc = (
     "The effects of loss of efficiency due to computation being performed outside of "
-    "OpenMP Regions.  This is calculated by comparing with the effective speedup that "
+    "Parallel Regions.  This is calculated by comparing with the effective speedup that "
     "would be achieved if the serial computation were perfectly parallelised over all "
     "available threads."
 )
@@ -51,23 +51,50 @@ k_IPCSC_desc = (
 )
 
 
-class OpenMP_Metrics(MetricSet):
+class Thread_Metrics(MetricSet):
     """Proposed Hybrid MPI+OpenMP Metrics.
     """
+
+    _required_stats = [
+        "Serial Useful",
+        "Total Runtime",
+        "Useful Instructions",
+        "Useful Cycles",
+        "Parallel Region Time",
+        "Parallel Useful",
+    ]
 
     _metric_list = [
         Metric("Global Efficiency", 0, desc=k_GE_desc),
         Metric("Parallel Efficiency", 1, desc=k_PE_desc),
-        Metric("OpenMP Region Efficiency", 2, desc=k_OMPRE_desc),
+        Metric("Parallel Region Efficiency", 2, desc=k_PARRE_desc),
         Metric("Serial Region Efficiency", 2, desc=k_SERRE_desc),
         Metric("Computational Scaling", 1, desc=k_COMPSC_desc),
         Metric("Instruction Scaling", 2, desc=k_INSSC_desc),
         Metric("IPC Scaling", 2, "IPC Scaling", desc=k_IPCSC_desc),
     ]
 
-    _default_metric_key = "Total Threads"
+    _default_metric_key = "Hybrid Layout"
 
     def _calculate_metrics(self, ref_key=None, sort_keys=True):
+
+        total_useful = {
+            k: self._stats_dict[k].statistics["Serial Useful"]
+            + self._stats_dict[k].statistics["Parallel Useful"]
+            for k in self._stats_dict
+        }
+
+        ipc = {
+            k: self._stats_dict[k].statistics["Useful Instructions"]
+            / self._stats_dict[k].statistics["Useful Cycles"]
+            for k in self._stats_dict
+        }
+
+        frequency = {
+            k: self._stats_dict[k].statistics["Useful Cycles"] / total_useful[k]
+            for k in self._stats_dict
+        }
+
         if not ref_key:
             ref_key = min(self._stats_dict.keys())
 
@@ -76,7 +103,7 @@ class OpenMP_Metrics(MetricSet):
         if sort_keys:
             keys = sorted(self._stats_dict.keys())
         else:
-            key = self._stats_dict.keys()
+            keys = self._stats_dict.keys()
 
         for key in keys:
             metadata = self._stats_dict[key].metadata
@@ -86,24 +113,24 @@ class OpenMP_Metrics(MetricSet):
 
             try:
 
-                metrics["OpenMP Region Efficiency"] = 1 - (
+                metrics["Parallel Region Efficiency"] = 1 - (
                     (
                         (
-                            stats["OpenMP Total Runtime"].loc[:, 1]
-                            - stats["OpenMP Useful Computation"].mean(level="rank")
+                            stats["Parallel Region Time"].loc[:, 1]
+                            - stats["Parallel Useful"].mean(level="process")
                         ).mean()
                     )
                     / stats["Total Runtime"].max()
                 )
 
                 metrics["Serial Region Efficiency"] = 1 - (
-                    stats["Serial Useful Computation"].loc[:, 1].mean()
+                    stats["Serial Useful"].loc[:, 1].mean()
                     / stats["Total Runtime"].max()
                     * (1 - 1 / nthreads)
                 )
 
                 metrics["Parallel Efficiency"] = (
-                    stats["Total Useful Computation"].mean()
+                    total_useful[key].mean()
                     / stats["Total Runtime"].max()  # avg all threads to include Amdahl
                 )
 
@@ -119,6 +146,8 @@ class OpenMP_Metrics(MetricSet):
                     / stats["Useful Instructions"].sum()
                 )
 
+                metrics["Frequency"] = frequency[key].loc[1, 1]
+
                 metrics["Frequency Scaling"] = (
                     stats["Useful Cycles"].sum()
                     / stats["Total Useful Computation"].sum()
@@ -130,10 +159,7 @@ class OpenMP_Metrics(MetricSet):
                 )
 
                 metrics["Computational Scaling"] = (
-                    self._stats_dict[ref_key]
-                    .statistics["Total Useful Computation"]
-                    .sum()
-                    / stats["Total Useful Computation"].sum()
+                    total_useful[ref_key].sum() / total_useful[key].sum()
                 )
 
                 metrics["Global Efficiency"] = (

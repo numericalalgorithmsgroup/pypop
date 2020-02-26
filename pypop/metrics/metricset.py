@@ -5,7 +5,10 @@
 """Shared routines for different Metric Sets
 """
 
+from warnings import warn
+
 import numpy
+import pandas
 
 import matplotlib.pyplot as plt
 import matplotlib.colors as mc
@@ -13,7 +16,7 @@ import matplotlib as mpl
 import matplotlib.table as mt
 import matplotlib.ticker as mtick
 
-from ..traceset import RunData
+from ..trace import Trace
 from .._plotsettings import pypop_mpl_params, figparams
 
 __all__ = ["Metric", "MetricSet"]
@@ -26,9 +29,11 @@ class Metric:
         correct for node dynamic clocking issues).
     """
 
-    def __init__(self, key, level, displayname=None):
+    def __init__(self, key, level, displayname=None, desc=None, is_inefficiency=False):
         self.key = key
         self.level = level
+        self.description = str(desc) if desc else ""
+        self.is_inefficiency = is_inefficiency
 
         if displayname:
             self.displayname = r"$\hookrightarrow$" * bool(self.level) + displayname
@@ -47,6 +52,8 @@ class MetricSet:
     metric_definition
 
     """
+
+    _default_metric_key = None
 
     def __init__(self, stats_dict, ref_key=None, sort_keys=True):
         """
@@ -70,9 +77,9 @@ class MetricSet:
             stats_dict = {k: v for k, v in enumerate(stats_dict)}
 
         for df in stats_dict.values():
-            if not isinstance(df, RunData):
+            if not isinstance(df, Trace):
                 raise ValueError(
-                    "stats_dict must be an iterable of " "pypop.traceset.RunData"
+                    "stats_dict must be an iterable of pypop.traceset.RunData"
                 )
 
         self._stats_dict = stats_dict
@@ -91,7 +98,7 @@ class MetricSet:
         """pandas.DataFrame: Calculated metric data.
         """
         if self._metric_data is None:
-            self._calculate_metrics()
+            self._calculate_metrics(ref_key=self._ref_key)
         return self._metric_data
 
     @property
@@ -101,9 +108,42 @@ class MetricSet:
         """
         return self._metric_list
 
+    def _create_subdataframe(self, metadata, idxkey):
+        if len(set(metadata.threads_per_process)) != 1:
+            warn(
+                "The supplied trace has a varying number of threads per process. "
+                "The PyPOP metrics were designed assuming a homogenous number of "
+                "threads per process -- analysis results may be inaccurate."
+            )
+
+        layout_keys = {
+            "Number of Processes": pandas.Series(
+                data=[metadata.num_processes], index=[idxkey]
+            ),
+            "Threads per Process": pandas.Series(
+                data=[metadata.threads_per_process[0]], index=[idxkey]
+            ),
+            "Total Threads": pandas.Series(
+                data=[sum(metadata.threads_per_process)], index=[idxkey]
+            ),
+            "Hybrid Layout": pandas.Series(
+                data=[
+                    "{}x{}".format(
+                        metadata.num_processes, metadata.threads_per_process[0]
+                    )
+                ],
+                index=[idxkey],
+            ),
+        }
+
+        for metric in self._metric_list:
+            layout_keys[metric.key] = pandas.Series(data=[0.0], index=[idxkey])
+
+        return pandas.DataFrame(layout_keys)
+
     def plot_table(
         self,
-        columns_key="Number of Processes",
+        columns_key="auto",
         title=None,
         columns_label=None,
         good_thres=0.8,
@@ -117,7 +157,8 @@ class MetricSet:
         ----------
         columns_key: str or None
             Key to pandas dataframe column containing column heading data (default
-            "Number of Processes"). If `None` then the index will be used.
+            "Number of Processes"). If `'auto'`, a suitable default for the metric type
+            is used, if `None` then the numerical index will be used.
         title: str or None
             Title for table.
         columns_label: str or None
@@ -137,6 +178,9 @@ class MetricSet:
         figure: `matplotlib.figure.Figure`
             Figure containing the metrics table.
         """
+
+        if columns_key == "auto":
+            columns_key = self._default_metric_key
 
         with mpl.rc_context(pypop_mpl_params):
             return self._plot_table(
@@ -174,16 +218,32 @@ class MetricSet:
         body_cell_height = 0.1
         level_pad = 0.075
 
-        cmap_points = [
-            (0.0, (0.690, 0.074, 0.074)),
-            (bad_thres, (0.690, 0.074, 0.074)),
-            (good_thres - 1e-20, (0.992, 0.910, 0.910)),
-            (good_thres, (0.910, 0.992, 0.910)),
-            (1.0, (0.074, 0.690, 0.074)),
+        pop_red = (0.690, 0.074, 0.074)
+        pop_fade = (0.992, 0.910, 0.910)
+        pop_green = (0.074, 0.690, 0.074)
+
+        ineff_points = [
+            (0.0, pop_green),
+            (1 - good_thres, pop_fade),
+            (1 - good_thres + 1e-20, pop_fade),
+            (1 - bad_thres, pop_red),
+            (1.0, pop_red),
         ]
 
-        metric_cmap = mc.LinearSegmentedColormap.from_list(
-            "POP_Metrics", colors=cmap_points, N=256, gamma=1
+        eff_points = [
+            (0.0, pop_red),
+            (bad_thres, pop_red),
+            (good_thres - 1e-20, pop_fade),
+            (good_thres, pop_fade),
+            (1.0, pop_green),
+        ]
+
+        ineff_cmap = mc.LinearSegmentedColormap.from_list(
+            "POP_Metrics", colors=ineff_points, N=256, gamma=1
+        )
+
+        eff_cmap = mc.LinearSegmentedColormap.from_list(
+            "POP_Metrics", colors=eff_points, N=256, gamma=1
         )
 
         label_cell_kwargs = {
@@ -204,7 +264,7 @@ class MetricSet:
         # Create empty table using full bounding box of axes
         metric_table = mt.Table(ax=ax[0], bbox=(0, 0, 1, 1))
         metric_table.auto_set_font_size(True)
-#        metric_table.set_fontsize(8)
+        #        metric_table.set_fontsize(8)
 
         metric_table.add_cell(
             0,
@@ -223,6 +283,7 @@ class MetricSet:
             )
 
         for row_num, metric in enumerate(self.metrics, start=1):
+            cmap = ineff_cmap if metric.is_inefficiency else eff_cmap
             c = metric_table.add_cell(
                 row_num, 0, text=metric.displayname, **label_cell_kwargs
             )
@@ -244,7 +305,7 @@ class MetricSet:
                         row_num,
                         col_num - skipfirst,
                         text="{:1.02f}".format(col_data),
-                        facecolor=metric_cmap(col_data),
+                        facecolor=cmap(col_data),
                         **body_cell_kwargs
                     )
 
@@ -255,9 +316,7 @@ class MetricSet:
 
         return fig
 
-    def plot_scaling(
-        self, x_key="Number of Processes", y_key="Speedup", label=None, title=None
-    ):
+    def plot_scaling(self, x_key="auto", y_key="Speedup", label=None, title=None):
         """Plot scaling graph with region shading.
 
         Plots scaling data from pandas dataframe(s). The 0-80% and 80-100% scaling
@@ -267,7 +326,8 @@ class MetricSet:
         Parameters
         ----------
         x_key: scalar
-            Key of Dataframe column to use as x-axis.
+            Key of Dataframe column to use as x-axis. If 'auto' use a suitable default
+            for the metric.
 
         y_key: scalar
             key of Dataframe column to use as y-axis.
@@ -283,6 +343,9 @@ class MetricSet:
         figure: matplotlib.figure.Figure
             Figure containing complete scaling plot.
         """
+        if x_key == "auto":
+            x_key = self._default_metric_key
+
         with mpl.rc_context(pypop_mpl_params):
             return self._plot_scaling(x_key, y_key, label, title)
 
@@ -344,7 +407,7 @@ class MetricSet:
         ax.set_xlabel("Total cores")
         ax.set_ylabel(label)
         ax.xaxis.set_major_locator(mtick.FixedLocator(self.metric_data[x_key], 6))
-        ax.legend(loc='upper left')
+        ax.legend(loc="upper left")
 
         if title:
             ax.set_title(title)

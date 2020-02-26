@@ -4,9 +4,13 @@ script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 template_dir=$(readlink -f ${script_dir}/../ipython_templates)
 
 report_nb=$1
+output_filename="$(echo ${report_nb} | sed 's/ /_/g' | sed 's/.ipynb$//').tex"
 
 export TEXINPUTS="${template_dir}//:"
 
 jupyter nbconvert "${report_nb}" \
-                  --to pdf \
-                  --template=${template_dir}/pop_report.tplx
+                  --to latex \
+                  --template=${template_dir}/pop_report.tplx \
+                  --output=${output_filename}
+
+texi2pdf ${output_filename}

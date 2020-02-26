@@ -10,8 +10,27 @@ use("agg")
 
 from .traceset import TraceSet
 from .metrics import MPI_Metrics, MPI_OpenMP_Metrics
+from .dimemas import dimemas_idealise
+from .config import set_dimemas_path, set_paramedir_path, set_tmpdir_path
 
 from argparse import ArgumentParser
+
+
+def _dimemas_idealise_parse_args():
+
+    # make an argument parser
+    parser = ArgumentParser(description="Idealise Extrae traces with Dimemas")
+
+    # First define collection of traces
+    parser.add_argument(
+        "traces", type=str, nargs="+", metavar="trace", help="tracefiles to idealise"
+    )
+
+    parser.add_argument(
+        "--dimemas-path", type=str, metavar="PATH", help="Path to Dimemas executable"
+    )
+
+    return parser.parse_args()
 
 
 def _mpi_parse_args():
@@ -31,6 +50,13 @@ def _mpi_parse_args():
     )
     parser.add_argument(
         "--no-scaling-plot", action="store_true", help="Don't save scaling plot"
+    )
+
+    parser.add_argument(
+        "--paramedir-path", type=str, metavar="PATH", help="Path to Paramedir executable"
+    )
+    parser.add_argument(
+        "--dimemas-path", type=str, metavar="PATH", help="Path to Dimemas executable"
     )
 
     # Output locations
@@ -59,11 +85,49 @@ def _mpi_parse_args():
     return parser.parse_args()
 
 
+def _preprocess_traces_parse_args():
+
+    # make an argument parser
+    parser = ArgumentParser(description="Preprocess traces for PyPOP Analysis")
+
+    # First define collection of traces
+    parser.add_argument(
+        "traces", type=str, nargs="+", metavar="trace", help="Tracefiles to preprocess"
+    )
+
+    parser.add_argument(
+        "--overwrite-existing", action="store_true", help="Overwrite existing files"
+    )
+    parser.add_argument(
+        "--chop-to-roi", action="store_true", help="Chop to region of interest"
+    )
+    parser.add_argument(
+        "--paramedir-path", type=str, metavar="PATH", help="Path to Paramedir executable"
+    )
+    parser.add_argument(
+        "--dimemas-path", type=str, metavar="PATH", help="Path to Dimemas executable"
+    )
+    parser.add_argument(
+        "--outfile-path", type=str, metavar="PATH", help="Path in which to save chopped/ideal traces"
+    )
+    parser.add_argument(
+        "--tmpdir-path", type=str, metavar="PATH", help="Path for PyPOP to save temporary files"
+    )
+
+    return parser.parse_args()
+
+
 def mpi_cli_metrics():
     """Entrypoint for pypop-mpi-metrics script
     """
 
     config = _mpi_parse_args()
+
+    if config.paramedir_path:
+        set_paramedir_path(config.paramedir_path)
+
+    if config.dimemas_path:
+        set_dimemas_path(config.dimemas_path)
 
     statistics = TraceSet(config.traces)
 
@@ -90,6 +154,12 @@ def hybrid_cli_metrics():
 
     config = _mpi_parse_args()
 
+    if config.paramedir_path:
+        set_paramedir_path(config.paramedir_path)
+
+    if config.dimemas_path:
+        set_dimemas_path(config.dimemas_path)
+
     statistics = TraceSet(config.traces)
 
     metrics = MPI_OpenMP_Metrics(statistics.by_commsize())
@@ -108,3 +178,34 @@ def hybrid_cli_metrics():
     if not config.no_csv:
         metrics.metric_data.to_csv(config.csv, index=False)
 
+
+def preprocess_traces():
+    """Entrypoint for trace preprocessing
+    """
+
+    config = _preprocess_traces_parse_args()
+
+    if config.paramedir_path:
+        set_paramedir_path(config.paramedir_path)
+
+    if config.dimemas_path:
+        set_dimemas_path(config.dimemas_path)
+        
+    if config.tmpdir_path:
+        set_tmpdir_path(config.tmpdir_path)
+        
+    TraceSet(config.traces, ignore_cache=config.overwrite_existing, chop_to_roi=config.chop_to_roi, outpath=config.outfile_path)
+
+
+def dimemas_idealise():
+    """Entrypoint for trace idealisation
+    """
+
+    config = _dimemas_idealise_parse_args()
+
+    if config.dimemas_path:
+        set_dimemas_path(config.dimemas_path)
+
+    for tracefile in tqdm(config.traces, desc="Running Dimemas"):
+        outfile = tracefile.split(".prv")[0] + ".sim.prv"
+        dimemas_idealise(tracefile, outfile)

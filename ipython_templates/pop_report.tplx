@@ -26,7 +26,7 @@
 ## Input necessary details from ipynb metadata
 ((* block maketitle *))
 
-  ((* for item in ['reprefnum', 'application', 'servicelevel', 'author', 'contributors'] *))
+  ((* for item in ['reprefnum', 'title', 'servicelevel', 'author', 'contributors'] *))
     \((( item ))){((( nb.metadata.get("pop_metadata", {}).get(item, '\color{{red}} pop\_metadata.{} NOT SET'.format(item))
                   )))}
   ((* endfor *))
