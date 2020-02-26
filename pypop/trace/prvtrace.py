@@ -56,8 +56,8 @@ ideal_configs = {
 class PRVTrace(Trace):
     def _gather_metadata(self):
 
-        with zipopen(self._tracefile, "r") as fh:
-            headerline = fh.readline().decode().strip()
+        with zipopen(self._tracefile, "rt") as fh:
+            headerline = fh.readline().strip()
 
         elem = headerline.replace(":", ";", 1).split(":", 4)
 
