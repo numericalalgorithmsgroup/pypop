@@ -17,7 +17,7 @@ class CompatibilityApplicationLayout:
 
         thread_modulus = sum(threads) / commsize
 
-        self.rank_threads = [(1 + i // thread_modulus, j) for i, j in enumerate(threads)]
+        self.rank_threads = [(j, 1 + i // thread_modulus) for i, j in enumerate(threads)]
 
 
 class TraceMetadata:
