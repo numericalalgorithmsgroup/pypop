@@ -163,7 +163,7 @@ class MPI_OpenMP_Ineff_Metrics(MetricSet):
 
             metrics_by_key[key] = metrics
 
-        self._metric_data = pandas.DataFrame(metrics_by_key).T
+        self._metric_data = pandas.concat(metrics_by_key.values())
 
 
 class MPI_OpenMP_Metrics(MetricSet):
@@ -321,7 +321,7 @@ class MPI_OpenMP_Metrics(MetricSet):
 
             metrics_by_key[key] = metrics
 
-        self._metric_data = pandas.DataFrame(metrics_by_key).T
+        self._metric_data = pandas.concat(metrics_by_key.values())
 
 
 class MPI_OpenMP_Multiplicative_Metrics(MetricSet):
@@ -467,4 +467,4 @@ class MPI_OpenMP_Multiplicative_Metrics(MetricSet):
 
             metrics_by_key[key] = metrics
 
-        self._metric_data = pandas.DataFrame(metrics_by_key).T
+        self._metric_data = pandas.concat(metrics_by_key.values())
