@@ -54,7 +54,8 @@ class MPI_OpenMP_Ineff_Metrics(MetricSet):
             metadata = self._stats_dict[key].metadata
             stats = self._stats_dict[key].statistics
             nthreads = metadata.threads_per_process[0]
-            metrics = self._create_layout_keys(metadata)
+            metrics = self._create_subdataframe(metadata, key)
+
             try:
 
                 metrics["OpenMP Region Inefficiency"] = (
@@ -202,7 +203,7 @@ class MPI_OpenMP_Metrics(MetricSet):
             metadata = self._stats_dict[key].metadata
             stats = self._stats_dict[key].statistics
             nthreads = metadata.threads_per_process[0]
-            metrics = self._create_layout_keys(metadata)
+            metrics = self._create_subdataframe(metadata, key)
 
             try:
 
@@ -359,7 +360,8 @@ class MPI_OpenMP_Multiplicative_Metrics(MetricSet):
         for key in keys:
             metadata = self._stats_dict[key].metadata
             stats = self._stats_dict[key].statistics
-            metrics = self._create_layout_keys(metadata)
+            metrics = self._create_subdataframe(metadata, key)
+
             try:
                 metrics["OpenMP Region Efficiency"] = (
                     stats["OpenMP Useful Computation"].mean()
