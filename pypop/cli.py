@@ -96,7 +96,7 @@ def _preprocess_traces_parse_args():
     )
 
     parser.add_argument(
-        "--overwrite-existing", action="store_true", help="Overwrite existing files"
+        "--force-recalculation", action="store_true", help="Force recalculation & overwrite existing data"
     )
     parser.add_argument(
         "--chop-to-roi", action="store_true", help="Chop to region of interest"
@@ -194,7 +194,7 @@ def preprocess_traces():
     if config.tmpdir_path:
         set_tmpdir_path(config.tmpdir_path)
         
-    TraceSet(config.traces, ignore_cache=config.overwrite_existing, chop_to_roi=config.chop_to_roi, outpath=config.outfile_path)
+    TraceSet(config.traces, force_recalculation=config.force_recalculation, chop_to_roi=config.chop_to_roi, outpath=config.outfile_path)
 
 
 def dimemas_idealise():
