@@ -184,4 +184,4 @@ class TraceSet:
             A dictionary of traces organised by the requested key
         """
 
-        return self.by_key(lambda x: x.metadata.rank_threads[0])
+        return self.by_key(lambda x: x.metadata.threads_per_process[0])
