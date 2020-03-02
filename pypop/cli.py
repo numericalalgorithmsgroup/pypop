@@ -11,7 +11,7 @@ use("agg")
 from .traceset import TraceSet
 from .metrics import MPI_Metrics, MPI_OpenMP_Metrics
 from .dimemas import dimemas_idealise
-from .config import set_dimemas_path, set_paramedir_path
+from .config import set_dimemas_path, set_paramedir_path, set_tmpdir_path
 
 from argparse import ArgumentParser
 
@@ -96,14 +96,22 @@ def _preprocess_traces_parse_args():
     )
 
     parser.add_argument(
-        "--overwrite-existing", action="store_true", help="Overwrite existing files"
+        "--force-recalculation", action="store_true", help="Force recalculation & overwrite existing data"
     )
-
+    parser.add_argument(
+        "--chop-to-roi", action="store_true", help="Chop to region of interest"
+    )
     parser.add_argument(
         "--paramedir-path", type=str, metavar="PATH", help="Path to Paramedir executable"
     )
     parser.add_argument(
         "--dimemas-path", type=str, metavar="PATH", help="Path to Dimemas executable"
+    )
+    parser.add_argument(
+        "--outfile-path", type=str, metavar="PATH", help="Path in which to save chopped/ideal traces"
+    )
+    parser.add_argument(
+        "--tmpdir-path", type=str, metavar="PATH", help="Path for PyPOP to save temporary files"
     )
 
     return parser.parse_args()
@@ -182,8 +190,11 @@ def preprocess_traces():
 
     if config.dimemas_path:
         set_dimemas_path(config.dimemas_path)
-
-    TraceSet(config.traces, ignore_cache=config.overwrite_existing)
+        
+    if config.tmpdir_path:
+        set_tmpdir_path(config.tmpdir_path)
+        
+    TraceSet(config.traces, force_recalculation=config.force_recalculation, chop_to_roi=config.chop_to_roi, outpath=config.outfile_path)
 
 
 def dimemas_idealise():

@@ -22,7 +22,7 @@ class Judit_Hybrid_Metrics(MetricSet):
         Metric("MPI Parallel Efficiency", 2),
         Metric("MPI Load Balance", 3),
         Metric("MPI Communication Efficiency", 3),
-        Metric("OpenMP Parallel Efficiency", 3),
+        Metric("OpenMP Parallel Efficiency", 2),
         Metric("OpenMP Communication Efficiency", 3),
         Metric("OpenMP Load Balance", 3),
         Metric("Hybrid Communication Efficiency", 2),
@@ -31,6 +31,8 @@ class Judit_Hybrid_Metrics(MetricSet):
         Metric("Instruction Scaling", 2),
         Metric("IPC Scaling", 2, "IPC Scaling"),
     ]
+
+    _default_metric_key = "Hybrid Layout"
 
     def _calculate_metrics(self, ref_key=None, sort_keys=True):
         if not ref_key:
@@ -45,10 +47,10 @@ class Judit_Hybrid_Metrics(MetricSet):
 
         for key in keys:
             metadata = self._stats_dict[key].metadata
-            stats = self._stats_dict[key].stats
-            try:
-                metrics = {"Number of Processes": sum(metadata.procs_per_node)}
+            stats = self._stats_dict[key].statistics
+            metrics = self._create_subdataframe(metadata, key)
 
+            try:
                 metrics["MPI Communication Efficiency"] = (
                     stats["Total Non-MPI Runtime"].loc[:, 1].max()
                     / stats["Total Runtime"].max()
@@ -93,21 +95,31 @@ class Judit_Hybrid_Metrics(MetricSet):
                 )
 
                 metrics["IPC Scaling"] = (
-                    stats["IPC"].mean() / self._stats_dict[ref_key].stats["IPC"].mean()
+                    stats["Useful Instructions"].sum() / stats["Useful Cycles"].sum()
+                ) / (
+                    self._stats_dict[ref_key].statistics["Useful Instructions"].sum()
+                    / self._stats_dict[ref_key].statistics["Useful Cycles"].sum()
                 )
 
                 metrics["Instruction Scaling"] = (
-                    self._stats_dict[ref_key].stats["Useful Instructions"].sum()
+                    self._stats_dict[ref_key].statistics["Useful Instructions"].sum()
                     / stats["Useful Instructions"].sum()
                 )
 
                 metrics["Frequency Scaling"] = (
-                    stats["Frequency"].mean()
-                    / self._stats_dict[ref_key].stats["Frequency"].mean()
+                    stats["Useful Cycles"].sum()
+                    / stats["Total Useful Computation"].sum()
+                ) / (
+                    self._stats_dict[ref_key].statistics["Useful Cycles"].sum()
+                    / self._stats_dict[ref_key]
+                    .statistics["Total Useful Computation"]
+                    .sum()
                 )
 
                 metrics["Computational Scaling"] = (
-                    self._stats_dict[ref_key].stats["Total Useful Computation"].sum()
+                    self._stats_dict[ref_key]
+                    .statistics["Total Useful Computation"]
+                    .sum()
                     / stats["Total Useful Computation"].sum()
                 )
 
@@ -117,7 +129,7 @@ class Judit_Hybrid_Metrics(MetricSet):
                 )
 
                 metrics["Speedup"] = (
-                    self._stats_dict[ref_key].stats["Total Runtime"].max()
+                    self._stats_dict[ref_key].statistics["Total Runtime"].max()
                     / stats["Total Runtime"].max()
                 )
 
@@ -130,4 +142,4 @@ class Judit_Hybrid_Metrics(MetricSet):
 
             metrics_by_key[key] = metrics
 
-        self._metric_data = pandas.DataFrame(metrics_by_key).T
+        self._metric_data = pandas.concat(metrics_by_key.values())

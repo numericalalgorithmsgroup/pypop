@@ -10,6 +10,21 @@ General utility and helper routines not specific to a particular tool.
 """
 
 from hashlib import md5
+import gzip
+
+
+def zipopen(path, mode="rt"):
+
+    # Default modes of open() and gzip.open() are not the same ('t' and 'b' respectively)
+    # so ensure a consistent default of text mode
+    if not any(x in mode for x in ('t', 'b')):
+        mode = "{}t".format(mode)
+
+    try:
+        if gzip.open(path, mode=mode).readline():
+            return gzip.open(path, mode=mode)
+    except OSError:
+        return open(path, mode=mode)
 
 
 def chunked_md5sum(filename, blocksize=8388608):

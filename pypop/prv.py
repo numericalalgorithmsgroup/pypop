@@ -16,6 +16,8 @@ import gzip
 from io import StringIO
 import pickle
 
+from .utils.io import zipopen
+
 try:
     from tqdm.auto import tqdm
 except ImportError:
@@ -49,15 +51,6 @@ TraceMetadata = namedtuple(
 ApplicationLayout = namedtuple(
     "ApplicationLayout", field_names=["commsize", "rank_threads"]
 )
-
-
-def zipopen(path, modespec):
-    try:
-        if gzip.open(path, mode=modespec).readline():
-            return gzip.open(path, mode=modespec)
-    except OSError:
-        return open(path, mode=modespec)
-
 
 class PRV:
 

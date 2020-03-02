@@ -4,6 +4,7 @@ __pycache__
 *.png
 *.tiff
 gh-pages
+*.pypopsummary
 
 ## Core latex/pdflatex auxiliary files:
 *.aux

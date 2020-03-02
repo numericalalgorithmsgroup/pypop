@@ -74,22 +74,24 @@ class Thread_Metrics(MetricSet):
         Metric("IPC Scaling", 2, "IPC Scaling", desc=k_IPCSC_desc),
     ]
 
+    _default_metric_key = "Hybrid Layout"
+
     def _calculate_metrics(self, ref_key=None, sort_keys=True):
 
         total_useful = {
-            k: self._stats_dict[k].stats["Serial Useful"]
-            + self._stats_dict[k].stats["Parallel Useful"]
+            k: self._stats_dict[k].statistics["Serial Useful"]
+            + self._stats_dict[k].statistics["Parallel Useful"]
             for k in self._stats_dict
         }
 
         ipc = {
-            k: self._stats_dict[k].stats["Useful Instructions"]
-            / self._stats_dict[k].stats["Useful Cycles"]
+            k: self._stats_dict[k].statistics["Useful Instructions"]
+            / self._stats_dict[k].statistics["Useful Cycles"]
             for k in self._stats_dict
         }
 
         frequency = {
-            k: self._stats_dict[k].stats["Useful Cycles"] / total_useful[k]
+            k: self._stats_dict[k].statistics["Useful Cycles"] / total_useful[k]
             for k in self._stats_dict
         }
 
@@ -103,12 +105,13 @@ class Thread_Metrics(MetricSet):
         else:
             keys = self._stats_dict.keys()
 
-        for curr_key in keys:
-            metadata = self._stats_dict[curr_key].metadata
-            stats = self._stats_dict[curr_key].stats
+        for key in keys:
+            metadata = self._stats_dict[key].metadata
+            stats = self._stats_dict[key].statistics
+            nthreads = metadata.threads_per_process[0]
+            metrics = self._create_subdataframe(metadata, key)
+
             try:
-                nthreads = metadata.application_layout.rank_threads[0][0]
-                metrics = {"Number of Threads": len(stats.index)}
 
                 metrics["Parallel Region Efficiency"] = 1 - (
                     (
@@ -127,26 +130,36 @@ class Thread_Metrics(MetricSet):
                 )
 
                 metrics["Parallel Efficiency"] = (
-                    total_useful[curr_key].mean()
+                    total_useful[key].mean()
                     / stats["Total Runtime"].max()  # avg all threads to include Amdahl
                 )
 
-                metrics["IPC Scaling"] = ipc[curr_key].mean() / ipc[ref_key].mean()
+                metrics["IPC Scaling"] = (
+                    stats["Useful Instructions"].sum() / stats["Useful Cycles"].sum()
+                ) / (
+                    self._stats_dict[ref_key].statistics["Useful Instructions"].sum()
+                    / self._stats_dict[ref_key].statistics["Useful Cycles"].sum()
+                )
 
                 metrics["Instruction Scaling"] = (
-                    self._stats_dict[ref_key].stats["Useful Instructions"].sum()
+                    self._stats_dict[ref_key].statistics["Useful Instructions"].sum()
                     / stats["Useful Instructions"].sum()
                 )
 
-                metrics["Frequency"] = frequency[curr_key].loc[1, 1]
+                metrics["Frequency"] = frequency[key].loc[1, 1]
 
                 metrics["Frequency Scaling"] = (
-                    frequency[curr_key].mean()
-                    / frequency[ref_key].mean()
+                    stats["Useful Cycles"].sum()
+                    / stats["Total Useful Computation"].sum()
+                ) / (
+                    self._stats_dict[ref_key].statistics["Useful Cycles"].sum()
+                    / self._stats_dict[ref_key]
+                    .statistics["Total Useful Computation"]
+                    .sum()
                 )
 
                 metrics["Computational Scaling"] = (
-                    total_useful[ref_key].sum() / total_useful[curr_key].sum()
+                    total_useful[ref_key].sum() / total_useful[key].sum()
                 )
 
                 metrics["Global Efficiency"] = (
@@ -154,7 +167,7 @@ class Thread_Metrics(MetricSet):
                 )
 
                 metrics["Speedup"] = (
-                    self._stats_dict[ref_key].stats["Total Runtime"].max()
+                    self._stats_dict[ref_key].statistics["Total Runtime"].max()
                     / stats["Total Runtime"].max()
                 )
 
@@ -165,6 +178,6 @@ class Thread_Metrics(MetricSet):
                     "No '{}' statistic. (Wrong analysis type?)" "".format(err.args[0])
                 )
 
-            metrics_by_key[curr_key] = metrics
+            metrics_by_key[key] = metrics
 
-        self._metric_data = pandas.DataFrame(metrics_by_key).T
+        self._metric_data = pandas.concat(metrics_by_key.values())
