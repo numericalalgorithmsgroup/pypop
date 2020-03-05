@@ -18,8 +18,10 @@ setup(
         "pandas >= 0.24",
         "jupyter",
         "bokeh >= 1",
+        "tables",
+        "tqdm",
     ],
-    extras_require={"tqdm": ["tqdm"]},
+    zip_safe=True,
     include_package_data=True,
     entry_points={
         "console_scripts": [
