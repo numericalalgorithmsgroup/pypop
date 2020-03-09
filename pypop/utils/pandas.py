@@ -21,7 +21,7 @@ class HDFStoreContext:
             # despatcher
             if "does not exist" in str(err):
                 raise FileNotFoundError('"{}" does not exist'.format(self._filename))
-            if "HDF5 error" in str(err):
+            if "HDF5 error" in str(err) or "not a regular file" in str(err):
                 raise ValueError('"{}" is not a valid HDF5 file'.format(self._filename))
             # Reraise anything we don't catch explicitly
             raise
