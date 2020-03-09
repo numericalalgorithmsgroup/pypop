@@ -13,6 +13,7 @@ import pandas
 from .trace import Trace
 
 from ..utils.io import zipopen
+from ..utils.exceptions import WrongLoaderError
 
 from ..dimemas import dimemas_idealise
 from ..extrae import paramedir_analyze_any_of, chop_prv_to_roi, remove_trace
@@ -56,8 +57,14 @@ ideal_configs = {
 class PRVTrace(Trace):
     def _gather_metadata(self):
 
-        with zipopen(self._tracefile, "rt") as fh:
-            headerline = fh.readline().strip()
+        try:
+            with zipopen(self._tracefile, "rt") as fh:
+                headerline = fh.readline().strip()
+        except IsADirectoryError:
+            raise WrongLoaderError("Not a valid prv file")
+
+        if not headerline.startswith("#Paraver"):
+            raise WrongLoaderError("Not a valid prv file")
 
         elem = headerline.replace(":", ";", 1).split(":", 4)
 

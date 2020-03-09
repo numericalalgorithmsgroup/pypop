@@ -28,7 +28,8 @@ def set_paramedir_path(path):
         raise ValueError("path must be a string")
 
     _paramedir_path = normpath(expanduser(path))
-    
+
+
 def set_tmpdir_path(path):
     global _tmpdir_path
     if not isinstance(path, str):
