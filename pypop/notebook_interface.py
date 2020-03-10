@@ -218,7 +218,7 @@ class AutoMetricsGUI(Tab):
 
         if self._metrics_display is None:
             self.children = self.children + (metrics_display,)
-            self.set_title(1, "Judit Metrics")
+            self.set_title(1, "Metrics Table")
         else:
             self._metrics_display.close()
             new_children = list(self.children)

@@ -20,6 +20,7 @@ setup(
         "bokeh >= 1",
         "tables",
         "tqdm",
+        "ipyfilechooser",
     ],
     zip_safe=True,
     include_package_data=True,
