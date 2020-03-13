@@ -9,7 +9,7 @@ from matplotlib import use
 use("agg")
 
 from .traceset import TraceSet
-from .metrics import MPI_Metrics, MPI_OpenMP_Metrics
+from .metrics import MPI_Metrics, MPI_OpenMP_Metrics, OpenMP_Metrics
 from .dimemas import dimemas_idealise
 from .config import set_dimemas_path, set_paramedir_path, set_tmpdir_path
 
@@ -131,7 +131,38 @@ def mpi_cli_metrics():
 
     statistics = TraceSet(config.traces)
 
-    metrics = MPI_Metrics(statistics.by_commsize())
+    metrics = MPI_Metrics(statistics)
+
+    # Create and save table
+    if not config.no_metric_table:
+        metric_table = metrics.plot_table(title=config.metric_title)
+        metric_table.savefig(config.metric_table)
+
+    # Create and save scaling plot
+    if not config.no_scaling_plot:
+        scaling_plot = metrics.plot_scaling(title=config.scaling_title)
+        scaling_plot.savefig(config.scaling_plot)
+
+    # Save metrics as csv
+    if not config.no_csv:
+        metrics.metric_data.to_csv(config.csv, index=False)
+
+
+def openmp_cli_metrics():
+    """Entrypoint for pypop-hybrid-metrics script
+    """
+
+    config = _mpi_parse_args()
+
+    if config.paramedir_path:
+        set_paramedir_path(config.paramedir_path)
+
+    if config.dimemas_path:
+        set_dimemas_path(config.dimemas_path)
+
+    statistics = TraceSet(config.traces)
+
+    metrics = OpenMP_Metrics(statistics)
 
     # Create and save table
     if not config.no_metric_table:
@@ -162,7 +193,7 @@ def hybrid_cli_metrics():
 
     statistics = TraceSet(config.traces)
 
-    metrics = MPI_OpenMP_Metrics(statistics.by_commsize())
+    metrics = MPI_OpenMP_Metrics(statistics)
 
     # Create and save table
     if not config.no_metric_table:
