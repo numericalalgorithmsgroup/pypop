@@ -56,6 +56,7 @@ class MetricSet:
 
     _default_metric_key = None
     _default_group_key = None
+    _default_scaling_key = "Total Threads"
 
     _key_descriptions = {
         "Number of Processes": "",
@@ -376,7 +377,7 @@ class MetricSet:
             Figure containing complete scaling plot.
         """
         if x_key == "auto":
-            x_key = self._default_metric_key
+            x_key = self._default_scaling_key
 
         with mpl.rc_context(pypop_mpl_params):
             return self._plot_scaling(x_key, y_key, label, title)
