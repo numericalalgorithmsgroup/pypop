@@ -74,10 +74,10 @@ class MetricSet:
             used as the dataframe index. If a list, a dict will be constructed by
             enumeration.
 
-        ref_key: scalar
+        ref_key: str or None
             Key of stats_dict that should be used as the reference for calculation of
-            scaling values.  If not specified, the lexical minimum key will be used (i.e
-            ``min(stats_dict.keys())``.
+            scaling values.  By default the trace with smallest number of processes and
+            smallest number of threads per process will be used.
 
         sort_keys: bool
             If true (default), lexically sort the keys in the returned DataFrame.
@@ -85,14 +85,30 @@ class MetricSet:
 
         self._stats_dict = MetricSet._dictify_stats(stats_data)
         self._metric_data = None
-        self._ref_key = ref_key
         self._sort_keys = sort_keys
+        self._ref_key = (
+            self._choose_ref_key(self._stats_dict) if ref_key is None else ref_key
+        )
 
     def _calculate_metrics(self):
         raise NotImplementedError
 
     def _repr_html_(self):
         return self.metric_data._repr_html_()
+
+    @staticmethod
+    def _choose_ref_key(stats_dict):
+        """ Take the stats dict and choose an appropriate reference trace.
+
+        As a default choice choose the smallest number of processes, breaking ties with
+        smallest number of threads per process
+        """
+
+        sort_key = lambda x: "{:05}_{:05}".format(
+            x[1].metadata.num_processes, x[1].metadata.threads_per_process[0]
+        )
+
+        return min(stats_dict.items(), key=sort_key)[0]
 
     @property
     def metric_data(self):
