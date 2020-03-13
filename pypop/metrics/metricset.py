@@ -17,6 +17,7 @@ import matplotlib.table as mt
 import matplotlib.ticker as mtick
 
 from ..trace import Trace
+from ..traceset import TraceSet
 from .._plotsettings import pypop_mpl_params, figparams
 
 __all__ = ["Metric", "MetricSet"]
@@ -54,12 +55,20 @@ class MetricSet:
     """
 
     _default_metric_key = None
+    _default_group_key = None
 
-    def __init__(self, stats_dict, ref_key=None, sort_keys=True):
+    _key_descriptions = {
+        "Number of Processes": "",
+        "Threads per Process": "",
+        "Total Threads": "",
+        "Hybrid Layout": "",
+    }
+
+    def __init__(self, stats_data, ref_key=None, sort_keys=True):
         """
         Parameters
         ----------
-        stats_dict: dict or list of `pd.DataFrame`
+        stats_data: TraceSet instance, dict, iterable or instance of Trace
             Statistics as collected with `collect_statistics()`. Dictionary keys will be
             used as the dataframe index. If a list, a dict will be constructed by
             enumeration.
@@ -73,16 +82,7 @@ class MetricSet:
             If true (default), lexically sort the keys in the returned DataFrame.
         """
 
-        if not isinstance(stats_dict, dict):
-            stats_dict = {k: v for k, v in enumerate(stats_dict)}
-
-        for df in stats_dict.values():
-            if not isinstance(df, Trace):
-                raise ValueError(
-                    "stats_dict must be an iterable of pypop.traceset.RunData"
-                )
-
-        self._stats_dict = stats_dict
+        self._stats_dict = MetricSet._dictify_stats(stats_data)
         self._metric_data = None
         self._ref_key = ref_key
         self._sort_keys = sort_keys
@@ -100,6 +100,22 @@ class MetricSet:
         if self._metric_data is None:
             self._calculate_metrics(ref_key=self._ref_key)
         return self._metric_data
+
+    @staticmethod
+    def _dictify_stats(stats_data):
+        if isinstance(stats_data, TraceSet):
+            return {k: v for k, v in enumerate(stats_data.traces)}
+        else:
+            if isinstance(stats_data, Trace):
+                return {0: stats_data}
+            if not isinstance(stats_data, dict):
+                stats_data = {k: v for k, v in enumerate(stats_data)}
+
+        for df in stats_data.values():
+            if not isinstance(df, Trace):
+                raise ValueError("stats_dict must be an iterable of pypop.trace.Trace")
+
+            return stats_data
 
     @property
     def metrics(self):

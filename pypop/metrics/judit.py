@@ -32,7 +32,8 @@ class Judit_Hybrid_Metrics(MetricSet):
         Metric("IPC Scaling", 2, "IPC Scaling"),
     ]
 
-    _default_metric_key = "Hybrid Layout"
+    _default_metric_key = "Number of Processes"
+    _default_group_key = "Threads per Process"
 
     def _calculate_metrics(self, ref_key=None, sort_keys=True):
         if not ref_key:
