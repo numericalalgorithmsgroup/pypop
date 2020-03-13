@@ -28,6 +28,17 @@ import matplotlib.colors as mc
 from bokeh.plotting import figure
 from bokeh.models import HoverTool
 from bokeh.colors import RGB
+from bokeh.palettes import all_palettes, linear_palette
+
+
+def build_discrete_cmap(factors):
+
+    if len(factors) <= 10:
+        cmap = all_palettes["Category10"][10]
+    else:
+        cmap = linear_palette("Turbo256", len(factors))
+
+    return {k: v for k, v in zip(factors, cmap)}
 
 
 class ValidatingChooser(VBox):
@@ -200,6 +211,7 @@ class AutoMetricsGUI(Tab):
         )
 
         self._metrics_display = None
+        self._scaling_plot = None
         self._metric_calculator = metric_calc
 
         super().__init__(
@@ -227,6 +239,20 @@ class AutoMetricsGUI(Tab):
 
         self._metrics_display = metrics_display
         metrics_display._plot_table()
+
+        scaling_plot = ScalingPlot(metrics)
+
+        if self._scaling_plot is None:
+            self.children = self.children + (scaling_plot,)
+            self.set_title(2, "Scaling Plot")
+        else:
+            self._scaling_plot.close()
+            new_children = list(self.children)
+            new_children[2] = scaling_plot
+            self.children = new_children
+
+        self._scaling_plot = scaling_plot
+        scaling_plot._build_plot()
 
 
 def approx_string_em_width(string):
@@ -493,5 +519,102 @@ class MetricTable(BokehWidget):
             text_baseline="middle",
             text_font_size="{}pt".format(self._fontsize),
         )
+
+        self.update()
+
+
+class ScalingPlot(BokehWidget):
+    def __init__(
+        self,
+        metrics: MetricSet,
+        scaling_variable="Speedup",
+        independent_variable="auto",
+        group_key="auto",
+        title="None",
+        fontsize=14,
+        **kwargs
+    ):
+
+        self._metrics = metrics
+        super().__init__()
+
+        self._group_key = (
+            self._metrics._default_group_key if group_key == "auto" else group_key
+        )
+
+        self._xaxis_key = (
+            self._metrics._default_scaling_key
+            if independent_variable == "auto"
+            else independent_variable
+        )
+        self._yaxis_key = scaling_variable
+
+        self._fontsize = fontsize
+
+    def _build_plot(self):
+
+        # Geometry calculations - currently fix width at 60em height at 40em
+        pt_to_px = 96 / 72
+        font_px = self._fontsize * pt_to_px
+        width = int(60 * font_px)
+        height = int(40 * font_px)
+
+        plot_data = self._metrics.metric_data[
+            [self._xaxis_key, self._yaxis_key, self._group_key]
+        ].sort_values(self._group_key).copy()
+
+        plot_data["Plotgroups"] = plot_data[self._group_key].apply(
+            lambda x: "{} {}".format(x, self._group_key)
+        )
+
+        color_map = build_discrete_cmap(plot_data["Plotgroups"].unique())
+
+        x_lims = plot_data[self._xaxis_key].min(), plot_data[self._xaxis_key].max()
+        x_range = x_lims[1] - x_lims[0]
+        x_range = x_lims[0] - 0.1 * x_range, x_lims[1] + 0.1 * x_range
+        y_lims = plot_data[self._yaxis_key].min(), plot_data[self._yaxis_key].max()
+        y_range = y_lims[1] - y_lims[0]
+        y_range = y_lims[0] - 0.1 * y_range, y_lims[1] + 0.1 * y_range
+
+        self._figure = figure(
+            plot_width=width,
+            plot_height=height,
+            tools=["save"],
+            min_border=0,
+            sizing_mode="scale_both",
+            x_range=x_range,
+            y_range=y_range,
+        )
+
+        self._figure.xaxis.axis_label_text_font_size = "{}pt".format(self._fontsize)
+        self._figure.xaxis.major_label_text_font_size = "{}pt".format(self._fontsize - 1)
+        self._figure.yaxis.axis_label_text_font_size = "{}pt".format(self._fontsize)
+        self._figure.yaxis.major_label_text_font_size = "{}pt".format(self._fontsize - 1)
+
+        self._figure.xaxis.axis_label = self._xaxis_key
+        self._figure.yaxis.axis_label = self._yaxis_key
+
+        for group, groupdata in plot_data.groupby("Plotgroups", sort=False):
+            groupdata = groupdata.sort_values(self._xaxis_key)
+            self._figure.square(
+                x=self._xaxis_key,
+                y=self._yaxis_key,
+                legend_label=group,
+                source=groupdata,
+                color=color_map[group],
+                size=10,
+                angle=numpy.pi / 4,
+            )
+            self._figure.line(
+                x=self._xaxis_key,
+                y=self._yaxis_key,
+                legend_label=group,
+                source=groupdata,
+                line_color=color_map[group],
+                line_width=1.5,
+                alpha=0.6,
+            )
+
+        self._figure.legend.location = "top_left"
 
         self.update()

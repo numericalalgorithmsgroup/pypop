@@ -56,6 +56,7 @@ class MetricSet:
 
     _default_metric_key = None
     _default_group_key = None
+    _default_scaling_key = "Total Threads"
 
     _key_descriptions = {
         "Number of Processes": "",
