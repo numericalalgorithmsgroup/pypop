@@ -559,9 +559,13 @@ class ScalingPlot(BokehWidget):
         width = int(60 * font_px)
         height = int(40 * font_px)
 
-        plot_data = self._metrics.metric_data[
-            [self._xaxis_key, self._yaxis_key, self._group_key]
-        ].sort_values(self._group_key).copy()
+        plot_data = (
+            self._metrics.metric_data[
+                [self._xaxis_key, self._yaxis_key, self._group_key]
+            ]
+            .sort_values(self._group_key)
+            .copy()
+        )
 
         plot_data["Plotgroups"] = plot_data[self._group_key].apply(
             lambda x: "{} {}".format(x, self._group_key)
