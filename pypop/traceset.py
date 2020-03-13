@@ -176,7 +176,7 @@ class TraceSet:
 
         This is a helper function equivalent to
 
-        by_key(lambda x: x.metadata.rank_threads[0])
+        by_key(lambda x: x.metadata.threads_per_process[0])
 
         Returns
         -------
@@ -185,3 +185,26 @@ class TraceSet:
         """
 
         return self.by_key(lambda x: x.metadata.threads_per_process[0])
+
+    def by_hybrid_layout(self):
+        """Return a dictionary of traces keyed by hybrid layout
+
+        This is a helper function equivalent to
+
+        by_key(
+            lambda x: "{}x{}".format(
+                x.metadata.num_processes, x.metadata.threads_per_process[0]
+            )
+        )
+
+        Returns
+        -------
+        traces_by_key: dict
+            A dictionary of traces organised by the requested key
+        """
+
+        return self.by_key(
+            lambda x: "{}x{}".format(
+                x.metadata.num_processes, x.metadata.threads_per_process[0]
+            )
+        )
