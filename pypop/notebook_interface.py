@@ -43,7 +43,6 @@ class ValidatingChooser(VBox):
 
         super().__init__(children=[self._filechooser], **kwargs)
 
-
     def set_file_select_callback(self, callback):
 
         self._filechooser.register_callback(callback)
@@ -212,9 +211,9 @@ class AutoMetricsGUI(Tab):
     def _calculate_callback_hook(self, callback_reference=None):
 
         statistics = TraceSet(
-            self._fileselector.filenames, ignore_cache=False, chop_to_roi=True
+            self._fileselector.filenames, force_recalculation=False, chop_to_roi=True
         )
-        metrics = self._metric_calculator(statistics.by_commsize())
+        metrics = self._metric_calculator(statistics)
         metrics_display = MetricTable(metrics)
 
         if self._metrics_display is None:
@@ -241,54 +240,94 @@ def approx_string_em_width(string):
 
 
 class MetricTable(BokehWidget):
-    def __init__(self, metrics: MetricSet, **kwargs):
+    def __init__(
+        self,
+        metrics: MetricSet,
+        columns_key="auto",
+        group_key="auto",
+        title=None,
+        columns_label=None,
+        fontsize=14,
+        **kwargs
+    ):
         self._metrics = metrics
         super().__init__()
 
+        self._columns_key = (
+            self._metrics._default_metric_key if columns_key == "auto" else columns_key
+        )
+        self._group_key = (
+            self._metrics._default_group_key if group_key == "auto" else group_key
+        )
+
+        self._fontsize = fontsize
+        self._metric_name_column_text = []
+        self._metric_descriptions = []
         self._setup_geometry()
 
     def _setup_geometry(self):
 
-        # Geometry calculations:
+        # Geometry calculations, N.B don't include a group-by row here:
         self._nrows = len(self._metrics.metrics) + 1
         self._ncols = len(self._metrics.metric_data.index)
 
         pt_to_px = 96 / 72
-        self._fontsize = 16
         font_px = self._fontsize * pt_to_px
         self._cell_height = font_px * 2.2
         self._row_locs = numpy.linspace(
             0, -self._cell_height * (self._nrows - 1), self._nrows
         )
 
-        metric_name_column_width = 0
-        self._metric_name_column_text = ["Number of Processes"]
-        self._metric_descriptions = [
-            "The number of processes the application was run on"
-        ]
-        for i, metric in enumerate(self._metrics.metrics):
+        # Offset rows if there will be a header row
+        if self._group_key is not None:
+            self._row_locs -= self._cell_height
+
+        # Calculate required key column width
+        self._metric_name_column_text.append(self._columns_key)
+        self._metric_descriptions.append(
+            self._metrics._key_descriptions[self._columns_key]
+        )
+        max_metric_em_width = approx_string_em_width(self._columns_key)
+
+        # group_key width
+        if self._group_key is not None:
+            max_metric_em_width = max(
+                max_metric_em_width, approx_string_em_width(self._group_key)
+            )
+
+        # metric name widths
+        for metric in self._metrics.metrics:
             self._metric_name_column_text.append(metric.key)
             self._metric_descriptions.append(metric.description)
-            metric_name_column_width = max(
-                metric_name_column_width, approx_string_em_width(metric.key)
+            max_metric_em_width = max(
+                max_metric_em_width, approx_string_em_width(metric.key)
+            )
+
+        # Calculate required value column width
+        max_value_em_width = approx_string_em_width("0.00")
+        for keyname in self._metrics.metric_data[self._columns_key]:
+            max_value_em_width = max(
+                max_value_em_width, approx_string_em_width("{}".format(keyname))
             )
 
         self._border_pad = 20  # px
         self._left_pad = font_px / 2
         self._right_pad = font_px / 3
         self._metric_column_width = 1.1 * (
-            metric_name_column_width * font_px + self._left_pad + self._right_pad
+            max_metric_em_width * font_px + self._left_pad + self._right_pad
         )
         self._value_column_width = 1.1 * (
-            approx_string_em_width("0.00") * font_px + self._left_pad + self._right_pad
+            max_value_em_width * font_px + self._left_pad + self._right_pad
         )
 
     def _init_figure(self):
         plot_width = (
             int(self._metric_column_width + self._ncols * self._value_column_width)
             + self._border_pad
-        )  # 20 px padding at edge
-        plot_height = int(self._cell_height * self._nrows) + self._border_pad  # px
+        )  # px
+        plot_height = int(
+            0.0 - self._row_locs.min() + self._cell_height + self._border_pad
+        )  # px
 
         tooltip_template = """
 <div style="width:{}px;color:#060684;font-family:sans;font-weight:bold;font-size:{}pt;">
@@ -337,28 +376,72 @@ class MetricTable(BokehWidget):
             "POP_Metrics", colors=cmap_points, N=256, gamma=1
         )
 
+        if self._group_key is not None:
+            group_iter = [
+                (k, v)
+                for k, v in self._metrics.metric_data.groupby(
+                    self._group_key, axis="rows"
+                )
+            ]
+        else:
+            group_iter = [(1, self._metrics.metric_data)]
+
+        # list of dataframes we will concatenate later
+        plotdata = []
+
+        # Optional grouping header row
+        if self._group_key is not None:
+            groupsizes = [g[1].index.shape[0] for g in group_iter]
+            num_groups = len(groupsizes) + 1
+            edges = numpy.cumsum(
+                [0.0, self._metric_column_width]
+                + [self._value_column_width * nc for nc in groupsizes]
+            )
+            left_edges = edges[:-1]
+            right_edges = edges[1:]
+            plotdata.append(
+                pandas.DataFrame(
+                    {
+                        "left_edges": left_edges,
+                        "right_edges": right_edges,
+                        "top_edges": numpy.full(
+                            num_groups, self._row_locs[0] + self._cell_height
+                        ),
+                        "bottom_edges": numpy.full(num_groups, self._row_locs[0]),
+                        "cell_fills": numpy.full(num_groups, RGB(255, 255, 255)),
+                        "data": [self._group_key]
+                        + ["{}".format(g[0]) for g in group_iter],
+                        "short_desc": [self._group_key] * num_groups,
+                        "long_desc": [self._metrics._key_descriptions[self._group_key]]
+                        * num_groups,
+                    }
+                )
+            )
+
         # Label column
-        plotdata = pandas.DataFrame(
-            {
-                "left_edges": numpy.zeros(self._nrows),
-                "right_edges": numpy.full(self._nrows, self._metric_column_width),
-                "top_edges": self._row_locs,
-                "bottom_edges": self._row_locs - self._cell_height,
-                "cell_fills": numpy.full(self._nrows, RGB(255, 255, 255)),
-                "data": self._metric_name_column_text,
-                "short_desc": self._metric_name_column_text,
-                "long_desc": self._metric_descriptions,
-            }
+        plotdata.append(
+            pandas.DataFrame(
+                {
+                    "left_edges": numpy.zeros(self._nrows),
+                    "right_edges": numpy.full(self._nrows, self._metric_column_width),
+                    "top_edges": self._row_locs,
+                    "bottom_edges": self._row_locs - self._cell_height,
+                    "cell_fills": numpy.full(self._nrows, RGB(255, 255, 255)),
+                    "data": self._metric_name_column_text,
+                    "short_desc": self._metric_name_column_text,
+                    "long_desc": self._metric_descriptions,
+                }
+            ),
         )
 
-        right_edges = plotdata["right_edges"].values
+        right_edges = plotdata[-1]["right_edges"].values
 
-        for icol, idx in enumerate(self._metrics.metric_data.index):
-            left_edges = right_edges
-            right_edges = left_edges + self._value_column_width
-            plotdata = pandas.concat(
-                (
-                    plotdata,
+        for grouplabel, metricgroup in group_iter:
+            metricgroup = metricgroup.sort_values(self._columns_key)
+            for _, coldata in metricgroup.iterrows():
+                left_edges = right_edges
+                right_edges = left_edges + self._value_column_width
+                plotdata.append(
                     pandas.DataFrame(
                         {
                             "left_edges": left_edges,
@@ -370,18 +453,14 @@ class MetricTable(BokehWidget):
                                 RGB(
                                     *(
                                         int(255 * x)
-                                        for x in metric_cmap(
-                                            self._metrics.metric_data[metric.key][idx]
-                                        )[:3]
+                                        for x in metric_cmap(coldata[metric.key])[:3]
                                     )
                                 )
                                 for metric in self._metrics.metrics
                             ],
-                            "data": ["{}".format(idx)]
+                            "data": ["{}".format(coldata[self._columns_key])]
                             + [
-                                "{:.2f}".format(
-                                    self._metrics.metric_data[metric.key][idx]
-                                )
+                                "{:.2f}".format(coldata[metric.key])
                                 for metric in self._metrics.metrics
                             ],
                             "short_desc": self._metric_name_column_text,
@@ -389,7 +468,8 @@ class MetricTable(BokehWidget):
                         }
                     ),
                 )
-            )
+
+        plotdata = pandas.concat(plotdata)
 
         self.figure.quad(
             left="left_edges",
