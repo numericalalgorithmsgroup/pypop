@@ -212,7 +212,7 @@ class MetricSet:
             Figure containing the metrics table.
         """
 
-        if columns_key == "auto":
+        if columns_key is None or columns_key == "auto":
             columns_key = self._default_metric_key
 
         with mpl.rc_context(pypop_mpl_params):
@@ -376,8 +376,8 @@ class MetricSet:
         figure: matplotlib.figure.Figure
             Figure containing complete scaling plot.
         """
-        if x_key == "auto":
-            x_key = self._default_metric_key
+        if x_key is None or x_key == "auto":
+            x_key = self._default_scaling_key
 
         with mpl.rc_context(pypop_mpl_params):
             return self._plot_scaling(x_key, y_key, label, title)

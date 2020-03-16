@@ -4,14 +4,19 @@
 
 """CLI Analysis scripts"""
 
+from os import getcwd
+from os.path import expanduser, join as path_join, normpath
+from shutil import copytree, Error as shutil_error
+
 from matplotlib import use
 
 use("agg")
 
 from .traceset import TraceSet
-from .metrics import MPI_Metrics, MPI_OpenMP_Metrics
+from .metrics import MPI_Metrics, MPI_OpenMP_Metrics, OpenMP_Metrics
 from .dimemas import dimemas_idealise
 from .config import set_dimemas_path, set_paramedir_path, set_tmpdir_path
+from .examples import examples_directory
 
 from argparse import ArgumentParser
 
@@ -33,10 +38,12 @@ def _dimemas_idealise_parse_args():
     return parser.parse_args()
 
 
-def _mpi_parse_args():
+def _cli_metrics_parse_args(metric_name="MPI"):
 
     # make an argument parser
-    parser = ArgumentParser(description="Calculate POP MPI strong scaling metrics")
+    parser = ArgumentParser(
+        description="Calculate POP {} strong scaling metrics".format(metric_name)
+    )
 
     # First define collection of traces
     parser.add_argument(
@@ -79,8 +86,24 @@ def _mpi_parse_args():
     )
 
     # Output Customisation
-    parser.add_argument("--metric-title", type=str, help="Title of metric table")
+    parser.add_argument("--table-title", type=str, help="Title of metric table")
+    parser.add_argument(
+        "--table-key", type=str, default="auto", help="Key to use for table columns"
+    )
+    parser.add_argument(
+        "--table-group",
+        type=str,
+        default="auto",
+        help="Key to use for table column grouping",
+    )
+
     parser.add_argument("--scaling-title", type=str, help="Title of scaling plot")
+    parser.add_argument(
+        "--scaling-key",
+        type=str,
+        default="auto",
+        help="Key to use for independent variable in scaling plot",
+    )
 
     return parser.parse_args()
 
@@ -96,7 +119,9 @@ def _preprocess_traces_parse_args():
     )
 
     parser.add_argument(
-        "--force-recalculation", action="store_true", help="Force recalculation & overwrite existing data"
+        "--force-recalculation",
+        action="store_true",
+        help="Force recalculation & overwrite existing data",
     )
     parser.add_argument(
         "--chop-to-roi", action="store_true", help="Chop to region of interest"
@@ -108,10 +133,16 @@ def _preprocess_traces_parse_args():
         "--dimemas-path", type=str, metavar="PATH", help="Path to Dimemas executable"
     )
     parser.add_argument(
-        "--outfile-path", type=str, metavar="PATH", help="Path in which to save chopped/ideal traces"
+        "--outfile-path",
+        type=str,
+        metavar="PATH",
+        help="Path in which to save chopped/ideal traces",
     )
     parser.add_argument(
-        "--tmpdir-path", type=str, metavar="PATH", help="Path for PyPOP to save temporary files"
+        "--tmpdir-path",
+        type=str,
+        metavar="PATH",
+        help="Path for PyPOP to save temporary files",
     )
 
     return parser.parse_args()
@@ -121,7 +152,7 @@ def mpi_cli_metrics():
     """Entrypoint for pypop-mpi-metrics script
     """
 
-    config = _mpi_parse_args()
+    config = _cli_metrics_parse_args("MPI")
 
     if config.paramedir_path:
         set_paramedir_path(config.paramedir_path)
@@ -131,16 +162,55 @@ def mpi_cli_metrics():
 
     statistics = TraceSet(config.traces)
 
-    metrics = MPI_Metrics(statistics.by_commsize())
+    metrics = MPI_Metrics(statistics)
 
     # Create and save table
     if not config.no_metric_table:
-        metric_table = metrics.plot_table(title=config.metric_title)
+        metric_table = metrics.plot_table(
+            title=config.table_title, columns_key=config.table_key
+        )
         metric_table.savefig(config.metric_table)
 
     # Create and save scaling plot
     if not config.no_scaling_plot:
-        scaling_plot = metrics.plot_scaling(title=config.scaling_title)
+        scaling_plot = metrics.plot_scaling(
+            title=config.scaling_title, x_key=config.scaling_key
+        )
+        scaling_plot.savefig(config.scaling_plot)
+
+    # Save metrics as csv
+    if not config.no_csv:
+        metrics.metric_data.to_csv(config.csv, index=False)
+
+
+def openmp_cli_metrics():
+    """Entrypoint for pypop-hybrid-metrics script
+    """
+
+    config = _cli_metrics_parse_args("OpenMP")
+
+    if config.paramedir_path:
+        set_paramedir_path(config.paramedir_path)
+
+    if config.dimemas_path:
+        set_dimemas_path(config.dimemas_path)
+
+    statistics = TraceSet(config.traces)
+
+    metrics = OpenMP_Metrics(statistics)
+
+    # Create and save table
+    if not config.no_metric_table:
+        metric_table = metrics.plot_table(
+            title=config.table_title, columns_key=config.table_key
+        )
+        metric_table.savefig(config.metric_table)
+
+    # Create and save scaling plot
+    if not config.no_scaling_plot:
+        scaling_plot = metrics.plot_scaling(
+            title=config.scaling_title, x_key=config.scaling_key
+        )
         scaling_plot.savefig(config.scaling_plot)
 
     # Save metrics as csv
@@ -152,7 +222,7 @@ def hybrid_cli_metrics():
     """Entrypoint for pypop-hybrid-metrics script
     """
 
-    config = _mpi_parse_args()
+    config = _cli_metrics_parse_args("hybrid MPI+OpenMP")
 
     if config.paramedir_path:
         set_paramedir_path(config.paramedir_path)
@@ -162,16 +232,20 @@ def hybrid_cli_metrics():
 
     statistics = TraceSet(config.traces)
 
-    metrics = MPI_OpenMP_Metrics(statistics.by_commsize())
+    metrics = MPI_OpenMP_Metrics(statistics)
 
     # Create and save table
     if not config.no_metric_table:
-        metric_table = metrics.plot_table(title=config.metric_title)
+        metric_table = metrics.plot_table(
+            title=config.table_title, columns_key=config.table_key
+        )
         metric_table.savefig(config.metric_table)
 
     # Create and save scaling plot
     if not config.no_scaling_plot:
-        scaling_plot = metrics.plot_scaling(title=config.scaling_title)
+        scaling_plot = metrics.plot_scaling(
+            title=config.scaling_title, x_key=config.scaling_key
+        )
         scaling_plot.savefig(config.scaling_plot)
 
     # Save metrics as csv
@@ -190,11 +264,16 @@ def preprocess_traces():
 
     if config.dimemas_path:
         set_dimemas_path(config.dimemas_path)
-        
+
     if config.tmpdir_path:
         set_tmpdir_path(config.tmpdir_path)
-        
-    TraceSet(config.traces, force_recalculation=config.force_recalculation, chop_to_roi=config.chop_to_roi, outpath=config.outfile_path)
+
+    TraceSet(
+        config.traces,
+        force_recalculation=config.force_recalculation,
+        chop_to_roi=config.chop_to_roi,
+        outpath=config.outfile_path,
+    )
 
 
 def dimemas_idealise():
@@ -209,3 +288,37 @@ def dimemas_idealise():
     for tracefile in tqdm(config.traces, desc="Running Dimemas"):
         outfile = tracefile.split(".prv")[0] + ".sim.prv"
         dimemas_idealise(tracefile, outfile)
+
+
+def _copy_examples_parse_args():
+
+    # make an argument parser
+    parser = ArgumentParser(description="Copy PyPOP example files to a user directory")
+
+    # First define collection of traces
+    parser.add_argument(
+        "target_dir",
+        type=str,
+        nargs="?",
+        metavar="dir",
+        help="Target directory (default is current working dir)",
+    )
+
+    return parser.parse_args()
+
+
+def copy_examples():
+    """Entrypoint for example copy routine
+    """
+
+    config = _copy_examples_parse_args()
+
+    outpath = getcwd() if config.target_dir is None else expanduser(config.target_dir)
+
+    outpath = normpath(path_join(outpath, "pypop_examples"))
+
+    try:
+        copytree(examples_directory(), outpath)
+    except shutil_error as err:
+        print("Copy failed: {}".format(str(err)))
+        return -1
