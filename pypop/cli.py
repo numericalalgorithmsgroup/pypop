@@ -38,10 +38,12 @@ def _dimemas_idealise_parse_args():
     return parser.parse_args()
 
 
-def _mpi_parse_args():
+def _cli_metrics_parse_args(metric_name="MPI"):
 
     # make an argument parser
-    parser = ArgumentParser(description="Calculate POP MPI strong scaling metrics")
+    parser = ArgumentParser(
+        description="Calculate POP {} strong scaling metrics".format(metric_name)
+    )
 
     # First define collection of traces
     parser.add_argument(
@@ -134,7 +136,7 @@ def mpi_cli_metrics():
     """Entrypoint for pypop-mpi-metrics script
     """
 
-    config = _mpi_parse_args()
+    config = _cli_metrics_parse_args("MPI")
 
     if config.paramedir_path:
         set_paramedir_path(config.paramedir_path)
@@ -165,7 +167,7 @@ def openmp_cli_metrics():
     """Entrypoint for pypop-hybrid-metrics script
     """
 
-    config = _mpi_parse_args()
+    config = _cli_metrics_parse_args("OpenMP")
 
     if config.paramedir_path:
         set_paramedir_path(config.paramedir_path)
@@ -196,7 +198,7 @@ def hybrid_cli_metrics():
     """Entrypoint for pypop-hybrid-metrics script
     """
 
-    config = _mpi_parse_args()
+    config = _cli_metrics_parse_args("hybrid MPI+OpenMP")
 
     if config.paramedir_path:
         set_paramedir_path(config.paramedir_path)
@@ -283,11 +285,9 @@ def copy_examples():
 
     config = _copy_examples_parse_args()
 
-    outpath = (
-        getcwd() if config.target_dir is None else expanduser(config.target_dir)
-    )
+    outpath = getcwd() if config.target_dir is None else expanduser(config.target_dir)
 
-    outpath = normpath(path_join(outpath, 'pypop_examples'))
+    outpath = normpath(path_join(outpath, "pypop_examples"))
 
     try:
         copytree(examples_directory(), outpath)
