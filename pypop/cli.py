@@ -4,6 +4,10 @@
 
 """CLI Analysis scripts"""
 
+from os import getcwd
+from os.path import expanduser, join as path_join, normpath
+from shutil import copytree, Error as shutil_error
+
 from matplotlib import use
 
 use("agg")
@@ -12,6 +16,7 @@ from .traceset import TraceSet
 from .metrics import MPI_Metrics, MPI_OpenMP_Metrics
 from .dimemas import dimemas_idealise
 from .config import set_dimemas_path, set_paramedir_path, set_tmpdir_path
+from .examples import examples_directory
 
 from argparse import ArgumentParser
 
@@ -96,7 +101,9 @@ def _preprocess_traces_parse_args():
     )
 
     parser.add_argument(
-        "--force-recalculation", action="store_true", help="Force recalculation & overwrite existing data"
+        "--force-recalculation",
+        action="store_true",
+        help="Force recalculation & overwrite existing data",
     )
     parser.add_argument(
         "--chop-to-roi", action="store_true", help="Chop to region of interest"
@@ -108,10 +115,16 @@ def _preprocess_traces_parse_args():
         "--dimemas-path", type=str, metavar="PATH", help="Path to Dimemas executable"
     )
     parser.add_argument(
-        "--outfile-path", type=str, metavar="PATH", help="Path in which to save chopped/ideal traces"
+        "--outfile-path",
+        type=str,
+        metavar="PATH",
+        help="Path in which to save chopped/ideal traces",
     )
     parser.add_argument(
-        "--tmpdir-path", type=str, metavar="PATH", help="Path for PyPOP to save temporary files"
+        "--tmpdir-path",
+        type=str,
+        metavar="PATH",
+        help="Path for PyPOP to save temporary files",
     )
 
     return parser.parse_args()
@@ -190,11 +203,16 @@ def preprocess_traces():
 
     if config.dimemas_path:
         set_dimemas_path(config.dimemas_path)
-        
+
     if config.tmpdir_path:
         set_tmpdir_path(config.tmpdir_path)
-        
-    TraceSet(config.traces, force_recalculation=config.force_recalculation, chop_to_roi=config.chop_to_roi, outpath=config.outfile_path)
+
+    TraceSet(
+        config.traces,
+        force_recalculation=config.force_recalculation,
+        chop_to_roi=config.chop_to_roi,
+        outpath=config.outfile_path,
+    )
 
 
 def dimemas_idealise():
@@ -209,3 +227,39 @@ def dimemas_idealise():
     for tracefile in tqdm(config.traces, desc="Running Dimemas"):
         outfile = tracefile.split(".prv")[0] + ".sim.prv"
         dimemas_idealise(tracefile, outfile)
+
+
+def _copy_examples_parse_args():
+
+    # make an argument parser
+    parser = ArgumentParser(description="Copy PyPOP example files to a user directory")
+
+    # First define collection of traces
+    parser.add_argument(
+        "target_dir",
+        type=str,
+        nargs="?",
+        metavar="dir",
+        help="Target directory (default is current working dir)",
+    )
+
+    return parser.parse_args()
+
+
+def copy_examples():
+    """Entrypoint for example copy routine
+    """
+
+    config = _copy_examples_parse_args()
+
+    outpath = (
+        getcwd() if config.target_dir is None else expanduser(config.target_dir)
+    )
+
+    outpath = normpath(path_join(outpath, 'pypop_examples'))
+
+    try:
+        copytree(examples_directory(), outpath)
+    except shutil_error as err:
+        print("Copy failed: {}".format(str(err)))
+        return -1
