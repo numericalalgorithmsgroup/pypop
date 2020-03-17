@@ -4,24 +4,124 @@
 
 from ipywidgets import Tab, Layout
 
+from ..metrics.metricset import MetricSet
 from ..traceset import TraceSet
 from .fileselector import FileSelector
 from .plotting import MetricTable, ScalingPlot
 from .reporting import ReportGenerator
 
 
+class TypeAsserter:
+
+    _expected = None
+
+    def __call__(self, testobj):
+        if not self.check_type(testobj):
+            raise TypeError(
+                "Expected {} not {}".format(self._expected, testobj.__class__.__name__)
+            )
+        return True
+
+    def check_type(self, testobj):
+        raise NotImplementedError()
+
+
+class SimpleAsserter(TypeAsserter):
+
+    def check_type(self, testobj):
+        if isinstance(testobj, self._assert_cls):
+            return True
+
+    @staticmethod
+    def create(assert_cls):
+        asserter = SimpleAsserter()
+        asserter._assert_cls = assert_cls
+        asserter._expected = assert_cls.__name__
+        return asserter
+
+
+class ListofStrAsserter(TypeAsserter):
+    _expected = "list of str"
+
+    def check_type(self, testobj):
+        if isinstance(testobj, list) and all(isinstance(x, str) for x in testobj):
+            return True
+
+
+class AnalysisState:
+
+    _required_params = {
+        "trace_files": ListofStrAsserter(),
+        "metrics_object": SimpleAsserter.create(MetricSet),
+    }
+
+    _optional_params = {}
+
+    _all_params = {**_required_params, **_optional_params}
+
+    def __init__(self, **kwargs):
+
+        self._params = {}
+        for key, value in kwargs.items():
+            if key not in AnalysisState._all_params:
+                continue
+
+            asserter = AnalysisState._all_params[key]
+            try:
+                asserter(value)
+            except TypeError as err:
+                raise TypeError("{}: {}".format(key, err))
+
+            self._params[key] = value
+
+    def validate(self, error=True):
+
+        for key in AnalysisState._required_params:
+            if key not in self._params:
+                if error:
+                    raise ValueError("Missing required parameter {}".format(key))
+                return False
+
+        return True
+
+    def __getitem__(self, key):
+
+        if key in self._all_params:
+            try:
+                return self._params[key]
+            except KeyError:
+                return None
+
+    def __setitem__(self, key, value):
+
+        if key not in AnalysisState._all_params:
+            raise KeyError('Invalid parameter key: "{}"'.format(key))
+
+        asserter = AnalysisState._all_params[key]
+        try:
+            asserter(value)
+        except TypeError as err:
+            raise TypeError("{}: {}".format(key, err))
+
+        self._params[key] = value
+
+
 class MetricsWizard(Tab):
-    def __init__(self, metric_calc, base_dir=".", starting_files=None, **kwargs):
-        self._fileselector = FileSelector(
-            base_dir=base_dir,
-            starting_files=starting_files,
-            calculation_callback=self._calculate_callback_hook,
-        )
+    def __init__(self, metric_calc="auto", base_dir=".", starting_files=None, **kwargs):
 
         self._metrics_display = None
         self._scaling_plot = None
         self._report_generator = None
         self._metric_calculator = metric_calc
+
+        self._analysis_state = AnalysisState()
+
+        self._fileselector = FileSelector(
+            base_dir=base_dir,
+            starting_files=starting_files,
+            calculation_callback=self._calculate_callback_hook,
+            analysis_state=self._analysis_state,
+        )
 
         super().__init__(
             children=[self._fileselector], layout=Layout(width="auto"), **kwargs
@@ -34,8 +134,13 @@ class MetricsWizard(Tab):
         statistics = TraceSet(
             self._fileselector.filenames, force_recalculation=False, chop_to_roi=True
         )
+        if self._metric_calculator in ("auto", None):
+            self._metric_calculate = statistics.suggested_metrics
+
         metrics = self._metric_calculator(statistics)
-        metrics_display = MetricTable(metrics)
+        self._analysis_state["metrics_object"] = metrics
+
+        metrics_display = MetricTable(metrics, analysis_state=self._analysis_state)
 
         if self._metrics_display is None:
             self.children = self.children + (metrics_display,)
@@ -49,7 +154,7 @@ class MetricsWizard(Tab):
         self._metrics_display = metrics_display
         metrics_display._plot_table()
 
-        scaling_plot = ScalingPlot(metrics)
+        scaling_plot = ScalingPlot(metrics, analysis_state=self._analysis_state)
 
         if self._scaling_plot is None:
             self.children = self.children + (scaling_plot,)
@@ -63,7 +168,7 @@ class MetricsWizard(Tab):
         self._scaling_plot = scaling_plot
         scaling_plot._build_plot()
 
-        report_generator = ReportGenerator()
+        report_generator = ReportGenerator(analysis_state=self._analysis_state)
 
         if self._report_generator is None:
             self.children = self.children + (report_generator,)

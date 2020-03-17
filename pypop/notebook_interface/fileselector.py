@@ -64,7 +64,12 @@ class FileSelector(VBox):
     _container_layout = Layout(padding="0em 1em 0em 1em", width="100%")
 
     def __init__(
-        self, base_dir=".", starting_files=None, calculation_callback=None, **kwargs
+        self,
+        base_dir=".",
+        starting_files=None,
+        calculation_callback=None,
+        analysis_state=None,
+        **kwargs
     ):
         self._base_dir = base_dir
         self._files = (
@@ -73,6 +78,7 @@ class FileSelector(VBox):
             else [normpath(expanduser(path)) for path in starting_files]
         )
         self._calculation_callback = calculation_callback
+        self._analysis_state = analysis_state
 
         self._filechooser_grid = None
         self._filechoosers = None
@@ -176,6 +182,9 @@ class FileSelector(VBox):
 
     def _update_files(self, callback_reference=None):
         self._files = [fc.selected for fc in self._filechoosers]
+
+        if self._analysis_state is not None:
+            self._analysis_state["trace_files"] = self._files
 
     @property
     def filenames(self):
