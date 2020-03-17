@@ -1,258 +1,20 @@
-#!/usr/bin/env/python3
-
-from ipywidgets import (
-    Accordion,
-    Box,
-    HBox,
-    VBox,
-    Checkbox,
-    GridBox,
-    Button,
-    Layout,
-    Label,
-    Tab,
-)
-from ipyfilechooser import FileChooser
-
-from pypop.traceset import TraceSet
-
-from .bokeh_widget import BokehWidget
-
-from .metrics.metricset import MetricSet
+#!/usr/bin/env python3
+# SPDX-License-Identifier: BSD-3-Clause-Clear
+# Copyright (c) 2019, The Numerical Algorithms Group, Ltd. All rights reserved.
 
 import numpy
 import pandas
 
-import matplotlib.colors as mc
-
 from bokeh.plotting import figure
-from bokeh.models import HoverTool
 from bokeh.colors import RGB
 from bokeh.palettes import all_palettes, linear_palette
+from bokeh.models import HoverTool
 
+from matplotlib.colors import LinearSegmentedColormap
 
-def build_discrete_cmap(factors):
+from ..metrics.metricset import MetricSet
 
-    if len(factors) <= 10:
-        cmap = all_palettes["Category10"][10]
-    else:
-        cmap = linear_palette("Turbo256", len(factors))
-
-    return {k: v for k, v in zip(factors, cmap)}
-
-
-class ValidatingChooser(VBox):
-
-    _container_layout = Layout(margin="1em 0em 1em 0em")
-    _msgbox_layout = Layout()
-
-    def __init__(self, starting_file=None, **kwargs):
-
-        self._filechooser = FileChooser(filename=starting_file, select_default=True)
-        self._msgbox = HBox(children=[], layout=self._msgbox_layout)
-        self._validity = None
-
-        super().__init__(children=[self._filechooser], **kwargs)
-
-    def set_file_select_callback(self, callback):
-
-        self._filechooser.register_callback(callback)
-
-    @property
-    def validity(self):
-        return self._validity
-
-    @property
-    def files(self):
-        raise NotImplementedError
-
-    @property
-    def selected(self):
-        return self._filechooser.selected
-
-
-class FileSelector(VBox):
-
-    _button_container_layout = Layout(
-        display="flex",
-        width="100%",
-        justify_content="space-between",
-        margin="1em 0em 1em 0em",
-        padding="0em 0em 0em 0em",
-    )
-    _control_button_layout = Layout(width="10em", margin="0em 2em 0em 0em")
-    _label_layout = Layout(width="2em")
-    _remove_button_layout = Layout(width="2.5em")
-    _grid_layout = Layout(grid_template_columns="2em auto 3em", margin="1em 0em 1em 0em")
-    _container_layout = Layout(padding="0em 1em 0em 1em", width="100%")
-
-    def __init__(
-        self, base_dir=".", starting_files=None, calculation_callback=None, **kwargs
-    ):
-        self._base_dir = base_dir
-        self._files = [None] if starting_files is None else starting_files
-        self._calculation_callback = calculation_callback
-
-        self._filechooser_grid = None
-        self._filechoosers = None
-        self._create_filechoosers()
-        self._update_filechooser_grid()
-
-        self._button_container = None
-        self._add_row_button = None
-        self._create_buttons()
-
-        self._advanced_config_controls = {}
-        self._advanced_config_box = None
-        self._advanced_config_accordion = None
-        self._create_advanced_config_box()
-
-        super().__init__(
-            children=[
-                self._filechooser_grid,
-                self._button_container,
-                self._advanced_config_accordion,
-            ],
-            layout=self._container_layout,
-            **kwargs
-        )
-
-    def _create_buttons(self):
-        self._add_row_button = Button(
-            description="Add File", layout=self._control_button_layout,
-        )
-        self._add_row_button.on_click(self._add_filechooser_row)
-
-        self._calculate_button = Button(
-            description="Analyze",
-            button_style="success",
-            layout=self._control_button_layout,
-        )
-        if self._calculation_callback:
-            self._calculate_button.on_click(self._calculation_callback)
-
-        self._button_container = Box(
-            children=[self._calculate_button, self._add_row_button],
-            layout=self._button_container_layout,
-        )
-
-    def _create_advanced_config_box(self):
-        self._advanced_config_controls["Delete Cache"] = Checkbox(
-            value=False, description="Delete Cache"
-        )
-
-        self._advanced_config_box = VBox(
-            children=tuple(self._advanced_config_controls.values())
-        )
-        self._advanced_config_accordion = Accordion(children=[self._advanced_config_box])
-        self._advanced_config_accordion.set_title(0, "Advanced Configuration")
-        self._advanced_config_accordion.selected_index = None
-
-    def _add_filechooser_row(self, callback_reference=None):
-
-        self._files.append(None)
-        self._update_filechooser_grid()
-
-    def _create_filechoosers(self):
-
-        self._filechoosers = [
-            ValidatingChooser(starting_file=fname) if fname else ValidatingChooser()
-            for fname in self._files
-        ]
-        [fc.set_file_select_callback(self._update_files) for fc in self._filechoosers]
-
-    def _update_filechooser_grid(self):
-        if self._filechooser_grid is None:
-            self._filechooser_grid = GridBox([], layout=self._grid_layout)
-
-        self._create_filechoosers()
-
-        labels = [
-            Label(value="{:d}".format(i + 1), layout=self._label_layout)
-            for i in range(len(self._filechoosers))
-        ]
-        buttons = [
-            Button(
-                description="🗙", button_style="danger", layout=self._remove_button_layout
-            )
-            for i in range(len(self._filechoosers))
-        ]
-        [
-            button.on_click(self._create_row_deleter(i))
-            for i, button in enumerate(buttons)
-        ]
-
-        self._filechooser_grid.children = sum(
-            zip(labels, self._filechoosers, buttons), ()
-        )
-
-    def _create_row_deleter(self, row_num):
-        def deleter(callback_reference=None):
-            self._files.pop(row_num)
-            self._update_filechooser_grid()
-
-        return deleter
-
-    def _update_files(self, callback_reference=None):
-        self._files = [fc.selected for fc in self._filechoosers]
-
-    @property
-    def filenames(self):
-        self._update_files()
-        return [file for file in self._files if file is not None]
-
-
-class AutoMetricsGUI(Tab):
-    def __init__(self, metric_calc, base_dir=".", starting_files=None, **kwargs):
-        self._fileselector = FileSelector(
-            base_dir=base_dir,
-            starting_files=starting_files,
-            calculation_callback=self._calculate_callback_hook,
-        )
-
-        self._metrics_display = None
-        self._scaling_plot = None
-        self._metric_calculator = metric_calc
-
-        super().__init__(
-            children=[self._fileselector], layout=Layout(width="auto"), **kwargs
-        )
-
-        self.set_title(0, "Trace Files")
-
-    def _calculate_callback_hook(self, callback_reference=None):
-
-        statistics = TraceSet(
-            self._fileselector.filenames, force_recalculation=False, chop_to_roi=True
-        )
-        metrics = self._metric_calculator(statistics)
-        metrics_display = MetricTable(metrics)
-
-        if self._metrics_display is None:
-            self.children = self.children + (metrics_display,)
-            self.set_title(1, "Metrics Table")
-        else:
-            self._metrics_display.close()
-            new_children = list(self.children)
-            new_children[1] = metrics_display
-            self.children = new_children
-
-        self._metrics_display = metrics_display
-        metrics_display._plot_table()
-
-        scaling_plot = ScalingPlot(metrics)
-
-        if self._scaling_plot is None:
-            self.children = self.children + (scaling_plot,)
-            self.set_title(2, "Scaling Plot")
-        else:
-            self._scaling_plot.close()
-            new_children = list(self.children)
-            new_children[2] = scaling_plot
-            self.children = new_children
-
-        self._scaling_plot = scaling_plot
-        scaling_plot._build_plot()
+from .bokeh_widget import BokehWidget
 
 
 def approx_string_em_width(string):
@@ -263,6 +25,16 @@ def approx_string_em_width(string):
     """
 
     return 0.6 * len(string) + 0.4 * sum(string.count(x) for x in ["w", "m", "~"])
+
+
+def build_discrete_cmap(factors):
+
+    if len(factors) <= 10:
+        cmap = all_palettes["Category10"][10]
+    else:
+        cmap = linear_palette("Turbo256", len(factors))
+
+    return {k: v for k, v in zip(factors, cmap)}
 
 
 class MetricTable(BokehWidget):
@@ -398,7 +170,7 @@ class MetricTable(BokehWidget):
             (1.0, (0.074, 0.690, 0.074)),
         ]
 
-        metric_cmap = mc.LinearSegmentedColormap.from_list(
+        metric_cmap = LinearSegmentedColormap.from_list(
             "POP_Metrics", colors=cmap_points, N=256, gamma=1
         )
 
