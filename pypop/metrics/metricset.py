@@ -54,7 +54,9 @@ class MetricSet:
 
     """
 
-    _default_metric_key = None
+    _programming_model = None
+
+    _default_metric_key = "Number of Processes"
     _default_group_key = None
     _default_scaling_key = "Total Threads"
 

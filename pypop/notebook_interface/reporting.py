@@ -32,10 +32,39 @@ files_list = [{trace_file_list}]
 statistics = TraceSet(files_list)\
     """
 
+    _appl_info = """\
+# Application Information
+* Application Name:
+* Applicant:
+* Language:
+* Programming Model: {programming_model}
+* Application description:
+* Run Parameters:
+* Machine Environment:\
+"""
+
+    _metric_calc = """\
+metrics = {metric_class}(statistics)\
+"""
+
+    _table_plot = """\
+metric_table = metrics.plot_table()
+display(metric_table)\
+"""
+
+    _scaling_plot = """\
+scaling_plot = metrics.plot_scaling()
+display(scaling_plot)\
+"""
+
     _notebook_layout = [
         (_text_header, md_cell),
         (_import_header, code_cell),
         (_file_load, code_cell),
+        (_appl_info, md_cell),
+        (_metric_calc, code_cell),
+        (_table_plot, code_cell),
+        (_scaling_plot, code_cell),
     ]
 
     def __init__(self, analysis_state, **kwargs):
@@ -85,3 +114,6 @@ statistics = TraceSet(files_list)\
 
     def _get_trace_file_list(self):
         return ", ".join('"{}"'.format(x) for x in self._analysis_state["trace_files"])
+
+    def _get_programming_model(self):
+        return self._analysis_state['metrics_object']._programming_model

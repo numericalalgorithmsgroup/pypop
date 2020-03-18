@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 # Copyright (c) 2019, The Numerical Algorithms Group, Ltd. All rights reserved.
 
+from io import BytesIO
 import numpy
 import pandas
 
@@ -9,12 +10,16 @@ from bokeh.plotting import figure
 from bokeh.colors import RGB
 from bokeh.palettes import all_palettes, linear_palette
 from bokeh.models import HoverTool
+from bokeh.io.export import get_screenshot_as_png
 
 from matplotlib.colors import LinearSegmentedColormap
 
 from ..metrics.metricset import MetricSet
 
 from .bokeh_widget import BokehWidget
+
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options as ChromeOptions
 
 
 def approx_string_em_width(string):
@@ -293,6 +298,16 @@ class MetricTable(BokehWidget):
         )
 
         self.update()
+
+    def _repr_png_(self):
+        options = ChromeOptions()
+        options.add_argument("--headless")
+        driver = webdriver.Chrome(options=options)
+        imgbuffer = BytesIO()
+        img = get_screenshot_as_png(self.figure, driver=driver)
+        img.save(imgbuffer, format="png")
+        return imgbuffer.getvalue()
+
 
 
 class ScalingPlot(BokehWidget):

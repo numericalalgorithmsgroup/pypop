@@ -74,19 +74,16 @@ class Thread_Metrics(MetricSet):
         Metric("IPC Scaling", 2, "IPC Scaling", desc=k_IPCSC_desc),
     ]
 
-    _default_metric_key = "Hybrid Layout"
+    _programming_model = "MPI + Pthreads"
+
+    _default_metric_key = "Number of Processes"
+    _default_group_key = "Threads per Process"
 
     def _calculate_metrics(self, ref_key=None, sort_keys=True):
 
         total_useful = {
             k: self._stats_dict[k].statistics["Serial Useful"]
             + self._stats_dict[k].statistics["Parallel Useful"]
-            for k in self._stats_dict
-        }
-
-        ipc = {
-            k: self._stats_dict[k].statistics["Useful Instructions"]
-            / self._stats_dict[k].statistics["Useful Cycles"]
             for k in self._stats_dict
         }
 

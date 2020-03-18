@@ -17,17 +17,10 @@ class BokehWidget(Output):
         super().__init__(*args, **kwargs)
         self._figure = None
         self._handle = None
-#        self._initialize_figure()
 
     def _initialize(self):
         with self:
             self._handle = show(self.figure, notebook_handle=True)
-
-#    def _ipython_display_(self):
-#        output_notebook(hide_banner=True)
-#        self.clear_output()
-#        super()._ipython_display_()
-#        push_notebook(handle=self._handle)
 
     def _init_figure(self):
         self._figure = figure(sizing_mode='stretch_both')
