@@ -102,15 +102,16 @@ class MetricSet:
     def _choose_ref_key(stats_dict):
         """ Take the stats dict and choose an appropriate reference trace.
 
-        As a default choice choose the smallest number of processes, breaking ties with
-        smallest number of threads per process
+        As a default choice choose the smallest number of total threads, breaking ties
+        with smallest number of threads per process
         """
 
-        sort_key = lambda x: "{:05}_{:05}".format(
-            x[1].metadata.num_processes, x[1].metadata.threads_per_process[0]
-        )
-
-        return min(stats_dict.items(), key=sort_key)[0]
+        return min(
+            stats_dict.items(),
+            key=lambda x: "{:05}_{:05}".format(
+                x[1].metadata.total_threads, x[1].metadata.threads_per_process[0]
+            ),
+        )[0]
 
     @property
     def metric_data(self):
