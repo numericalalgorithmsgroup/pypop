@@ -10,16 +10,34 @@ from bokeh.plotting import figure
 from bokeh.colors import RGB
 from bokeh.palettes import all_palettes, linear_palette
 from bokeh.models import HoverTool
+from bokeh.embed import file_html
+from bokeh.resources import INLINE
 from bokeh.io.export import get_screenshot_as_png
 
 from matplotlib.colors import LinearSegmentedColormap
 
 from ..metrics.metricset import MetricSet
 
-from .bokeh_widget import BokehWidget
 
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options as ChromeOptions
+def get_any_webdriver():
+
+    import selenium.webdriver
+    from selenium.common.exceptions import WebDriverException
+
+    driver = None
+    for drivername in ["Chrome", "Firefox"]:
+        try:
+            options = getattr(selenium.webdriver, "{}Options".format(drivername))()
+            options.headless = True
+            driver = getattr(selenium.webdriver, drivername)(options=options)
+            break
+        except WebDriverException:
+            pass
+
+    if driver:
+        return driver
+
+    raise RuntimeError("Failed to load suitable webdriver")
 
 
 def approx_string_em_width(string):
@@ -42,7 +60,58 @@ def build_discrete_cmap(factors):
     return {k: v for k, v in zip(factors, cmap)}
 
 
-class MetricTable(BokehWidget):
+class BokehBase:
+    def __init__(self, *args, **kwargs):
+
+        self._figure = None
+        self._update_callback = None
+
+    def install_update_callback(self, callback):
+        self._update_callback = callback
+
+    def update(self):
+        if self._update_callback is not None:
+            self._update_callback()
+
+    @property
+    def figure(self):
+        if self._figure is None:
+            self._build_plot()
+
+        return self._figure
+
+    def _repr_png_(self):
+        if self._figure is None:
+            self._build_plot()
+
+        window_size = [int(1.1 * x) for x in self._plot_dims]
+
+        self._figure.toolbar_location = None
+
+        driver = get_any_webdriver()
+        driver.set_window_size(*window_size)
+
+        img = get_screenshot_as_png(
+            self._figure,
+            driver=driver,
+            width=self._plot_dims[0],
+            height=self._plot_dims[1],
+        )
+
+        driver.quit()
+
+        imgbuffer = BytesIO()
+        img.save(imgbuffer, format="png")
+        return imgbuffer.getvalue()
+
+    def _repr_html_(self):
+        if self._figure is None:
+            self._build_plot()
+
+        return file_html(self._figure, INLINE, "")
+
+
+class MetricTable(BokehBase):
     def __init__(
         self,
         metrics: MetricSet,
@@ -123,7 +192,7 @@ class MetricTable(BokehWidget):
             max_value_em_width * font_px + self._left_pad + self._right_pad
         )
 
-    def _init_figure(self):
+    def _build_plot(self):
         plot_width = (
             int(self._metric_column_width + self._ncols * self._value_column_width)
             + self._border_pad
@@ -131,6 +200,8 @@ class MetricTable(BokehWidget):
         plot_height = int(
             0.0 - self._row_locs.min() + self._cell_height + self._border_pad
         )  # px
+
+        self._plot_dims = (plot_width, plot_height)
 
         tooltip_template = """
 <div style="width:{}px;color:#060684;font-family:sans;font-weight:bold;font-size:{}pt;">
@@ -161,8 +232,6 @@ class MetricTable(BokehWidget):
         self._figure.grid.visible = False
         self._figure.axis.visible = False
         self._figure.outline_line_color = None
-
-    def _plot_table(self):
 
         bad_thres = 0.5
         good_thres = 0.8
@@ -274,7 +343,7 @@ class MetricTable(BokehWidget):
 
         plotdata = pandas.concat(plotdata)
 
-        self.figure.quad(
+        self._figure.quad(
             left="left_edges",
             right="right_edges",
             top="top_edges",
@@ -286,7 +355,7 @@ class MetricTable(BokehWidget):
             name="quads",
         )
 
-        self.figure.text(
+        self._figure.text(
             x="left_edges",
             y="top_edges",
             x_offset=self._left_pad,
@@ -299,18 +368,8 @@ class MetricTable(BokehWidget):
 
         self.update()
 
-    def _repr_png_(self):
-        options = ChromeOptions()
-        options.add_argument("--headless")
-        driver = webdriver.Chrome(options=options)
-        imgbuffer = BytesIO()
-        img = get_screenshot_as_png(self.figure, driver=driver)
-        img.save(imgbuffer, format="png")
-        return imgbuffer.getvalue()
 
-
-
-class ScalingPlot(BokehWidget):
+class ScalingPlot(BokehBase):
     def __init__(
         self,
         metrics: MetricSet,
@@ -335,7 +394,6 @@ class ScalingPlot(BokehWidget):
             else independent_variable
         )
         self._yaxis_key = scaling_variable
-
         self._fontsize = fontsize
 
     def _build_plot(self):
@@ -343,8 +401,10 @@ class ScalingPlot(BokehWidget):
         # Geometry calculations - currently fix width at 60em height at 40em
         pt_to_px = 96 / 72
         font_px = self._fontsize * pt_to_px
-        width = int(60 * font_px)
-        height = int(40 * font_px)
+        width = int(48 * font_px)
+        height = int(32 * font_px)
+
+        self._plot_dims = (width, height)
 
         plot_data = (
             self._metrics.metric_data[
@@ -372,7 +432,7 @@ class ScalingPlot(BokehWidget):
             plot_height=height,
             tools=["save"],
             min_border=0,
-            sizing_mode="scale_both",
+            sizing_mode="fixed",
             x_range=x_range,
             y_range=y_range,
         )

@@ -21,6 +21,8 @@ setup(
         "tables",
         "tqdm",
         "ipyfilechooser",
+        "selenium",
+        "nbformat",
     ],
     zip_safe=True,
     include_package_data=True,

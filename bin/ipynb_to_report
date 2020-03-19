@@ -9,6 +9,7 @@ output_filename="$(echo ${report_nb} | sed 's/ /_/g' | sed 's/.ipynb$//').tex"
 export TEXINPUTS="${template_dir}//:"
 
 jupyter nbconvert "${report_nb}" \
+                  --execute \
                   --to latex \
                   --template=${template_dir}/pop_report.tplx \
                   --output=${output_filename}

@@ -8,6 +8,7 @@ from ..metrics.metricset import MetricSet
 from ..traceset import TraceSet
 from .fileselector import FileSelector
 from .plotting import MetricTable, ScalingPlot
+from .bokeh_widget import BokehWidgetWrapper
 from .reporting import ReportGenerator
 
 
@@ -27,7 +28,6 @@ class TypeAsserter:
 
 
 class SimpleAsserter(TypeAsserter):
-
     def check_type(self, testobj):
         if isinstance(testobj, self._assert_cls):
             return True
@@ -140,7 +140,9 @@ class MetricsWizard(Tab):
         metrics = self._metric_calculator(statistics)
         self._analysis_state["metrics_object"] = metrics
 
-        metrics_display = MetricTable(metrics, analysis_state=self._analysis_state)
+        metrics_display = BokehWidgetWrapper(
+            MetricTable(metrics, analysis_state=self._analysis_state)
+        )
 
         if self._metrics_display is None:
             self.children = self.children + (metrics_display,)
@@ -152,9 +154,10 @@ class MetricsWizard(Tab):
             self.children = new_children
 
         self._metrics_display = metrics_display
-        metrics_display._plot_table()
 
-        scaling_plot = ScalingPlot(metrics, analysis_state=self._analysis_state)
+        scaling_plot = BokehWidgetWrapper(
+            ScalingPlot(metrics, analysis_state=self._analysis_state)
+        )
 
         if self._scaling_plot is None:
             self.children = self.children + (scaling_plot,)
@@ -166,7 +169,6 @@ class MetricsWizard(Tab):
             self.children = new_children
 
         self._scaling_plot = scaling_plot
-        scaling_plot._build_plot()
 
         report_generator = ReportGenerator(analysis_state=self._analysis_state)
 
