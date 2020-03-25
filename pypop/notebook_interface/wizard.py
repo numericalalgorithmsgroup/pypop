@@ -124,7 +124,9 @@ class MetricsWizard(Tab):
         )
 
         super().__init__(
-            children=[self._fileselector], layout=Layout(width="auto"), **kwargs
+            children=[self._fileselector],
+            layout=Layout(width="auto", max_width="1280px"),
+            **kwargs
         )
 
         self.set_title(0, "Trace Files")
@@ -180,3 +182,5 @@ class MetricsWizard(Tab):
             new_children = list(self.children)
             new_children[3] = report_generator
             self.children = new_children
+
+        self._report_generator = report_generator

@@ -25,7 +25,12 @@ class ValidatingChooser(VBox):
 
     def __init__(self, starting_file=None, **kwargs):
 
-        self._filechooser = FileChooser(filename=starting_file, select_default=True)
+        if starting_file is None:
+            starting_file = ""
+
+        self._filechooser = FileChooser(
+            filename=starting_file, select_default=bool(starting_file),
+        )
         self._msgbox = HBox(children=[], layout=self._msgbox_layout)
         self._validity = None
 
@@ -184,7 +189,9 @@ class FileSelector(VBox):
         self._files = [fc.selected for fc in self._filechoosers]
 
         if self._analysis_state is not None:
-            self._analysis_state["trace_files"] = self._files
+            self._analysis_state["trace_files"] = [
+                file for file in self._files if file is not None
+            ]
 
     @property
     def filenames(self):

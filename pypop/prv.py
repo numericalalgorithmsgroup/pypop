@@ -52,6 +52,7 @@ ApplicationLayout = namedtuple(
     "ApplicationLayout", field_names=["commsize", "rank_threads"]
 )
 
+
 class PRV:
 
     record_types = OrderedDict([(1, "state"), (2, "event"), (3, "comm")])
@@ -385,6 +386,7 @@ class PRV:
 
             rank_stats[irank] = pd.DataFrame(
                 {
+                    "Rank": np.full(region_starts.shape, irank),
                     "Region Start": region_starts,
                     "Region End": region_ends,
                     "Region Length": region_lengths,

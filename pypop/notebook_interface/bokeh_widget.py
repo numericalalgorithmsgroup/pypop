@@ -16,6 +16,7 @@ class BokehWidgetWrapper(Output):
         super().__init__()
         self._plot_object = plot_object
         self._figure = plot_object.figure
+        self._plot_object.install_update_callback(self.update)
         with self:
             self._handle = show(self._figure, notebook_handle=True)
 

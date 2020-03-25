@@ -5,6 +5,7 @@
 from io import BytesIO
 import numpy
 import pandas
+import warnings
 
 from bokeh.plotting import figure
 from bokeh.colors import RGB
@@ -13,10 +14,19 @@ from bokeh.models import HoverTool
 from bokeh.embed import file_html
 from bokeh.resources import INLINE
 from bokeh.io.export import get_screenshot_as_png
+from bokeh.transform import linear_cmap
 
 from matplotlib.colors import LinearSegmentedColormap
 
 from ..metrics.metricset import MetricSet
+from .palettes import efficiency_red_green
+
+warnings.filterwarnings(
+    'ignore',
+    '.* are being repeated',
+    category=UserWarning,
+    module='bokeh.plotting.helpers',
+)
 
 
 def get_any_webdriver():
@@ -80,35 +90,33 @@ class BokehBase:
 
         return self._figure
 
+    def _repr_html_(self):
+        if self._figure is None:
+            self._build_plot()
+
+        return file_html(self._figure, INLINE, "")
+
     def _repr_png_(self):
         if self._figure is None:
             self._build_plot()
 
-        window_size = [int(1.1 * x) for x in self._plot_dims]
+        try:
+            window_size = [int(1.1 * x) for x in self._plot_dims]
+        except AttributeError:
+            window_size = (900, 600)
 
         self._figure.toolbar_location = None
 
         driver = get_any_webdriver()
         driver.set_window_size(*window_size)
 
-        img = get_screenshot_as_png(
-            self._figure,
-            driver=driver,
-            width=self._plot_dims[0],
-            height=self._plot_dims[1],
-        )
+        img = get_screenshot_as_png(self._figure, driver=driver,)
 
         driver.quit()
 
         imgbuffer = BytesIO()
         img.save(imgbuffer, format="png")
         return imgbuffer.getvalue()
-
-    def _repr_html_(self):
-        if self._figure is None:
-            self._build_plot()
-
-        return file_html(self._figure, INLINE, "")
 
 
 class MetricTable(BokehBase):
@@ -136,6 +144,7 @@ class MetricTable(BokehBase):
         self._metric_name_column_text = []
         self._metric_descriptions = []
         self._setup_geometry()
+        self._eff_cmap = None
 
     def _setup_geometry(self):
 
@@ -233,20 +242,7 @@ class MetricTable(BokehBase):
         self._figure.axis.visible = False
         self._figure.outline_line_color = None
 
-        bad_thres = 0.5
-        good_thres = 0.8
-
-        cmap_points = [
-            (0.0, (0.690, 0.074, 0.074)),
-            (bad_thres, (0.690, 0.074, 0.074)),
-            (good_thres - 1e-20, (0.992, 0.910, 0.910)),
-            (good_thres, (0.910, 0.992, 0.910)),
-            (1.0, (0.074, 0.690, 0.074)),
-        ]
-
-        metric_cmap = LinearSegmentedColormap.from_list(
-            "POP_Metrics", colors=cmap_points, N=256, gamma=1
-        )
+        metric_cmap = self.efficiency_cmap
 
         if self._group_key is not None:
             group_iter = [
@@ -322,12 +318,7 @@ class MetricTable(BokehBase):
                             "bottom_edges": self._row_locs - self._cell_height,
                             "cell_fills": [RGB(255, 255, 255)]
                             + [
-                                RGB(
-                                    *(
-                                        int(255 * x)
-                                        for x in metric_cmap(coldata[metric.key])[:3]
-                                    )
-                                )
+                                metric_cmap(coldata[metric.key])
                                 for metric in self._metrics.metrics
                             ],
                             "data": ["{}".format(coldata[self._columns_key])]
@@ -367,6 +358,33 @@ class MetricTable(BokehBase):
         )
 
         self.update()
+
+    def efficiency_cmap(self, value):
+        if self._eff_cmap is None:
+            bad_thres = 0.5
+            good_thres = 0.8
+
+            cmap_points = [
+                (0.0, (0.690, 0.074, 0.074)),
+                (bad_thres, (0.690, 0.074, 0.074)),
+                (good_thres - 1e-5, (0.992, 0.910, 0.910)),
+                (good_thres, (0.910, 0.992, 0.910)),
+                (1.0, (0.074, 0.690, 0.074)),
+            ]
+
+            self._eff_cmap = LinearSegmentedColormap.from_list(
+                "POP_Metrics", colors=cmap_points, N=256, gamma=1
+            )
+
+        if numpy.any(numpy.isnan(value)):
+            return self.to_RGB(self._eff_cmap(-1))
+
+        return self.to_RGB(self._eff_cmap(value))
+
+    @staticmethod
+    def to_RGB(value):
+
+        return RGB(*(int(255 * x) for x in value[:3]))
 
 
 class ScalingPlot(BokehBase):
@@ -428,11 +446,10 @@ class ScalingPlot(BokehBase):
         y_range = y_lims[0] - 0.1 * y_range, y_lims[1] + 0.1 * y_range
 
         self._figure = figure(
-            plot_width=width,
-            plot_height=height,
             tools=["save"],
             min_border=0,
-            sizing_mode="fixed",
+            aspect_ratio=1.5,
+            sizing_mode="scale_width",
             x_range=x_range,
             y_range=y_range,
         )
@@ -469,3 +486,33 @@ class ScalingPlot(BokehBase):
         self._figure.legend.location = "top_left"
 
         self.update()
+
+
+class TimelinePlot(BokehBase):
+    def __init__(
+        self, timelinedata, y_variable, color_by, tooltip=None, title=None, palette=None
+    ):
+        self._data = timelinedata
+        super().__init__()
+
+        self._y_axis_key = y_variable
+        self._tooltip_template = tooltip
+        self._title = title
+        self._palette = palette if palette else efficiency_red_green
+        self._color_by = color_by
+
+    def _build_plot(self):
+
+        self._figure = figure(
+            tools=["save", "xwheel_zoom", "ywheel_zoom", "zoom_in", "zoom_out", "reset"],
+            tooltips=self._tooltip_template,
+        )
+
+        self._figure.hbar(
+            y=self._y_axis_key,
+            left="Region Start",
+            right="Region End",
+            height=0.9,
+            color=linear_cmap(self._color_by, self._palette, 0.0, 1.0),
+            source=self._data,
+        )
