@@ -107,7 +107,8 @@ class MetricSet:
         return min(
             stats_dict.items(),
             key=lambda x: "{:05}_{:05}".format(
-                x[1].metadata.total_threads, x[1].metadata.threads_per_process[0]
+                sum(x[1].metadata.threads_per_process),
+                max(x[1].metadata.threads_per_process),
             ),
         )[0]
 
