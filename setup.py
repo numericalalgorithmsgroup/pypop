@@ -3,10 +3,11 @@
 # Copyright (c) 2019, The Numerical Algorithms Group, Ltd. All rights reserved.
 
 from setuptools import setup, find_packages
+from versionate import versionate
 
 setup(
     name="pypop",
-    version="0.2.0rc8",
+    version=versionate(),
     url="https://github.com/numericalalgorithmsgroup/pypop.git",
     author="Numerical Algorithms Group",
     author_email="phil.tooley@nag.co.uk",

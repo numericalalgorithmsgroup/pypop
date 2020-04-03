@@ -9,3 +9,11 @@ from . import traceset
 from . import metrics
 from . import prv
 from . import config
+
+from .version import get_version
+
+__all__ = ['__version__']
+
+__version__ = get_version()
+
+

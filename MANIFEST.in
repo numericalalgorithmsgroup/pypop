@@ -1,3 +1,4 @@
+include pypop/version
 recursive-include pypop/examples *
 recursive-include pypop/cfgs *
 recursive-include pypop/cutters *
