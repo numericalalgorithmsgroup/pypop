@@ -29,7 +29,8 @@ base_configs = {
         ),
         "Total Runtime": (
             "../cfgs/total_runtime_excl_disabled.cfg",
-            "../cfgs/total_runtime.cfg",),
+            "../cfgs/total_runtime.cfg",
+        ),
         "Useful Instructions": ("../cfgs/useful_instructions.cfg",),
         "Useful Cycles": ("../cfgs/useful_cycles.cfg",),
     }.items()
@@ -224,7 +225,11 @@ class PRVTrace(Trace):
             > stats["Ideal Runtime"].loc[:, 1].max()
         ):
             raise RuntimeError(
-                "Illegal Ideal Runtime value (less than useful computation)"
+                "{}: Illegal Ideal Runtime value (less than useful computation)"
+                "DETAILS: {} vs {}"
+                "".format(self._tracefile,
+                    stats["Total Non-MPI Runtime"].loc[:, 1].max(),
+                    stats["Ideal Runtime"].loc[:, 1].max())
             )
 
         return stats
