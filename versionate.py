@@ -1,22 +1,24 @@
 #!/usr/bin/env python3
 
+from sys import hexversion
 from warnings import warn
-from subprocess import run, PIPE
+from subprocess import check_output, CalledProcessError, PIPE
 
 _k_unknown_ver = "Unknown"
 
 
-def get_git_verstring():
-    git_result = run(
-        ['git', 'describe', '--tags', '--dirty', '--long'],
-        stdout=PIPE,
-        stderr=PIPE,
-    )
-    if git_result.returncode != 0:
-      warn("Git failed with error: {}".format(str(err.stderr)))
-      return _k_unknown_ver
+def get_git_verstring(silent=True):
+    try:
+        git_result = check_output(
+            ['git', 'describe', '--tags', '--dirty', '--long'],
+            stderr=PIPE,
+        )
+    except CalledProcessError as err:
+        if not silent:
+            warn("Git failed with error: {}".format(str(err.stderr)))
+        return _k_unknown_ver
 
-    ver_string = git_result.stdout.decode().strip()
+    ver_string = git_result.decode().strip()
     ver_tokens = ver_string.split('-')
 
     dirty = None
@@ -28,15 +30,17 @@ def get_git_verstring():
     tag = '-'.join(ver_tokens)
 
     if commitcount == '0':
-      return "-".join([tag, dirty]) if dirty else tag
+      return "+".join([tag, dirty]) if dirty else tag
 
-    return ver_string
+    localver = "+".join([tag,sha])
+
+    return ".".join([localver, dirty]) if dirty else localver
 
 
 def versionate():
 
   ver_string = get_git_verstring()
-  
+
   with open('pypop/version', 'wt') as fh:
     fh.write(ver_string)
 

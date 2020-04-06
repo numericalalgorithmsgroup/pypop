@@ -13,6 +13,7 @@ setup(
     author_email="phil.tooley@nag.co.uk",
     description="Python notebook support for POP metrics and reports",
     packages=find_packages(),
+    python_requires=">=3.6",
     install_requires=[
         "numpy",
         "matplotlib >= 2",

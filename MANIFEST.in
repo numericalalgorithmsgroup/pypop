@@ -3,3 +3,4 @@ recursive-include pypop/examples *
 recursive-include pypop/cfgs *
 recursive-include pypop/cutters *
 recursive-include pypop/filters *
+global-exclude */.ipynb_checkpoints/*
