@@ -227,7 +227,7 @@ class PRVTrace(Trace):
             raise RuntimeError(
                 "{}: Illegal Ideal Runtime value (less than useful computation)"
                 "DETAILS: {} vs {}"
-                "".format(self._tracefile,
+                "".format(trace,
                     stats["Total Non-MPI Runtime"].loc[:, 1].max(),
                     stats["Ideal Runtime"].loc[:, 1].max())
             )
