@@ -40,7 +40,7 @@ def get_version():
   
   try:
     with open(resource_filename(__name__, 'version'), 'rt') as fh:
-      fileversion = fh.readlines().strip()
+      fileversion = fh.readlines()[0].strip()
       return fileversion
   except FileNotFoundError:
     pass
