@@ -49,29 +49,13 @@ def dimemas_idealise(tracefile, outpath=None):
     with zipopen(tracefile, "rt") as fh:
         metadata = _parse_paraver_headerline(fh.readline().strip())
 
-    # Calculate ranks per node for Dimemas
-    ranks_per_node = metadata.application_layout.commsize // metadata.nodes
-
     # Populate run specfic config data
     subs = {
-        "@NUM_NODES@": metadata.nodes,
-        "@PROCS_PER_NODE@": metadata.procs_per_node[0],
-        "@RANKS_PER_NODE@": ranks_per_node,
+        "@NUM_NODES@": metadata.application_layout.commsize,
+        "@PROCS_PER_NODE@": max(metadata.procs_per_node),
+        "@RANKS_PER_NODE@": 1,
         "@COLLECTIVES_PATH@": IDEAL_COLL_PATH,
     }
-
-    # Try to handle odd layouts with one rank per node...
-    if (
-        len(set(metadata.procs_per_node)) != 1
-        or ranks_per_node * metadata.nodes != metadata.application_layout.commsize
-    ):
-        # Populate run specfic config data
-        subs = {
-            "@NUM_NODES@": metadata.application_layout.commsize,
-            "@PROCS_PER_NODE@": 1,
-            "@RANKS_PER_NODE@": 1,
-            "@COLLECTIVES_PATH@": IDEAL_COLL_PATH,
-        }
 
     # Pass trace, run config and path to idealisation skeleton config and let
     # dimemas_analyze work its subtle magic(k)s
