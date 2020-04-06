@@ -4,7 +4,7 @@
 
 from ipywidgets import Tab, Layout
 
-from ..metrics.metricset import MetricSet
+import pypop.metrics.metricset as pm
 from ..traceset import TraceSet
 from .fileselector import FileSelector
 from .plotting import MetricTable, ScalingPlot
@@ -52,7 +52,7 @@ class AnalysisState:
 
     _required_params = {
         "trace_files": ListofStrAsserter(),
-        "metrics_object": SimpleAsserter.create(MetricSet),
+        "metrics_object": SimpleAsserter.create(pm.MetricSet),
     }
 
     _optional_params = {}

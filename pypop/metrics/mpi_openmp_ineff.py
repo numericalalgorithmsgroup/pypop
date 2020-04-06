@@ -165,6 +165,3 @@ class MPI_OpenMP_Ineff_Metrics(MetricSet):
             metrics_by_key[key] = metrics
 
         self._metric_data = pandas.concat(metrics_by_key.values())
-
-
-

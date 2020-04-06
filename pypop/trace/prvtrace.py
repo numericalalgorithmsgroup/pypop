@@ -29,7 +29,8 @@ base_configs = {
         ),
         "Total Runtime": (
             "../cfgs/total_runtime_excl_disabled.cfg",
-            "../cfgs/total_runtime.cfg",),
+            "../cfgs/total_runtime.cfg",
+        ),
         "Useful Instructions": ("../cfgs/useful_instructions.cfg",),
         "Useful Cycles": ("../cfgs/useful_cycles.cfg",),
     }.items()

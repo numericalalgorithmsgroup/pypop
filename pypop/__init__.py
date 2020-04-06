@@ -12,8 +12,6 @@ from . import config
 
 from .version import get_version
 
-__all__ = ['__version__']
+__all__ = ["__version__"]
 
 __version__ = get_version()
-
-

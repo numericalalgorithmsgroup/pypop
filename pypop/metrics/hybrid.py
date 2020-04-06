@@ -250,6 +250,7 @@ class MPI_OpenMP_Metrics(MetricSet):
 class MPI_OpenMP_Multiplicative_Metrics(MetricSet):
     """Proposed Hybrid MPI+OpenMP Metrics (multiplicative version).
     """
+
     _metric_list = [
         Metric("Global Efficiency", 0, desc=k_GE_desc),
         Metric("Parallel Efficiency", 1, desc=k_PE_desc),

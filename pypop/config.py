@@ -7,7 +7,7 @@
 
 from os.path import normpath, expanduser
 
-__all__ = ['set_paramedir_path', 'set_dimemas_path', 'set_tmpdir_path']
+__all__ = ["set_paramedir_path", "set_dimemas_path", "set_tmpdir_path"]
 
 _dimemas_path = None
 _paramedir_path = None

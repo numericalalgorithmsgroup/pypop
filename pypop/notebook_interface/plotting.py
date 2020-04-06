@@ -22,10 +22,10 @@ from ..metrics.metricset import MetricSet
 from .palettes import efficiency_red_green
 
 warnings.filterwarnings(
-    'ignore',
-    '.* are being repeated',
+    "ignore",
+    ".* are being repeated",
     category=UserWarning,
-    module='bokeh.plotting.helpers',
+    module="bokeh.plotting.helpers",
 )
 
 
@@ -394,7 +394,7 @@ class ScalingPlot(BokehBase):
         scaling_variable="Speedup",
         independent_variable="auto",
         group_key="auto",
-        title="None",
+        title=None,
         fontsize=14,
         **kwargs
     ):
@@ -424,17 +424,26 @@ class ScalingPlot(BokehBase):
 
         self._plot_dims = (width, height)
 
-        plot_data = (
-            self._metrics.metric_data[
-                [self._xaxis_key, self._yaxis_key, self._group_key]
-            ]
-            .sort_values(self._group_key)
-            .copy()
-        )
-
-        plot_data["Plotgroups"] = plot_data[self._group_key].apply(
-            lambda x: "{} {}".format(x, self._group_key)
-        )
+        if self._group_key:
+            plot_data = (
+                self._metrics.metric_data[
+                    [self._xaxis_key, self._yaxis_key, self._group_key]
+                ]
+                .sort_values(self._group_key)
+                .copy()
+            )
+            plot_data["Plotgroups"] = plot_data[self._group_key].apply(
+                lambda x: "{} {}".format(x, self._group_key)
+            )
+        
+        else:
+            plot_data = (
+                self._metrics.metric_data[
+                    [self._xaxis_key, self._yaxis_key]
+                ]
+                .copy()
+            )
+            plot_data["Plotgroups"] = "NULL"
 
         color_map = build_discrete_cmap(plot_data["Plotgroups"].unique())
 
@@ -484,6 +493,9 @@ class ScalingPlot(BokehBase):
             )
 
         self._figure.legend.location = "top_left"
+
+        if self._group_key is None:
+            self._figure.legend.visible = False
 
         self.update()
 

@@ -111,14 +111,14 @@ def chop_prv_to_roi(prv_file, outfile=None):
     if outfile:
         workdir = dirname(normpath(outfile))
     else:
-        tgtname = ".chop".join(splitext(basename(prv_file))) 
+        tgtname = ".chop".join(splitext(basename(prv_file)))
         # Make sure config._tmpdir_path exists before using it
         if config._tmpdir_path:
             try:
                 os.makedirs(config._tmpdir_path, exist_ok=True)
             except OSError as err:
                 print("FATAL: {}".format(err))
-        workdir = mkdtemp(dir=config._tmpdir_path)        
+        workdir = mkdtemp(dir=config._tmpdir_path)
         outfile = os.path.join(workdir, tgtname)
 
     roi_filter = resource_filename(__name__, ROI_FILTER_XML)
@@ -183,7 +183,8 @@ def chop_prv_to_roi(prv_file, outfile=None):
         )
 
     return outfile
-    
+
+
 def _get_roi_times(roi_prv):
     """ Extract ROi timing information from a filtered trace
 
@@ -195,20 +196,16 @@ def _get_roi_times(roi_prv):
     df = data.event
 
     # Get the first on and last off events
-    grouped = df.reset_index(level='time').groupby(level=['task','thread'])
+    grouped = df.reset_index(level="time").groupby(level=["task", "thread"])
     ons = grouped.nth(1)
-    offs = grouped.last()    
-    
+    offs = grouped.last()
+
     # Check the events have the expected values
-    if not (ons['value'] == 1).all():
-        raise ValueError(
-            "Unexpected event value: expected 40000012:1"
-        )
-    if not (offs['value'] == 0).all():
-        raise ValueError(
-            "Unexpected event value: expected 40000012:0"
-        )
-    return ons['time'].min(), 1 + offs['time'].max()
+    if not (ons["value"] == 1).all():
+        raise ValueError("Unexpected event value: expected 40000012:1")
+    if not (offs["value"] == 0).all():
+        raise ValueError("Unexpected event value: expected 40000012:0")
+    return ons["time"].min(), 1 + offs["time"].max()
 
 
 def paramedir_analyze(
@@ -381,16 +378,16 @@ def run_paramedir(tracefile, paramedir_config, outfile=None, variables=None):
     outfile: str
         Path to the output file.
     """
- 
+
     # Make sure config._tmpdir_path exists before using it
     if config._tmpdir_path:
         try:
             os.makedirs(config._tmpdir_path, exist_ok=True)
         except OSError as err:
             print("FATAL: {}".format(err))
-    
+
     tmpdir = mkdtemp(dir=config._tmpdir_path)
-        
+
     # If variables is none, still sub with empty dict
     variables = variables if variables else {}
     tmp_config = _write_substituted_config(paramedir_config, tmpdir, variables)
