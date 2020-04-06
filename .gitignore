@@ -1,3 +1,4 @@
+pypop/version
 __pycache__
 *.egg-info
 *.pkl
