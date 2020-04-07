@@ -185,6 +185,7 @@ class MetricSet:
         bad_thres=0.5,
         skipfirst=0,
         bwfirst=0,
+        no_idealised=False,
     ):
         """Plot Metrics in colour coded Table
 
@@ -207,6 +208,8 @@ class MetricSet:
             Skip output of first N columns of metric data (default 0).
         bwfirst: int
             Skip coloring of first N columns of metric data (default 0).
+        no_idealised: bool
+            Do not print the metrics resulting from idealisation of the trace.
 
         Returns
         -------
@@ -226,6 +229,7 @@ class MetricSet:
                 bad_thres,
                 skipfirst,
                 bwfirst,
+                no_idealised,
             )
 
     def _plot_table(
@@ -237,7 +241,16 @@ class MetricSet:
         bad_thres,
         skipfirst,
         bwfirst,
+        no_idealised,
     ):
+
+        remove_metrics = []
+        if no_idealised:
+            remove_metrics.extend(
+                ["MPI Transfer Efficiency", "MPI Serialisation Efficiency"]
+            )
+
+        plot_metrics = [m for m in self.metrics if m.key not in remove_metrics]
 
         if not columns_key:
             columns_values = self.metric_data.index
@@ -317,7 +330,7 @@ class MetricSet:
                 0, col_num - skipfirst, text="{}".format(col_data), **body_cell_kwargs
             )
 
-        for row_num, metric in enumerate(self.metrics, start=1):
+        for row_num, metric in enumerate(plot_metrics, start=1):
             cmap = ineff_cmap if metric.is_inefficiency else eff_cmap
             c = metric_table.add_cell(
                 row_num, 0, text=metric.displayname, **label_cell_kwargs
