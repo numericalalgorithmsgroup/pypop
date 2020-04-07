@@ -60,6 +60,20 @@ ideal_configs = {
 class PRVTrace(Trace):
     def _gather_metadata(self):
 
+        if ".sim." in self._tracefile:
+            warn(
+                "Filename {} suggests this trace has already been idealised. This will "
+                "likely cause the PyPOP analysis to fail!".format(self._tracefile)
+            )
+
+        if ".chop" in self._tracefile:
+            warn(
+                "Filename {} suggests this trace has been chopped before analysis. In "
+                "some cases this can cause Dimemas idealisation to fail. It is "
+                "recommended to use the trace chopping support built into PyPOP (see "
+                "the documentation for more details)".format(self._tracefile)
+            )
+
         try:
             with zipopen(self._tracefile, "rt") as fh:
                 headerline = fh.readline().strip()
