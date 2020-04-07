@@ -12,13 +12,14 @@ from matplotlib import use
 
 use("agg")
 
-from .traceset import TraceSet
-from .metrics import MPI_Metrics, MPI_OpenMP_Metrics, OpenMP_Metrics
-from .dimemas import dimemas_idealise
-from .config import set_dimemas_path, set_paramedir_path, set_tmpdir_path
-from .examples import examples_directory
+from pypop.traceset import TraceSet
+from pypop.metrics import MPI_Metrics, MPI_OpenMP_Metrics, OpenMP_Metrics
+from pypop.dimemas import dimemas_idealise
+from pypop.config import set_dimemas_path, set_paramedir_path, set_tmpdir_path
+from pypop.examples import examples_directory
 
 from argparse import ArgumentParser
+from tqdm import tqdm
 
 
 def _dimemas_idealise_parse_args():
@@ -276,7 +277,7 @@ def preprocess_traces():
     )
 
 
-def dimemas_idealise():
+def dimemas_idealise_cli():
     """Entrypoint for trace idealisation
     """
 
@@ -286,8 +287,7 @@ def dimemas_idealise():
         set_dimemas_path(config.dimemas_path)
 
     for tracefile in tqdm(config.traces, desc="Running Dimemas"):
-        outfile = tracefile.split(".prv")[0] + ".sim.prv"
-        dimemas_idealise(tracefile, outfile)
+        dimemas_idealise(tracefile, outpath=".")
 
 
 def _copy_examples_parse_args():
