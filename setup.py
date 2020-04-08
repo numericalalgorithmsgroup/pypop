@@ -34,7 +34,7 @@ setup(
             "pypop-hybrid-metrics = pypop.cli:hybrid_cli_metrics",
             "pypop-openmp-metrics = pypop.cli:openmp_cli_metrics",
             "pypop-preprocess = pypop.cli:preprocess_traces",
-            "pypop-idealise-prv = pypop.cli:dimemas_idealise",
+            "pypop-idealise-prv = pypop.cli:dimemas_idealise_cli",
             "pypop-copy-examples = pypop.cli:copy_examples",
         ]
     },

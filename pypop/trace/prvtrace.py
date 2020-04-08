@@ -39,7 +39,11 @@ base_configs = {
 omp_configs = {
     k: tuple(resource_filename(__name__, w) for w in v)
     for k, v in {
-        "OpenMP Total Runtime": ("../cfgs/omp_total_runtime.cfg",),
+        "OpenMP Total Runtime": (
+            "../cfgs/omp_total_runtime.cfg",
+            "../cfgs/omp_total_runtime_loop.cfg",
+            "../cfgs/omp_total_runtime_loop.cfg",
+        ),
         "OpenMP Useful Computation": (
             "../cfgs/omp_useful_computation.cfg",
             "../cfgs/omp_useful_computation_loop.cfg",
@@ -59,6 +63,20 @@ ideal_configs = {
 
 class PRVTrace(Trace):
     def _gather_metadata(self):
+
+        if ".sim." in self._tracefile:
+            warn(
+                "Filename {} suggests this trace has already been idealised. This will "
+                "likely cause the PyPOP analysis to fail!".format(self._tracefile)
+            )
+
+        if ".chop" in self._tracefile:
+            warn(
+                "Filename {} suggests this trace has been chopped before analysis. In "
+                "some cases this can cause Dimemas idealisation to fail. It is "
+                "recommended to use the trace chopping support built into PyPOP (see "
+                "the documentation for more details)".format(self._tracefile)
+            )
 
         try:
             with zipopen(self._tracefile, "rt") as fh:
@@ -224,8 +242,13 @@ class PRVTrace(Trace):
             stats["Total Non-MPI Runtime"].loc[:, 1].max()
             > stats["Ideal Runtime"].loc[:, 1].max()
         ):
-            raise RuntimeError(
-                "Illegal Ideal Runtime value (less than useful computation)"
+            warn(
+                "Dimemas has provided an invalid Ideal Runtime value (less than Useful "
+                "Computation)\ntracefile:{}\nIR:{}\nUC:{}".format(
+                    trace,
+                    stats["Total Non-MPI Runtime"].loc[:, 1].max(),
+                    stats["Ideal Runtime"].loc[:, 1].max(),
+                )
             )
 
         return stats
