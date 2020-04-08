@@ -41,6 +41,15 @@ def versionate():
 
   ver_string = get_git_verstring()
 
+  if ver_string == _k_unknown_ver:
+    try:
+        with open('pypop/version', 'rt') as fh:
+            ver_string = fh.readlines()[0].strip()
+    except:
+        pass
+    finally:
+        return ver_string
+
   with open('pypop/version', 'wt') as fh:
     fh.write(ver_string)
 
