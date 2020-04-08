@@ -39,7 +39,11 @@ base_configs = {
 omp_configs = {
     k: tuple(resource_filename(__name__, w) for w in v)
     for k, v in {
-        "OpenMP Total Runtime": ("../cfgs/omp_total_runtime.cfg",),
+        "OpenMP Total Runtime": (
+            "../cfgs/omp_total_runtime.cfg",
+            "../cfgs/omp_total_runtime_loop.cfg",
+            "../cfgs/omp_total_runtime_loop.cfg",
+        ),
         "OpenMP Useful Computation": (
             "../cfgs/omp_useful_computation.cfg",
             "../cfgs/omp_useful_computation_loop.cfg",
