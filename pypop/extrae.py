@@ -17,8 +17,8 @@ import subprocess as sp
 
 from pkg_resources import resource_filename
 
-import pandas as pd
-import numpy as np
+import pandas
+import numpy
 
 from .prv import PRV, get_prv_header_info
 from . import config
@@ -144,7 +144,10 @@ def chop_prv_to_roi(prv_file, outfile=None):
             "Failed to filter ROI file:\n{}" "".format(result.stdout.decode())
         )
 
-    starttime, endtime = _get_roi_times(roi_prv)
+    try:
+        starttime, endtime = _get_roi_times(roi_prv)
+    except ValueError as err:
+        raise ValueError("Error cutting trace to ROI: {}".format(str(err)))
 
     remove_trace(roi_prv)
 
@@ -208,7 +211,12 @@ def _get_roi_times(roi_prv):
         raise ValueError(
             "Unexpected event value: expected 40000012:0"
         )
-    return ons['time'].min(), 1 + offs['time'].max()
+    ontime, offtime = (ons['time'].min(), 1 + offs['time'].max())
+
+    if ontime is numpy.nan or offtime is numpy.nan:
+        raise ValueError("Unable to locate valid ON-OFF bracket in trace")
+
+    return ontime, offtime
 
 
 def paramedir_analyze(
@@ -321,7 +329,7 @@ def _analyze_hist2D(tracefile, paramedir_config, variables, index_by_thread, sta
     os.remove(histfile)
 
     if stat_names:
-        data.index = pd.Index(stat_names)
+        data.index = pandas.Index(stat_names)
 
     if index_by_thread:
         return reindex_by_thread(data)
@@ -334,7 +342,7 @@ def reindex_by_thread(stats_dframe, thread_prefix="THREAD"):
 
     Parameters
     ----------
-    stats_dframe: pd.DataFrame
+    stats_dframe: pandas.DataFrame
         Dataframe to reindex. Typically this will have been produced using
         paramedir_analyze().
 
@@ -344,11 +352,11 @@ def reindex_by_thread(stats_dframe, thread_prefix="THREAD"):
         the rank number and t the thread number.
     """
 
-    if not isinstance(stats_dframe, pd.DataFrame):
+    if not isinstance(stats_dframe, pandas.DataFrame):
         raise TypeError("stats_dframe must be a Pandas DataFrame")
 
     oc_select = [c for c in stats_dframe.columns if c.startswith(thread_prefix)]
-    newcols = pd.MultiIndex.from_tuples(
+    newcols = pandas.MultiIndex.from_tuples(
         [tuple(int(x) for x in y.split(".")[1:]) for y in oc_select]
     )
     stats_dframe = stats_dframe[oc_select].set_axis(
@@ -446,12 +454,12 @@ def _split_binline(binline):
     # Grab the first float from each binspec, we'll return lower edges
     # Note that commas must be stripped from numbers...
     try:
-        bins = np.fromiter(
+        bins = numpy.fromiter(
             (floatmatch.findall(x)[0].replace(",", "") for x in bin_strings),
-            dtype=np.float64,
+            dtype=numpy.float64,
         )
     except IndexError:
-        bins = np.asarray(bin_strings)
+        bins = numpy.asarray(bin_strings)
 
     return bins
 
@@ -479,9 +487,9 @@ def _split_countline(countline, bins):
     # However many extra strings there are, join them to make the name
     count_name = " ".join(count_strings[0:extra_strings])
 
-    counts = np.asarray(count_strings[extra_strings:], dtype=np.float64)
+    counts = numpy.asarray(count_strings[extra_strings:], dtype=numpy.float64)
 
-    return (count_name, pd.Series(counts, index=bins))
+    return (count_name, pandas.Series(counts, index=bins))
 
 
 def load_paraver_histdata(hist_file):
@@ -504,7 +512,7 @@ def load_paraver_histdata(hist_file):
             if count_line.strip():
                 name, data_dict[name] = _split_countline(count_line, bins)
 
-    return pd.DataFrame.from_dict(data_dict)
+    return pandas.DataFrame.from_dict(data_dict)
 
 
 def is_extrae_tracefile(tracefile):
