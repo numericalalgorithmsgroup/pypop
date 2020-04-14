@@ -59,6 +59,7 @@ class MetricSet:
         "Threads per Process": "",
         "Total Threads": "",
         "Hybrid Layout": "",
+        "Tag": "",
     }
 
     def __init__(self, stats_data, ref_key=None, sort_keys=True):
@@ -102,9 +103,10 @@ class MetricSet:
 
         return min(
             stats_dict.items(),
-            key=lambda x: "{:05}_{:05}".format(
+            key=lambda x: "{:05}_{:05}_{}".format(
                 sum(x[1].metadata.threads_per_process),
                 max(x[1].metadata.threads_per_process),
+                x[1].metadata.tag,
             ),
         )[0]
 
@@ -165,6 +167,7 @@ class MetricSet:
                 ],
                 index=[idxkey],
             ),
+            "Tag": pandas.Series(data=[metadata.tag], index=[idxkey]),
         }
 
         for metric in self._metric_list:
@@ -182,6 +185,7 @@ class MetricSet:
         **kwargs
     ):
         from pypop.notebook_interface.plotting import MetricTable
+
         return MetricTable(
             self,
             columns_key=columns_key,
@@ -201,6 +205,7 @@ class MetricSet:
         **kwargs
     ):
         from pypop.notebook_interface.plotting import ScalingPlot
+
         return ScalingPlot(
             self,
             scaling_variable=scaling_variable,

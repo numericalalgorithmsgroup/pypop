@@ -133,6 +133,10 @@ def _preprocess_traces_parse_args():
     parser.add_argument(
         "--dimemas-path", type=str, metavar="PATH", help="Path to Dimemas executable"
     )
+
+    parser.add_argument(
+        "--tag", type=str, metavar="TAG", help="Tag to apply to trace(s)"
+    )
     parser.add_argument(
         "--outfile-path",
         type=str,
@@ -274,6 +278,7 @@ def preprocess_traces():
         force_recalculation=config.force_recalculation,
         chop_to_roi=config.chop_to_roi,
         outpath=config.outfile_path,
+        tag=config.tag,
     )
 
 
