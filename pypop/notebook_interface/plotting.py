@@ -125,6 +125,7 @@ class MetricTable(BokehBase):
         metrics: MetricSet,
         columns_key="auto",
         group_key="auto",
+        group_label=None,
         title=None,
         columns_label=None,
         fontsize=14,
@@ -139,6 +140,8 @@ class MetricTable(BokehBase):
         self._group_key = (
             self._metrics._default_group_key if group_key == "auto" else group_key
         )
+
+        self._group_label = group_label if group_label else self._group_key
 
         self._fontsize = fontsize
         self._metric_name_column_text = []
@@ -277,7 +280,7 @@ class MetricTable(BokehBase):
                         ),
                         "bottom_edges": numpy.full(num_groups, self._row_locs[0]),
                         "cell_fills": numpy.full(num_groups, RGB(255, 255, 255)),
-                        "data": [self._group_key]
+                        "data": [self._group_label]
                         + ["{}".format(g[0]) for g in group_iter],
                         "short_desc": [self._group_key] * num_groups,
                         "long_desc": [self._metrics._key_descriptions[self._group_key]]
@@ -394,6 +397,7 @@ class ScalingPlot(BokehBase):
         scaling_variable="Speedup",
         independent_variable="auto",
         group_key="auto",
+        group_label=None,
         title=None,
         fontsize=14,
         **kwargs
@@ -405,6 +409,8 @@ class ScalingPlot(BokehBase):
         self._group_key = (
             self._metrics._default_group_key if group_key == "auto" else group_key
         )
+
+        self._group_label = group_label if group_label else self._group_key
 
         self._xaxis_key = (
             self._metrics._default_scaling_key
@@ -433,16 +439,13 @@ class ScalingPlot(BokehBase):
                 .copy()
             )
             plot_data["Plotgroups"] = plot_data[self._group_key].apply(
-                lambda x: "{} {}".format(x, self._group_key)
+                lambda x: "{} {}".format(x, self._group_label)
             )
-        
+
         else:
-            plot_data = (
-                self._metrics.metric_data[
-                    [self._xaxis_key, self._yaxis_key]
-                ]
-                .copy()
-            )
+            plot_data = self._metrics.metric_data[
+                [self._xaxis_key, self._yaxis_key]
+            ].copy()
             plot_data["Plotgroups"] = "NULL"
 
         color_map = build_discrete_cmap(plot_data["Plotgroups"].unique())
