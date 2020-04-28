@@ -12,14 +12,14 @@
 
 \setbeamertemplate{background}{%
   \ifnum\thepage>1\relax% No teeny headerline on title page
-  \begin{tikzpicture}
-  \useasboundingbox (0,0) rectangle(\the\paperwidth,\the\paperheight);
-  \coordinate[anchor=north east] (logopos) at ($(current page.north east) - (0.2, 0.10)$);
-  \node[anchor=north east] (poplogo) at (logopos) {\includegraphics[height=0.8cm]{\poplogo}};
-  \coordinate (leftpos) at ($(current page.north west) - (-0.3, 1.25)$);
-  \coordinate (rightpos) at ($(current page.north east) - (0.3, 1.35)$);
-  \shade[left color=popblue, right color=popgreen] (leftpos) rectangle (rightpos);
-  \end{tikzpicture}
+    \begin{tikzpicture}
+      \useasboundingbox (0,0) rectangle(\the\paperwidth,\the\paperheight);
+      \coordinate[anchor=north east] (logopos) at ($(current page.north east) - (0.2, 0.10)$);
+      \node[anchor=north east] (poplogo) at (logopos) {\includegraphics[height=0.8cm]{\poplogo}};
+      \coordinate (leftpos) at ($(current page.north west) - (-0.3, 1.25)$);
+      \coordinate (rightpos) at ($(current page.north east) - (0.3, 1.35)$);
+      \shade[left color=popblue, right color=popgreen] (leftpos) rectangle (rightpos);
+    \end{tikzpicture}
   \fi
 }
 
@@ -39,29 +39,41 @@
   \includegraphics[width=0.6\textwidth]{pop_logo}
   \vskip1em%
   \begingroup
-    \begin{beamercolorbox}[wd=\paperwidth, ht=4.0em, dp=0.5em, center]{title}
-      \vfill%
-      \usebeamerfont{title}\inserttitle
-      \vskip0.2em%
-      \usebeamerfont{author}\insertauthor~---~\insertinstitute%
-      \vfill%
-    \end{beamercolorbox}
+  \begin{beamercolorbox}[wd=\paperwidth, ht=4.0em, dp=0.5em, center]{title}
+    \vfill%
+    \usebeamerfont{title}\inserttitle
+    \vskip0.2em%
+    \usebeamerfont{author}\insertauthor~---~\insertinstitute%
+    \vfill%
+  \end{beamercolorbox}
   \endgroup%
   \vskip2cm
   \centering
-    \usebeamerfont{title note}
-    \usebeamercolor[fg]{title note}
-    \begin{tikzpicture}[remember picture, overlay]
-      \coordinate (logopos) at ($(current page.south) + (0.0, 0.0)$);
-      \coordinate (lstrappos) at ($(current page.south west) + (0.1, 0.1)$);
-      \coordinate (rstrappos) at ($(current page.south east) + (-0.1, 0.1)$);
-      \node[anchor=south] (eulogo) at (logopos) {\includegraphics[height=1.8cm]{\eulogo}};
-      \node[anchor=south west] (coe) at (lstrappos) {EU H2020 Centre of Excellence};
-      \node[anchor=south east] (grantagreement) at (rstrappos) {Grant Agreement No 824080};
-    \end{tikzpicture}
+  \usebeamerfont{title note}
+  \usebeamercolor[fg]{title note}
+  \begin{tikzpicture}[remember picture, overlay]
+    \coordinate (logopos) at ($(current page.south) + (0.0, 0.0)$);
+    \coordinate (lstrappos) at ($(current page.south west) + (0.1, 0.1)$);
+    \coordinate (rstrappos) at ($(current page.south east) + (-0.1, 0.1)$);
+    \node[anchor=south] (eulogo) at (logopos) {\includegraphics[height=1.8cm]{\eulogo}};
+    \node[anchor=south west] (coe) at (lstrappos) {EU H2020 Centre of Excellence};
+    \node[anchor=south east] (grantagreement) at (rstrappos) {Grant Agreement No 824080};
+  \end{tikzpicture}
 }
 
+\defbeamertemplate*{itemize/enumerate body begin}{pop}
+{
+  \let\this@beamer@cramped\beamer@cramped
+  \renewcommand{\beamer@cramped}{
+    \this@beamer@cramped
+    \addtolength{\itemsep}{.5\baselineskip}
+  }
+}
 
+\defbeamertemplate*{itemize/enumerate body end}{pop}
+{
+  \let\beamer@cramped\this@beamer@cramped
+}
 
 \mode
 <all>
