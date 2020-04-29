@@ -6,6 +6,7 @@ from io import BytesIO
 import numpy
 import pandas
 import warnings
+from pkg_resources import resource_filename
 
 from bokeh.plotting import figure
 from bokeh.colors import RGB
@@ -27,6 +28,8 @@ warnings.filterwarnings(
     category=UserWarning,
     module="bokeh.plotting.helpers",
 )
+
+POP_LOGO_PNG = "pop_logo.npy"
 
 
 def get_any_webdriver():
@@ -129,6 +132,7 @@ class MetricTable(BokehBase):
         title=None,
         columns_label=None,
         fontsize=14,
+        pop_logo=True,
         **kwargs
     ):
         self._metrics = metrics
@@ -144,6 +148,8 @@ class MetricTable(BokehBase):
         self._group_label = group_label if group_label else self._group_key
 
         self._fontsize = fontsize
+        self._pop_logo = pop_logo
+
         self._metric_name_column_text = []
         self._metric_descriptions = []
         self._setup_geometry()
@@ -157,10 +163,15 @@ class MetricTable(BokehBase):
 
         pt_to_px = 96 / 72
         font_px = self._fontsize * pt_to_px
+        self._logo_height = 50
+        self._logo_subpad = 10
         self._cell_height = font_px * 2.2
         self._row_locs = numpy.linspace(
             0, -self._cell_height * (self._nrows - 1), self._nrows
         )
+
+        if self._pop_logo:
+            self._row_locs -= self._logo_height + self._logo_subpad
 
         # Offset rows if there will be a header row
         if self._group_key is not None:
@@ -194,7 +205,7 @@ class MetricTable(BokehBase):
                 max_value_em_width, approx_string_em_width("{}".format(keyname))
             )
 
-        self._border_pad = 20  # px
+        self._border_pad = 10  # px
         self._left_pad = font_px / 2
         self._right_pad = font_px / 3
         self._metric_column_width = 1.1 * (
@@ -359,6 +370,18 @@ class MetricTable(BokehBase):
             text_baseline="middle",
             text_font_size="{}pt".format(self._fontsize),
         )
+
+        if self._pop_logo:
+            pop_img = resource_filename(__name__, POP_LOGO_PNG)
+            pop_data = numpy.load(pop_img)
+            img_h = pop_data.shape[0]
+            img_w = pop_data.shape[1]
+
+            render_h = self._logo_height
+            render_w = self._logo_height * img_w / img_h
+            self._figure.image_rgba(
+                image=[pop_data], x=20, y=-self._logo_height, dw=render_w, dh=render_h
+            )
 
         self.update()
 
