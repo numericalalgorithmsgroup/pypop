@@ -36,6 +36,7 @@ setup(
             "pypop-preprocess = pypop.cli:preprocess_traces",
             "pypop-idealise-prv = pypop.cli:dimemas_idealise_cli",
             "pypop-copy-examples = pypop.cli:copy_examples",
+            "pypop-gui = pypop.cli:pypop_gui",
         ]
     },
 )
