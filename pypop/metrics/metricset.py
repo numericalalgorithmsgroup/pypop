@@ -31,9 +31,9 @@ class Metric:
         self.is_inefficiency = is_inefficiency
 
         if displayname:
-            self.displayname = r"$\hookrightarrow$" * bool(self.level) + displayname
+            self.displayname = r"↪ " * bool(self.level) + displayname
         else:
-            self.displayname = r"$\hookrightarrow$" * bool(self.level) + self.key
+            self.displayname = r"↪ " * bool(self.level) + self.key
 
 
 class MetricSet:

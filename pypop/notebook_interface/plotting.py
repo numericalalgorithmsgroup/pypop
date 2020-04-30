@@ -166,6 +166,9 @@ class MetricTable(BokehBase):
         self._logo_height = 50
         self._logo_subpad = 10
         self._cell_height = font_px * 2.2
+        self._border_pad = 10  # px
+        self._left_pad = font_px / 2
+        self._right_pad = font_px / 3
         self._row_locs = numpy.linspace(
             0, -self._cell_height * (self._nrows - 1), self._nrows
         )
@@ -192,10 +195,10 @@ class MetricTable(BokehBase):
 
         # metric name widths
         for metric in self._metrics.metrics:
-            self._metric_name_column_text.append(metric.key)
+            self._metric_name_column_text.append(metric.displayname)
             self._metric_descriptions.append(metric.description)
             max_metric_em_width = max(
-                max_metric_em_width, approx_string_em_width(metric.key)
+                max_metric_em_width, approx_string_em_width(metric.displayname)
             )
 
         # Calculate required value column width
@@ -205,9 +208,6 @@ class MetricTable(BokehBase):
                 max_value_em_width, approx_string_em_width("{}".format(keyname))
             )
 
-        self._border_pad = 10  # px
-        self._left_pad = font_px / 2
-        self._right_pad = font_px / 3
         self._metric_column_width = 1.1 * (
             max_metric_em_width * font_px + self._left_pad + self._right_pad
         )
@@ -289,6 +289,7 @@ class MetricTable(BokehBase):
                         "top_edges": numpy.full(
                             num_groups, self._row_locs[0] + self._cell_height
                         ),
+                        "text_inset": self._left_pad,
                         "bottom_edges": numpy.full(num_groups, self._row_locs[0]),
                         "cell_fills": numpy.full(num_groups, RGB(255, 255, 255)),
                         "data": [self._group_label]
@@ -300,6 +301,10 @@ class MetricTable(BokehBase):
                 )
             )
 
+        metric_insets = [self._left_pad] + [
+            self._left_pad * (1 + 1.5 * m.level) for m in self._metrics.metrics
+        ]
+
         # Label column
         plotdata.append(
             pandas.DataFrame(
@@ -307,6 +312,7 @@ class MetricTable(BokehBase):
                     "left_edges": numpy.zeros(self._nrows),
                     "right_edges": numpy.full(self._nrows, self._metric_column_width),
                     "top_edges": self._row_locs,
+                    "text_inset": metric_insets,
                     "bottom_edges": self._row_locs - self._cell_height,
                     "cell_fills": numpy.full(self._nrows, RGB(255, 255, 255)),
                     "data": self._metric_name_column_text,
@@ -329,6 +335,7 @@ class MetricTable(BokehBase):
                             "left_edges": left_edges,
                             "right_edges": right_edges,
                             "top_edges": self._row_locs,
+                            "text_inset": self._left_pad,
                             "bottom_edges": self._row_locs - self._cell_height,
                             "cell_fills": [RGB(255, 255, 255)]
                             + [
@@ -363,7 +370,7 @@ class MetricTable(BokehBase):
         self._figure.text(
             x="left_edges",
             y="top_edges",
-            x_offset=self._left_pad,
+            x_offset="text_inset",
             y_offset=self._cell_height / 2,
             text="data",
             source=plotdata,
