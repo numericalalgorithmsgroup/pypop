@@ -37,6 +37,9 @@ $ pip install [--user] git+https://github.com/numericalalgorithmsgroup/pypop
 The optional `--user` directive instructs pip to install to the users home directory instead of the
 system site package directory.
 
+**N.B: Some linux distributions are still shipping Python2 alongside Python3. PyPOP requires
+Python3 and so you may need to install using the `pip3` command rather than the `pip` command.**
+
 ## Usage
 
 Jupyter notebooks are intended to be the primary interface to PyPOP.  This guide uses several
