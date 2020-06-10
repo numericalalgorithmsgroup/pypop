@@ -22,6 +22,9 @@ setup(
         "bokeh >= 1",
         "tables",
         "tqdm",
+        "ipyfilechooser",
+        "selenium",
+        "nbformat",
     ],
     zip_safe=True,
     include_package_data=True,
@@ -33,6 +36,7 @@ setup(
             "pypop-preprocess = pypop.cli:preprocess_traces",
             "pypop-idealise-prv = pypop.cli:dimemas_idealise_cli",
             "pypop-copy-examples = pypop.cli:copy_examples",
+            "pypop-gui = pypop.cli:pypop_gui",
         ]
     },
 )

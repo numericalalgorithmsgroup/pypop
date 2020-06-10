@@ -35,7 +35,10 @@ class TraceMetadata:
         # "layout": str,
         "tracefile_name": str,
         "fingerprint": str,
+        "tag": str,
     }
+
+    _optional = {"tag"}
 
     _needs_packing = ["layout", "threads_per_process"]
 
@@ -58,7 +61,9 @@ class TraceMetadata:
             try:
                 packed_data = dataframe[var]
             except KeyError as err:
-                warn("Missing data value: {}".format(err))
+                if var not in metadata._optional:
+                    warn("Missing metadata entry: {}".format(err))
+                setattr(metadata, var, None)
                 continue
             if var in metadata._needs_packing:
                 unpack = getattr(metadata, "unpack_{}".format(var))
@@ -73,6 +78,8 @@ class TraceMetadata:
         data = {}
 
         for var, vartype in self._datavars.items():
+            if getattr(self, var) is None:
+                continue
             if var in self._needs_packing:
                 pack = getattr(self, "pack_{}".format(var))
                 packed = pack(getattr(self, var), vartype)
