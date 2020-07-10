@@ -206,14 +206,14 @@ def mpi_cli_metrics():
         metric_table = metrics.plot_table(
             title=config.table_title, columns_key=config.table_key
         )
-        metric_table.savefig(config.metric_table)
+        metric_table.save_png(config.metric_table)
 
     # Create and save scaling plot
     if not config.no_scaling_plot:
         scaling_plot = metrics.plot_scaling(
             title=config.scaling_title, x_key=config.scaling_key
         )
-        scaling_plot.savefig(config.scaling_plot)
+        scaling_plot.save_png(config.scaling_plot)
 
     # Save metrics as csv
     if not config.no_csv:
@@ -241,14 +241,14 @@ def openmp_cli_metrics():
         metric_table = metrics.plot_table(
             title=config.table_title, columns_key=config.table_key
         )
-        metric_table.savefig(config.metric_table)
+        metric_table.save_png(config.metric_table)
 
     # Create and save scaling plot
     if not config.no_scaling_plot:
         scaling_plot = metrics.plot_scaling(
             title=config.scaling_title, x_key=config.scaling_key
         )
-        scaling_plot.savefig(config.scaling_plot)
+        scaling_plot.save_png(config.scaling_plot)
 
     # Save metrics as csv
     if not config.no_csv:
@@ -276,14 +276,14 @@ def hybrid_cli_metrics():
         metric_table = metrics.plot_table(
             title=config.table_title, columns_key=config.table_key
         )
-        metric_table.savefig(config.metric_table)
+        metric_table.save_png(config.metric_table)
 
     # Create and save scaling plot
     if not config.no_scaling_plot:
         scaling_plot = metrics.plot_scaling(
             title=config.scaling_title, x_key=config.scaling_key
         )
-        scaling_plot.savefig(config.scaling_plot)
+        scaling_plot.save_png(config.scaling_plot)
 
     # Save metrics as csv
     if not config.no_csv:

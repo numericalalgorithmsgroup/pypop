@@ -121,6 +121,12 @@ class BokehBase:
         img.save(imgbuffer, format="png")
         return imgbuffer.getvalue()
 
+    def save_png(self, path):
+        imgdata = self._repr_png_()
+
+        with open(path, 'wb') as fh:
+            fh.write(imgdata)
+
 
 class MetricTable(BokehBase):
     def __init__(
