@@ -59,9 +59,7 @@ def dimemas_idealise(tracefile, outpath=None):
 
     # Pass trace, run config and path to idealisation skeleton config and let
     # dimemas_analyze work its subtle magic(k)s
-    return dimemas_analyse(
-        tracefile, IDEAL_CONF_PATH, outpath, subs
-    )
+    return dimemas_analyse(tracefile, IDEAL_CONF_PATH, outpath, subs)
 
 
 def dimemas_analyse(tracefile, configfile, outpath=None, substrings=None):
@@ -93,7 +91,7 @@ def dimemas_analyse(tracefile, configfile, outpath=None, substrings=None):
 
     # Perform all work in a tempdir with predictable names,
     # this works around a series of weird dimemas bugs
-    
+
     # Make sure config._tmpdir_path exists before using it
     if config._tmpdir_path:
         try:
@@ -142,7 +140,7 @@ def dimemas_analyse(tracefile, configfile, outpath=None, substrings=None):
     # Now create the dim file for dimemas
     tmp_dim = os.path.join(workdir, splitext(basename(tmp_prv))[0] + ".dim")
 
-    prv2dim_binpath = 'prv2dim'
+    prv2dim_binpath = "prv2dim"
     if config._dimemas_path:
         prv2dim_binpath = os.path.join(config._dimemas_path, prv2dim_binpath)
 
@@ -165,7 +163,7 @@ def dimemas_analyse(tracefile, configfile, outpath=None, substrings=None):
     except Exception as err:
         raise RuntimeError("prv2dim execution_failed: {}".format(err))
 
-    dimemas_binpath = 'Dimemas'
+    dimemas_binpath = "Dimemas"
     if config._dimemas_path:
         dimemas_binpath = os.path.join(config._dimemas_path, dimemas_binpath)
 
@@ -228,4 +226,4 @@ def dimemas_analyse(tracefile, configfile, outpath=None, substrings=None):
     shutil.rmtree(workdir, ignore_errors=True)
 
     # finally return outpath as promised
-    return os.path.join(outpath,filestem + ".sim.prv")
+    return os.path.join(outpath, filestem + ".sim.prv")

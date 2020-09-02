@@ -28,7 +28,7 @@ class MPI_Metrics(MetricSet):
         Metric("Frequency Scaling", 2),
     ]
 
-    _default_metric_key = "Number of Processes"
+    _programming_model = "MPI"
 
     def _calculate_metrics(self, ref_key=None, sort_keys=True):
 
@@ -140,6 +140,8 @@ class MPI_Multiplicative_Metrics(MetricSet):
         Metric("IPC Scaling", 2),
         Metric("Frequency Scaling", 2),
     ]
+
+    _programming_model = "MPI"
 
     def _calculate_metrics(self, ref_key=None, sort_keys=True):
 

@@ -65,6 +65,8 @@ class OpenMP_Metrics(MetricSet):
         Metric("IPC Scaling", 2, "IPC Scaling", desc=k_IPCSC_desc),
     ]
 
+    _programming_model = "OpenMP"
+
     _default_metric_key = "Total Threads"
 
     def _calculate_metrics(self, ref_key=None, sort_keys=True):

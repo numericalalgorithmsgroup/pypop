@@ -42,17 +42,19 @@ class Trace:
         return super().__new__(cls)
 
     @staticmethod
-    def load(filename, force_recalculation=False, **kwargs):
+    def load(filename, force_recalculation=False, tag=None, **kwargs):
 
         if force_recalculation is False:
             # First try to open file as if it *is* a summary file
             try:
-                return Trace._load_from_summary_file(filename, **kwargs)
+                summaryloaded = Trace._load_from_summary_file(
+                    filename, tag=tag, **kwargs
+                )
             except WrongLoaderError:
                 # Otherwise, see if it has a summaryfile present
                 try:
-                    return Trace._load_from_summary_file(
-                        Trace.get_summary_filename(filename), **kwargs
+                    summaryloaded = Trace._load_from_summary_file(
+                        Trace.get_summary_filename(filename), tag=tag, **kwargs
                     )
                 # Fallback - assume valid trace with no summary
                 except (WrongLoaderError, FileNotFoundError):
@@ -62,7 +64,7 @@ class Trace:
         for loader in Trace._loader_registry.values():
             try:
                 return loader(
-                    filename, force_recalculation=force_recalculation, **kwargs
+                    filename, force_recalculation=force_recalculation, tag=tag, **kwargs
                 )
             except WrongLoaderError:
                 pass
@@ -70,13 +72,13 @@ class Trace:
         raise ValueError("Invalid or unsupported trace {}".format(filename))
 
     @staticmethod
-    def _load_from_summary_file(filename, **kwargs):
+    def _load_from_summary_file(filename, tag=None, **kwargs):
 
         # This will raise a WrongLoader error already so no need to trap and reraise
         metadata, _ = Trace._parse_summary_file(filename)
 
         try:
-            return Trace._loader_registry[metadata.trace_subclass_name](
+            trace = Trace._loader_registry[metadata.trace_subclass_name](
                 filename, **kwargs
             )
         except KeyError:
@@ -86,7 +88,12 @@ class Trace:
                 "".format(metadata.trace_subclass_name)
             )
 
-    def __init__(self, filename, force_recalculation=False, **kwargs):
+        if tag is not None:
+            warn("Loading from summary, tag argument ignored")
+
+        return trace
+
+    def __init__(self, filename, force_recalculation=False, tag=None, **kwargs):
         # Save keyword args for later
         self._kwargs = kwargs
 
@@ -115,6 +122,8 @@ class Trace:
                     pass
 
         self._metadata = TraceMetadata(self)
+        if tag:
+            self._metadata.tag = tag
         self._statistics = None
 
         # Loading from a tracefile so

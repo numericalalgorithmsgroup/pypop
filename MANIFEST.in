@@ -1,4 +1,6 @@
+include versionate.py
 include pypop/version
+include pypop/notebook_interface/pop_logo.npy
 recursive-include pypop/examples *
 recursive-include pypop/cfgs *
 recursive-include pypop/cutters *

@@ -32,6 +32,8 @@ class Judit_Hybrid_Metrics(MetricSet):
         Metric("IPC Scaling", 2, "IPC Scaling"),
     ]
 
+    _programming_model = "MPI + OpenMP"
+
     _default_metric_key = "Number of Processes"
     _default_group_key = "Threads per Process"
 
