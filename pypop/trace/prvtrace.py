@@ -56,7 +56,10 @@ ideal_configs = {
     k: tuple(resource_filename(__name__, w) for w in v)
     for k, v in {
         "Ideal Useful Computation": ("../cfgs/total_useful_computation.cfg",),
-        "Ideal Runtime": ("../cfgs/total_runtime.cfg",),
+        "Ideal Runtime": (
+            "../cfgs/total_runtime.cfg",
+            "../cfgs/tracing_enabled.cfg",
+        ),
     }.items()
 }
 
