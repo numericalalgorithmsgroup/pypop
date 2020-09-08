@@ -171,6 +171,7 @@ def dimemas_analyse(tracefile, configfile, outpath=None, substrings=None):
     sim_prv = ".sim".join(splitext(tmp_prv))
     dimemas_params = [
         dimemas_binpath,
+        "-S 32k",
         "--dim",
         basename(tmp_dim),
         "--prv-trace",
