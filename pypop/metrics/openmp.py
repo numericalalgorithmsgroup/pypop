@@ -49,7 +49,10 @@ k_IPCSC_desc = (
     "The IPC rate can be reduced due to CPU data starvation, inefficient cache usage or "
     "high rates of branch misprediction."
 )
-
+k_FREQSC_desc = (
+    "Inefficiencies due to processor execution frequency changes. The frequency is typically "
+    "reduced due to either incorrect choice of CPU scheduler or overheating of the CPU."
+)
 
 class OpenMP_Metrics(MetricSet):
     """Proposed Hybrid MPI+OpenMP Metrics.
@@ -63,6 +66,7 @@ class OpenMP_Metrics(MetricSet):
         Metric("Computational Scaling", 1, desc=k_COMPSC_desc),
         Metric("Instruction Scaling", 2, desc=k_INSSC_desc),
         Metric("IPC Scaling", 2, "IPC Scaling", desc=k_IPCSC_desc),
+        Metric("Frequency Scaling", 2, "Frequency Scaling", desc=k_FREQSC_desc),
     ]
 
     _programming_model = "OpenMP"
@@ -136,6 +140,13 @@ class OpenMP_Metrics(MetricSet):
                     .statistics["Total Useful Computation"]
                     .sum()
                     / stats["Total Useful Computation"].sum()
+                )
+
+                metrics["Frequency Scaling"] = (
+                    stats["Useful Cycles"].sum() / stats["Total Useful Computation"].sum()
+                ) / (
+                    self._stats_dict[ref_key].statistics["Useful Cycles"].sum()
+                    / self._stats_dict[ref_key].statistics["Total Useful Computation"].sum()
                 )
 
                 metrics["Global Efficiency"] = (
