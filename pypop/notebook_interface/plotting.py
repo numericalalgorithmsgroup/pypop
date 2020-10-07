@@ -158,7 +158,7 @@ class MetricTable(BokehBase):
 
         self._group_label = group_label if group_label else self._group_key
 
-        self._fontsize = fontsize
+        self.fontsize = fontsize
         self._pop_logo = pop_logo
 
         self._metric_name_column_text = []
@@ -173,7 +173,7 @@ class MetricTable(BokehBase):
         self._ncols = len(self._metrics.metric_data.index)
 
         pt_to_px = 96 / 72
-        font_px = self._fontsize * pt_to_px
+        font_px = self.fontsize * pt_to_px
         self._logo_height = 50
         self._logo_subpad = 10
         self._cell_height = font_px * 2.2
@@ -245,7 +245,7 @@ class MetricTable(BokehBase):
 @long_desc
 </div>
         """.format(
-            plot_width / 2, self._fontsize - 2, plot_width / 2, self._fontsize - 4
+            plot_width / 2, self.fontsize - 2, plot_width / 2, self.fontsize - 4
         )
 
         hover_tool = HoverTool(
@@ -386,7 +386,7 @@ class MetricTable(BokehBase):
             text="data",
             source=plotdata,
             text_baseline="middle",
-            text_font_size="{}pt".format(self._fontsize),
+            text_font_size="{}pt".format(self.fontsize),
         )
 
         if self._pop_logo:
@@ -441,6 +441,7 @@ class ScalingPlot(BokehBase):
         group_label=None,
         title=None,
         fontsize=14,
+        fit_data_only=False,
         **kwargs
     ):
 
@@ -458,14 +459,17 @@ class ScalingPlot(BokehBase):
             if independent_variable == "auto"
             else independent_variable
         )
+
         self._yaxis_key = scaling_variable
-        self._fontsize = fontsize
+        self.fontsize = fontsize
+        self.fit_data_only = fit_data_only
+        self.title = title
 
     def _build_plot(self):
 
         # Geometry calculations - currently fix width at 60em height at 40em
         pt_to_px = 96 / 72
-        font_px = self._fontsize * pt_to_px
+        font_px = self.fontsize * pt_to_px
         width = int(48 * font_px)
         height = int(32 * font_px)
 
@@ -502,7 +506,10 @@ class ScalingPlot(BokehBase):
         yrange_80pc = 0.8 * yrange_ideal + 0.2
 
         x_axis_range = x_lims
-        y_axis_range = min(y_lims[0], yrange_ideal[0]), max(y_lims[1], yrange_ideal[1])
+        if self.fit_data_only:
+            y_axis_range = y_lims
+        else:
+            y_axis_range = min(y_lims[0], yrange_ideal[0]), max(y_lims[1], yrange_ideal[1])
 
         x_expand = numpy.asarray([-0.1, 0.1]) * numpy.abs(numpy.diff(x_lims))
         y_expand = numpy.asarray([-0.1, 0.1]) * numpy.abs(numpy.diff(y_lims))
@@ -516,6 +523,7 @@ class ScalingPlot(BokehBase):
             sizing_mode="scale_width",
             x_range=x_axis_range,
             y_range=y_axis_range,
+            title=self.title
         )
 
         self._figure.varea(
@@ -523,20 +531,20 @@ class ScalingPlot(BokehBase):
             y1=yrange_ideal,
             y2=yrange_80pc,
             fill_color="green",
-            fill_alpha=0.4,
+            fill_alpha=0.2,
         )
         self._figure.varea(
             xrange_ideal,
             y1=yrange_80pc,
-            y2=numpy.zeros_like(yrange_80pc),
-            fill_color="red",
-            fill_alpha=0.4,
+            y2=numpy.ones_like(yrange_80pc),
+            fill_color="green",
+            fill_alpha=0.1,
         )
 
-        self._figure.xaxis.axis_label_text_font_size = "{}pt".format(self._fontsize)
-        self._figure.xaxis.major_label_text_font_size = "{}pt".format(self._fontsize - 1)
-        self._figure.yaxis.axis_label_text_font_size = "{}pt".format(self._fontsize)
-        self._figure.yaxis.major_label_text_font_size = "{}pt".format(self._fontsize - 1)
+        self._figure.xaxis.axis_label_text_font_size = "{}pt".format(self.fontsize)
+        self._figure.xaxis.major_label_text_font_size = "{}pt".format(self.fontsize - 1)
+        self._figure.yaxis.axis_label_text_font_size = "{}pt".format(self.fontsize)
+        self._figure.yaxis.major_label_text_font_size = "{}pt".format(self.fontsize - 1)
 
         self._figure.xaxis.axis_label = self._xaxis_key
         self._figure.yaxis.axis_label = self._yaxis_key

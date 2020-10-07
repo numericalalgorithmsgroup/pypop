@@ -202,6 +202,7 @@ class MetricSet:
         group_key="auto",
         title=None,
         fontsize=14,
+        fit_data_only=False,
         **kwargs
     ):
         from pypop.notebook_interface.plotting import ScalingPlot
@@ -213,4 +214,5 @@ class MetricSet:
             group_key=group_key,
             title=title,
             fontsize=fontsize,
+            fit_data_only=fit_data_only,
         )
