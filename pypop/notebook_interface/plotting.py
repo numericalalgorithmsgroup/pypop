@@ -537,9 +537,16 @@ class ScalingPlot(BokehBase):
             xrange_ideal,
             y1=yrange_80pc,
             y2=numpy.ones_like(yrange_80pc),
-            fill_color="green",
-            fill_alpha=0.1,
+            fill_color="orange",
+            fill_alpha=0.2,
         )
+        self._figure.varea(
+            xrange_ideal,
+            y1=numpy.ones_like(xrange_ideal),
+            y2=numpy.zeros_like(xrange_ideal),
+            fill_color="red",
+            fill_alpha=0.2
+            )
 
         self._figure.xaxis.axis_label_text_font_size = "{}pt".format(self.fontsize)
         self._figure.xaxis.major_label_text_font_size = "{}pt".format(self.fontsize - 1)
