@@ -2,7 +2,9 @@
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 # Copyright (c) 2019, The Numerical Algorithms Group, Ltd. All rights reserved.
 
+from os import environ
 from io import BytesIO
+from sys import float_info
 import numpy
 import pandas
 import warnings
@@ -94,26 +96,23 @@ class BokehBase:
         return self._figure
 
     def _repr_html_(self):
-        if self._figure is None:
-            self._build_plot()
-
-        return file_html(self._figure, INLINE, "")
+        return file_html(self.figure, INLINE, "")
 
     def _repr_png_(self):
-        if self._figure is None:
-            self._build_plot()
+        if not environ.get("PYPOP_HEADLESS"):
+            return None
 
         try:
             window_size = [int(1.1 * x) for x in self._plot_dims]
         except AttributeError:
             window_size = (900, 600)
 
-        self._figure.toolbar_location = None
+        self.figure.toolbar_location = None
 
         driver = get_any_webdriver()
         driver.set_window_size(*window_size)
 
-        img = get_screenshot_as_png(self._figure, driver=driver,)
+        img = get_screenshot_as_png(self.figure, driver=driver,)
 
         driver.quit()
 
@@ -121,10 +120,16 @@ class BokehBase:
         img.save(imgbuffer, format="png")
         return imgbuffer.getvalue()
 
+    def save_html(self, path):
+        imgcode = self._repr_html_()
+
+        with open(path, "wt") as fh:
+            fh.write(imgcode)
+
     def save_png(self, path):
         imgdata = self._repr_png_()
 
-        with open(path, 'wb') as fh:
+        with open(path, "wb") as fh:
             fh.write(imgdata)
 
 
@@ -477,7 +482,6 @@ class ScalingPlot(BokehBase):
             plot_data["Plotgroups"] = plot_data[self._group_key].apply(
                 lambda x: "{} {}".format(x, self._group_label)
             )
-
         else:
             plot_data = self._metrics.metric_data[
                 [self._xaxis_key, self._yaxis_key]
@@ -486,20 +490,47 @@ class ScalingPlot(BokehBase):
 
         color_map = build_discrete_cmap(plot_data["Plotgroups"].unique())
 
-        x_lims = plot_data[self._xaxis_key].min(), plot_data[self._xaxis_key].max()
-        x_range = x_lims[1] - x_lims[0]
-        x_range = x_lims[0] - 0.1 * x_range, x_lims[1] + 0.1 * x_range
-        y_lims = plot_data[self._yaxis_key].min(), plot_data[self._yaxis_key].max()
-        y_range = y_lims[1] - y_lims[0]
-        y_range = y_lims[0] - 0.1 * y_range, y_lims[1] + 0.1 * y_range
+        x_lims = numpy.asarray(
+            [plot_data[self._xaxis_key].min(), plot_data[self._xaxis_key].max()]
+        )
+        y_lims = numpy.asarray(
+            [plot_data[self._yaxis_key].min(), plot_data[self._yaxis_key].max()]
+        )
+
+        xrange_ideal = x_lims
+        yrange_ideal = xrange_ideal / x_lims[0]
+        yrange_80pc = 0.8 * yrange_ideal + 0.2
+
+        x_axis_range = x_lims
+        y_axis_range = min(y_lims[0], yrange_ideal[0]), max(y_lims[1], yrange_ideal[1])
+
+        x_expand = numpy.asarray([-0.1, 0.1]) * numpy.abs(numpy.diff(x_lims))
+        y_expand = numpy.asarray([-0.1, 0.1]) * numpy.abs(numpy.diff(y_lims))
+        x_axis_range = x_axis_range + x_expand
+        y_axis_range = y_axis_range + y_expand
 
         self._figure = figure(
             tools=["save"],
             min_border=0,
             aspect_ratio=1.5,
             sizing_mode="scale_width",
-            x_range=x_range,
-            y_range=y_range,
+            x_range=x_axis_range,
+            y_range=y_axis_range,
+        )
+
+        self._figure.varea(
+            xrange_ideal,
+            y1=yrange_ideal,
+            y2=yrange_80pc,
+            fill_color="green",
+            fill_alpha=0.4,
+        )
+        self._figure.varea(
+            xrange_ideal,
+            y1=yrange_80pc,
+            y2=numpy.zeros_like(yrange_80pc),
+            fill_color="red",
+            fill_alpha=0.4,
         )
 
         self._figure.xaxis.axis_label_text_font_size = "{}pt".format(self._fontsize)
@@ -510,6 +541,8 @@ class ScalingPlot(BokehBase):
         self._figure.xaxis.axis_label = self._xaxis_key
         self._figure.yaxis.axis_label = self._yaxis_key
 
+        xmin = float_info.max
+        xmax = 0
         for group, groupdata in plot_data.groupby("Plotgroups", sort=False):
             groupdata = groupdata.sort_values(self._xaxis_key)
             self._figure.square(
