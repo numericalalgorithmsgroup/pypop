@@ -501,7 +501,7 @@ class ScalingPlot(BokehBase):
             [plot_data[self._yaxis_key].min(), plot_data[self._yaxis_key].max()]
         )
 
-        xrange_ideal = x_lims
+        xrange_ideal = x_lims + numpy.asarray([0, numpy.diff(x_lims)[0]*0.1])
         yrange_ideal = xrange_ideal / x_lims[0]
         yrange_80pc = 0.8 * yrange_ideal + 0.2
 
