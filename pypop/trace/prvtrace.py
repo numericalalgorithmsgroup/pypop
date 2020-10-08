@@ -13,13 +13,13 @@ import pandas
 from .trace import Trace
 
 from ..utils.io import zipopen
-from ..utils.exceptions import WrongLoaderError
+from ..utils.exceptions import WrongLoaderError, ExtraePRVNoOnOffEventsError
 
 from ..dimemas import dimemas_idealise
 from ..extrae import paramedir_analyze_any_of, chop_prv_to_roi, remove_trace
 
 base_configs = {
-    k: tuple(resource_filename('pypop', w) for w in v)
+    k: tuple(resource_filename("pypop", w) for w in v)
     for k, v in {
         "Serial Useful Computation": (
             "cfgs/serial_useful_computation.cfg",
@@ -37,7 +37,7 @@ base_configs = {
 }
 
 omp_configs = {
-    k: tuple(resource_filename('pypop', w) for w in v)
+    k: tuple(resource_filename("pypop", w) for w in v)
     for k, v in {
         "OpenMP Total Runtime": (
             "cfgs/omp_total_runtime.cfg",
@@ -53,7 +53,7 @@ omp_configs = {
 }
 
 ideal_configs = {
-    k: tuple(resource_filename('pypop', w) for w in v)
+    k: tuple(resource_filename("pypop", w) for w in v)
     for k, v in {
         "Ideal Useful Computation": ("cfgs/total_useful_computation.cfg",),
         "Ideal Runtime": ("cfgs/total_runtime.cfg",),
@@ -120,6 +120,7 @@ class PRVTrace(Trace):
             self._tracefile,
             self._kwargs.get("chop_to_roi", False),
             self._kwargs.get("outpath", None),
+            self._kwargs.get("chop_fail_is_error", False)
         )
 
     @staticmethod
@@ -142,19 +143,26 @@ class PRVTrace(Trace):
         return (commsize, threads)
 
     @staticmethod
-    def _analyze_tracefile(trace, chop_to_roi, outpath):
+    def _analyze_tracefile(trace, chop_to_roi, outpath, chop_fail_is_error):
         if outpath:
             makedirs(outpath, exist_ok=True)
 
-        if chop_to_roi:
-            if outpath:
-                tgtname = ".chop".join(splitext(basename(trace)))
-                outfile = path_join(outpath, tgtname)
+        try:
+            if chop_to_roi:
+                if outpath:
+                    tgtname = ".chop".join(splitext(basename(trace)))
+                    outfile = path_join(outpath, tgtname)
+                else:
+                    outfile = None
+                    cut_trace = chop_prv_to_roi(trace, outfile)
             else:
-                outfile = None
-                cut_trace = chop_prv_to_roi(trace, outfile)
-        else:
+                cut_trace = trace
+        except ExtraePRVNoOnOffEventsError as err:
+            if chop_fail_is_error:
+                raise err
+            warn("Unable to chop to ROI: ({}) - Continuing without chopping".format(err))
             cut_trace = trace
+            chop_to_roi = False
 
         stats = [
             paramedir_analyze_any_of(

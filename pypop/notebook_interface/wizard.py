@@ -149,6 +149,7 @@ class MetricsWizard(Tab):
                 force_recalculation=advanced_config["Delete Cache"].value,
                 chop_to_roi=advanced_config["Chop to ROI"].value,
                 no_progress=True,
+                chop_fail_is_error=True
             )
         except ExtraePRVNoOnOffEventsError as err:
             fileprogress = tqdm_notebook_noauto(self._fileselector.filenames, leave=False)

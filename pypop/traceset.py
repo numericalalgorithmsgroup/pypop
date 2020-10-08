@@ -67,6 +67,7 @@ class TraceSet:
         outpath=None,
         ignore_cache=None,
         tag=None,
+        chop_fail_is_error=False,
     ):
         # Setup data structures
         self.traces = set()
@@ -80,7 +81,13 @@ class TraceSet:
 
         # Add traces
         self.add_traces(
-            path_list, force_recalculation, chop_to_roi, no_progress, outpath, tag
+            path_list,
+            force_recalculation,
+            chop_to_roi,
+            no_progress,
+            outpath,
+            tag,
+            chop_fail_is_error,
         )
 
     def add_traces(
@@ -91,6 +98,7 @@ class TraceSet:
         no_progress=False,
         outpath=None,
         tag=None,
+        chop_fail_is_error=False,
     ):
         """Collect statistics from provided trace files, currently only Extrae .prv files
         are supported.
@@ -140,6 +148,7 @@ class TraceSet:
                         chop_to_roi=chop_to_roi,
                         outpath=outpath,
                         tag=tag,
+                        chop_fail_is_error=chop_fail_is_error,
                     )
                 )
 
