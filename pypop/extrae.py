@@ -14,6 +14,7 @@ import os
 from os.path import basename, dirname, normpath, splitext
 from tempfile import mkdtemp, mkstemp
 import subprocess as sp
+import warnings
 
 from pkg_resources import resource_filename
 
@@ -22,6 +23,8 @@ import numpy
 
 from .prv import PRV, get_prv_header_info
 from . import config
+
+from pypop.utils.exceptions import ExtraePRVNoOnOffEventsError
 
 floatmatch = re.compile(r"[0-9,]+\.[0-9]+")
 keymatch = re.compile(r"@.*@")
@@ -111,13 +114,14 @@ def chop_prv_to_roi(prv_file, outfile=None):
     if outfile:
         workdir = dirname(normpath(outfile))
     else:
-        tgtname = ".chop".join(splitext(basename(prv_file)))
+        if prv_file.endswith(".gz"):
+            tgtname = ".chop".join(splitext(basename(prv_file[:-3])))
+        else:
+            tgtname = ".chop".join(splitext(basename(prv_file)))
+
         # Make sure config._tmpdir_path exists before using it
         if config._tmpdir_path:
-            try:
-                os.makedirs(config._tmpdir_path, exist_ok=True)
-            except OSError as err:
-                print("FATAL: {}".format(err))
+            os.makedirs(config._tmpdir_path, exist_ok=True)
         workdir = mkdtemp(dir=config._tmpdir_path)
         outfile = os.path.join(workdir, tgtname)
 
@@ -189,7 +193,7 @@ def chop_prv_to_roi(prv_file, outfile=None):
 
 
 def _get_roi_times(roi_prv):
-    """ Extract ROi timing information from a filtered trace
+    """ Extract ROI timing information from a filtered trace
 
     Expects a trace containing only Extrae On/Off events and returns tuple of
     earliest and latest time
@@ -211,7 +215,7 @@ def _get_roi_times(roi_prv):
     ontime, offtime = (ons["time"].min(), 1 + offs["time"].max())
 
     if ontime is numpy.nan or offtime is numpy.nan:
-        raise ValueError("Unable to locate valid ON-OFF bracket in trace")
+        raise ExtraePRVNoOnOffEventsError("No valid Extrae ON-OFF bracket in trace")
 
     return ontime, offtime
 
@@ -389,12 +393,10 @@ def run_paramedir(tracefile, paramedir_config, outfile=None, variables=None):
 
     # Make sure config._tmpdir_path exists before using it
     if config._tmpdir_path:
-        try:
-            os.makedirs(config._tmpdir_path, exist_ok=True)
-        except OSError as err:
-            print("FATAL: {}".format(err))
-
-    tmpdir = mkdtemp(dir=config._tmpdir_path)
+        os.makedirs(config._tmpdir_path, exist_ok=True)
+        tmpdir = mkdtemp(dir=config._tmpdir_path)
+    else:
+        tmpdir = mkdtemp()
 
     # If variables is none, still sub with empty dict
     variables = variables if variables else {}
@@ -476,7 +478,7 @@ def _split_countline(countline, bins):
     extra_strings = len(count_strings) - num_values
 
     if extra_strings > 1:
-        print(
+        warnings.warn(
             "Warning, got more label strings ({}) than expected (1)"
             "".format(extra_strings)
         )

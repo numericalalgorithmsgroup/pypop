@@ -2,8 +2,10 @@
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 # Copyright (c) 2019, The Numerical Algorithms Group, Ltd. All rights reserved.
 
+from os import getcwd
 from os.path import expanduser, normpath
 
+from ipyfilechooser import FileChooser
 from ipywidgets import (
     Accordion,
     Box,
@@ -15,7 +17,6 @@ from ipywidgets import (
     Layout,
     Label,
 )
-from ipyfilechooser import FileChooser
 
 
 class ValidatingChooser(VBox):
@@ -23,13 +24,19 @@ class ValidatingChooser(VBox):
     _container_layout = Layout(margin="1em 0em 1em 0em")
     _msgbox_layout = Layout()
 
-    def __init__(self, starting_file=None, **kwargs):
+    def __init__(self, starting_file=None, starting_path=None, **kwargs):
 
         if starting_file is None:
             starting_file = ""
 
+        if starting_path is None:
+            starting_path = getcwd()
+
         self._filechooser = FileChooser(
-            filename=starting_file, select_default=bool(starting_file),
+            filename=starting_file,
+            path=starting_path,
+            select_default=bool(starting_file),
+            use_dir_icons=True,
         )
         self._msgbox = HBox(children=[], layout=self._msgbox_layout)
         self._validity = None
@@ -129,6 +136,10 @@ class FileSelector(VBox):
         )
 
     def _create_advanced_config_box(self):
+        self._advanced_config_controls["Chop to ROI"] = Checkbox(
+            value=True, description="Chop to ROI"
+        )
+
         self._advanced_config_controls["Delete Cache"] = Checkbox(
             value=False, description="Delete Cache"
         )
@@ -148,7 +159,9 @@ class FileSelector(VBox):
     def _create_filechoosers(self):
 
         self._filechoosers = [
-            ValidatingChooser(starting_file=fname) if fname else ValidatingChooser()
+            ValidatingChooser(starting_file=fname)
+            if fname
+            else ValidatingChooser(starting_path=self._base_dir)
             for fname in self._files
         ]
         [fc.set_file_select_callback(self._update_files) for fc in self._filechoosers]

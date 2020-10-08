@@ -94,11 +94,10 @@ def dimemas_analyse(tracefile, configfile, outpath=None, substrings=None):
 
     # Make sure config._tmpdir_path exists before using it
     if config._tmpdir_path:
-        try:
-            os.makedirs(config._tmpdir_path, exist_ok=True)
-        except OSError as err:
-            print("FATAL: {}".format(err))
-    workdir = mkdtemp(dir=config._tmpdir_path)
+        os.makedirs(config._tmpdir_path, exist_ok=True)
+        workdir = mkdtemp(dir=config._tmpdir_path)
+    else:
+        workdir = mkdtemp()
 
     # Create temporary config from supplied config and substitution dict
     dimconfig = os.path.join(workdir, ".tmpconfig".join(splitext(basename(configfile))))

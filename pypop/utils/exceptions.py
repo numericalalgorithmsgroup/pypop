@@ -7,3 +7,7 @@ class WrongLoaderError(RuntimeError):
 
 class UnknownLoaderError(RuntimeError):
     pass
+
+
+class ExtraePRVNoOnOffEventsError(RuntimeError):
+    pass

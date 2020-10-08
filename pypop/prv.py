@@ -85,20 +85,23 @@ class PRV:
 
     def __init__(self, prv_path):
 
-        if prv_path and prv_path.endswith((".prv", ".prv.gz")):
-            self._event_names = {}
-            self._event_vals = {}
-            self._parse_pcf(prv_path)
+        try:
+            self._load_prv_and_pcf(prv_path)
 
-            self._parse_prv(prv_path)
-
-        else:
+        except ValueError:
             try:
                 self._load_pickle(prv_path)
             except ValueError:
                 raise ValueError("Not a prv or valid pickle")
 
         self._omp_region_data = None
+
+    def _load_prv_and_pcf(self, prv_path):
+        self._event_names = {}
+        self._event_vals = {}
+        self._parse_pcf(prv_path)
+
+        self._parse_prv(prv_path)
 
     def _parse_pcf(self, prv_path):
 
@@ -199,10 +202,16 @@ class PRV:
             pickle.dump(savedata, fh)
 
     def _load_pickle(self, filename):
-        with gzip.open(filename, "rb") as fh:
-            data = pickle.load(fh)
-
         try:
+            with gzip.open(filename, "rb") as fh:
+                data = pickle.load(fh)
+        except gzip.BadGzipFile:
+            try:
+                with open(filename, "rb") as fh:
+                    data = pickle.load(fh)
+            except pickle.UnpicklingError:
+                raise ValueError("Invalid pickle -- missing data")
+
             self.metadata, self.state, self.event, self.comm = data
         except ValueError:
             raise ValueError("Invalid pickle -- missing data")
@@ -543,7 +552,7 @@ def _parse_paraver_headerline(headerline):
         _format_timing(elems[1]),
         *_split_nodestring(elems[2]),
         _format_num_apps(elems[3]),
-        _format_app_list(elems[4])
+        _format_app_list(elems[4]),
     )
 
     return metadata

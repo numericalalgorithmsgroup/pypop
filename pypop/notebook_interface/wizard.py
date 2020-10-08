@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 # Copyright (c) 2019, The Numerical Algorithms Group, Ltd. All rights reserved.
 
-from ipywidgets import Tab, Layout
+from ipywidgets import Tab, Layout, VBox, Text
 
 import pypop.metrics.metricset as pm
 from ..traceset import TraceSet
@@ -11,6 +11,7 @@ from .plotting import MetricTable, ScalingPlot
 from .bokeh_widget import BokehWidgetWrapper
 from .reporting import ReportGenerator
 
+from pypop.utils.exceptions import ExtraePRVNoOnOffEventsError
 
 class TypeAsserter:
 
@@ -113,18 +114,21 @@ class MetricsWizard(Tab):
         self._scaling_plot = None
         self._report_generator = None
         self._metric_calculator = metric_calc
+        self._base_dir = base_dir
 
         self._analysis_state = AnalysisState()
 
         self._fileselector = FileSelector(
-            base_dir=base_dir,
+            base_dir=self._base_dir,
             starting_files=starting_files,
             calculation_callback=self._calculate_callback_hook,
             analysis_state=self._analysis_state,
         )
 
+        self._status_box = VBox()
+
         super().__init__(
-            children=[self._fileselector],
+            children=[VBox([self._status_box, self._fileselector])],
             layout=Layout(width="auto", max_width="1280px"),
             **kwargs
         )
@@ -133,9 +137,23 @@ class MetricsWizard(Tab):
 
     def _calculate_callback_hook(self, callback_reference=None):
 
-        statistics = TraceSet(
-            self._fileselector.filenames, force_recalculation=False, chop_to_roi=True
-        )
+        advanced_config = self._fileselector._advanced_config_controls
+
+        try:
+            statistics = TraceSet(
+                self._fileselector.filenames,
+                force_recalculation=advanced_config["Delete Cache"].value,
+                chop_to_roi=advanced_config["Chop to ROI"].value
+            )
+        except ExtraePRVNoOnOffEventsError as err:
+            warnstr = "Warning: Disabling Chopping to ROI ({})".format(err)
+            self._status_box.children = [Text(warnstr, layout=Layout(width='auto'))]
+            statistics = TraceSet(
+                self._fileselector.filenames,
+                force_recalculation=advanced_config["Delete Cache"].value,
+                chop_to_roi=False,
+            )
+
         if self._metric_calculator in ("auto", None):
             self._metric_calculate = statistics.suggested_metrics
 

@@ -144,10 +144,7 @@ class PRVTrace(Trace):
     @staticmethod
     def _analyze_tracefile(trace, chop_to_roi, outpath):
         if outpath:
-            try:
-                makedirs(outpath, exist_ok=True)
-            except OSError as err:
-                print("Fatal: {}".format(err))
+            makedirs(outpath, exist_ok=True)
 
         if chop_to_roi:
             if outpath:
@@ -155,7 +152,7 @@ class PRVTrace(Trace):
                 outfile = path_join(outpath, tgtname)
             else:
                 outfile = None
-            cut_trace = chop_prv_to_roi(trace, outfile)
+                cut_trace = chop_prv_to_roi(trace, outfile)
         else:
             cut_trace = trace
 
