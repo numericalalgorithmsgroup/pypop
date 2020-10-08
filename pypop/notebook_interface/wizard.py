@@ -10,6 +10,7 @@ from .fileselector import FileSelector
 from .plotting import MetricTable, ScalingPlot
 from .bokeh_widget import BokehWidgetWrapper
 from .reporting import ReportGenerator
+from .tqdm_widget import tqdm_notebook_noauto
 
 from pypop.utils.exceptions import ExtraePRVNoOnOffEventsError
 
@@ -128,7 +129,7 @@ class MetricsWizard(Tab):
         self._status_box = VBox()
 
         super().__init__(
-            children=[VBox([self._status_box, self._fileselector])],
+            children=[VBox([self._fileselector, self._status_box])],
             layout=Layout(width="auto", max_width="1280px"),
             **kwargs
         )
@@ -139,19 +140,27 @@ class MetricsWizard(Tab):
 
         advanced_config = self._fileselector._advanced_config_controls
 
+        fileprogress = tqdm_notebook_noauto(self._fileselector.filenames, leave=False)
+        self._status_box.children = [fileprogress.container]
+
         try:
             statistics = TraceSet(
-                self._fileselector.filenames,
+                fileprogress,
                 force_recalculation=advanced_config["Delete Cache"].value,
-                chop_to_roi=advanced_config["Chop to ROI"].value
+                chop_to_roi=advanced_config["Chop to ROI"].value,
+                no_progress=True,
             )
         except ExtraePRVNoOnOffEventsError as err:
+            fileprogress = tqdm_notebook_noauto(self._fileselector.filenames, leave=False)
             warnstr = "Warning: Disabling Chopping to ROI ({})".format(err)
-            self._status_box.children = [Text(warnstr, layout=Layout(width='auto'))]
+            self._status_box.children = [fileprogress.container,
+                                         Text(warnstr, layout=Layout(width='auto'))]
+
             statistics = TraceSet(
-                self._fileselector.filenames,
+                fileprogress,
                 force_recalculation=advanced_config["Delete Cache"].value,
                 chop_to_roi=False,
+                no_progress=True,
             )
 
         if self._metric_calculator in ("auto", None):
