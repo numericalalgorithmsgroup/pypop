@@ -19,44 +19,44 @@ from ..dimemas import dimemas_idealise
 from ..extrae import paramedir_analyze_any_of, chop_prv_to_roi, remove_trace
 
 base_configs = {
-    k: tuple(resource_filename(__name__, w) for w in v)
+    k: tuple(resource_filename('pypop', w) for w in v)
     for k, v in {
         "Serial Useful Computation": (
-            "../cfgs/serial_useful_computation.cfg",
-            "../cfgs/serial_useful_computation_omp_loop.cfg",
-            "../cfgs/serial_useful_computation_omp_task.cfg",
-            "../cfgs/serial_useful_computation_no_omp.cfg",
+            "cfgs/serial_useful_computation.cfg",
+            "cfgs/serial_useful_computation_omp_loop.cfg",
+            "cfgs/serial_useful_computation_omp_task.cfg",
+            "cfgs/serial_useful_computation_no_omp.cfg",
         ),
         "Total Runtime": (
-            "../cfgs/total_runtime_excl_disabled.cfg",
-            "../cfgs/total_runtime.cfg",
+            "cfgs/total_runtime_excl_disabled.cfg",
+            "cfgs/total_runtime.cfg",
         ),
-        "Useful Instructions": ("../cfgs/useful_instructions.cfg",),
-        "Useful Cycles": ("../cfgs/useful_cycles.cfg",),
+        "Useful Instructions": ("cfgs/useful_instructions.cfg",),
+        "Useful Cycles": ("cfgs/useful_cycles.cfg",),
     }.items()
 }
 
 omp_configs = {
-    k: tuple(resource_filename(__name__, w) for w in v)
+    k: tuple(resource_filename('pypop', w) for w in v)
     for k, v in {
         "OpenMP Total Runtime": (
-            "../cfgs/omp_total_runtime.cfg",
-            "../cfgs/omp_total_runtime_loop.cfg",
-            "../cfgs/omp_total_runtime_loop.cfg",
+            "cfgs/omp_total_runtime.cfg",
+            "cfgs/omp_total_runtime_loop.cfg",
+            "cfgs/omp_total_runtime_loop.cfg",
         ),
         "OpenMP Useful Computation": (
-            "../cfgs/omp_useful_computation.cfg",
-            "../cfgs/omp_useful_computation_loop.cfg",
-            "../cfgs/omp_useful_computation_task.cfg",
+            "cfgs/omp_useful_computation.cfg",
+            "cfgs/omp_useful_computation_loop.cfg",
+            "cfgs/omp_useful_computation_task.cfg",
         ),
     }.items()
 }
 
 ideal_configs = {
-    k: tuple(resource_filename(__name__, w) for w in v)
+    k: tuple(resource_filename('pypop', w) for w in v)
     for k, v in {
-        "Ideal Useful Computation": ("../cfgs/total_useful_computation.cfg",),
-        "Ideal Runtime": ("../cfgs/total_runtime.cfg",),
+        "Ideal Useful Computation": ("cfgs/total_useful_computation.cfg",),
+        "Ideal Runtime": ("cfgs/total_runtime.cfg",),
     }.items()
 }
 
