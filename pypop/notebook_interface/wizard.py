@@ -15,6 +15,13 @@ from .tqdm_widget import tqdm_notebook_noauto
 from pypop.utils.exceptions import ExtraePRVNoOnOffEventsError
 
 class TypeAsserter:
+    """Parent class for type asserter objects
+
+    Asserter classes provide a callable which can be used to assert the validity of an
+    object.
+
+    Subclasses should implement a check_type function returning true/false as needed.
+    """
 
     _expected = None
 
@@ -26,23 +33,44 @@ class TypeAsserter:
         return True
 
     def check_type(self, testobj):
+        """Return true if object is valid
+
+        Parameters
+        ----------
+        testobj: object
+            Object to be validated.
+        """
         raise NotImplementedError()
 
 
 class SimpleAsserter(TypeAsserter):
+    """Assert that an object is of a given type
+
+    Provides a callable object which asserts the provided object is of the required type.
+    """
+
+    def __init__(self, assert_class):
+        """Define class to be validated
+
+        Parameters
+        ----------
+        assert_class: class
+            Reference class to be compared to.
+        """
+        self._assert_cls = assert_class
+        self._exepceted = assert_class.__name__
+
+
     def check_type(self, testobj):
         if isinstance(testobj, self._assert_cls):
             return True
 
-    @staticmethod
-    def create(assert_cls):
-        asserter = SimpleAsserter()
-        asserter._assert_cls = assert_cls
-        asserter._expected = assert_cls.__name__
-        return asserter
-
 
 class ListofStrAsserter(TypeAsserter):
+    """Assert that an object is a list of strings
+
+    Provides a callable object which asserts a provided object is a list of strings.
+    """
     _expected = "list of str"
 
     def check_type(self, testobj):
@@ -51,10 +79,14 @@ class ListofStrAsserter(TypeAsserter):
 
 
 class AnalysisState:
+    """Object containing analysis settings
+
+    This is an internal class and not intended for direct use.
+    """
 
     _required_params = {
         "trace_files": ListofStrAsserter(),
-        "metrics_object": SimpleAsserter.create(pm.MetricSet),
+        "metrics_object": SimpleAsserter(pm.MetricSet),
     }
 
     _optional_params = {}
@@ -109,7 +141,24 @@ class AnalysisState:
 
 
 class MetricsWizard(Tab):
+    """IPyWidgets GUI Element providing an analysis Wizard.
+    """
     def __init__(self, metric_calc="auto", base_dir=".", starting_files=None, **kwargs):
+        """
+
+        Parameters
+        ----------
+
+        metric_calc: class MetricSet or 'auto'
+            Provide a specific metric calculator class. If 'auto' is passed then try to
+            choose a suitable default.
+
+        base_dir: str
+            Starting directory for the filechooser. Defaults to result of `os.getcwd()`.
+
+        starting_files: list of str
+            List of files that should be preselected in the file chooser.
+        """
 
         self._metrics_display = None
         self._scaling_plot = None

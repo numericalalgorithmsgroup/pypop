@@ -20,11 +20,22 @@ from ipywidgets import (
 
 
 class ValidatingChooser(VBox):
+    """IPyWidgets GUI Element for file selection with validation
+    """
 
     _container_layout = Layout(margin="1em 0em 1em 0em")
     _msgbox_layout = Layout()
 
     def __init__(self, starting_file=None, starting_path=None, **kwargs):
+        """\
+        Parameters
+        ----------
+        starting_file: str or None
+            If not None, file that is initially selected.
+        starting_path: str or None
+            Starting directory for filechooser. If none, defaults to value of
+            `os.getcwd()`
+        """
 
         if starting_file is None:
             starting_file = ""
@@ -61,6 +72,9 @@ class ValidatingChooser(VBox):
 
 
 class FileSelector(VBox):
+    """IPyWidgets GUI Element for selecting arbitrary numbers of files with callback
+    support
+    """
 
     _button_container_layout = Layout(
         display="flex",
@@ -77,13 +91,29 @@ class FileSelector(VBox):
 
     def __init__(
         self,
-        base_dir=".",
+        base_dir=None,
         starting_files=None,
         calculation_callback=None,
         analysis_state=None,
         **kwargs
     ):
-        self._base_dir = base_dir
+        """\
+        Parameters
+        ----------
+
+        base_dir: str or None
+            Starting directory for filechooser. If None defaults to `os.getcwd()`.
+        starting_files: list of str or None
+            List of files to be initially selected.
+        calculation_callback: callable
+            Function to be executed when calculation button is pressed. Should have the
+            standard IPyWidgets Button callback signature `f(WidgetInstance)`
+        analysis_state: AnalysisState
+            Saved analysis state to be passed in (overrides default options
+            with those saved)
+        """
+
+        self._base_dir = base_dir if base_dir else getcwd()
         self._files = (
             [None]
             if starting_files is None
