@@ -18,13 +18,42 @@ __all__ = ["Metric", "MetricSet"]
 
 
 class Metric:
-    """
-    freq_corr: bool
-        Correct performance metrics based on average clock frequency (use to
-        correct for node dynamic clocking issues).
+    """Individual performance metrics to be used within a metricset. Defines metric name,
+    properties and method of calculation.
     """
 
-    def __init__(self, key, level, displayname=None, desc=None, is_inefficiency=False):
+    def __init__(
+        self,
+        key,
+        level,
+        displayname=None,
+        desc=None,
+        is_inefficiency=False,
+        freq_corr=False,
+    ):
+        """
+        Parameters
+        ----------
+        key: str
+            Key by which to identify metric.
+
+        level: int
+            Level at which to display metric in the stack.
+
+        displayname: str or None
+            Display name to use for metric in table etc. Defaults to key.
+
+        desc: str or None
+            Detailed description of the metric.
+
+        is_inefficiency: bool
+            Tag metric as an inefficiency (rather than efficiency) for correct display
+            and shading. Default False.
+
+        freq_corr: bool
+            Correct performance metrics based on average clock frequency (use to
+            correct for node dynamic clocking issues). Default False.
+        """
         self.key = key
         self.level = level
         self.description = str(desc) if desc else ""
