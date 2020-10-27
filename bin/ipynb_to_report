@@ -8,10 +8,25 @@ output_filename="$(echo ${report_nb} | sed 's/ /_/g' | sed 's/.ipynb$//').tex"
 
 export TEXINPUTS="${template_dir}//:"
 
+export PYPOP_HEADLESS="TRUE"
+
 jupyter nbconvert "${report_nb}" \
                   --execute \
                   --to latex \
-                  --template=${template_dir}/pop_report.tplx \
+                  --template latex \
+                  --template-file ${template_dir}/pop_report.tplx \
                   --output=${output_filename}
 
-texi2pdf ${output_filename}
+if [ $? -ne 0 ]; then
+  echo Error: nbconvert failed - see documentation or PyPOP github for assistance.
+  exit -1
+fi
+
+texi2pdf ${output_filename} &>/dev/null
+
+if [ $? -ne 0 ]; then
+  echo Error: latex compilation failed. See ${output_filename/.tex/.log} for details
+  exit -1
+fi
+
+echo ${output_filename/.tex/.pdf} written successfully.

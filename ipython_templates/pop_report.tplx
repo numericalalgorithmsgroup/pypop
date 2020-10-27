@@ -1,4 +1,4 @@
-((*- extends 'article.tplx' -*))
+((*- extends 'report.tex.j2' -*))
 
 ## Set pop_report class
 ((* block docclass *))
@@ -53,6 +53,12 @@
                                cell.metadata.get("caption", ""),
                                cell.metadata.get("label", "")) )))
 ((* endblock data_svg *))
+
+((*- block data_html *))
+((* endblock data_html *))
+
+((*- block data_text *))
+((* endblock data_text *))
 
 
 ## macro to encapsulate output files in figures

@@ -23,6 +23,7 @@ from matplotlib.colors import LinearSegmentedColormap
 
 from ..metrics.metricset import MetricSet
 from .palettes import efficiency_red_green
+from ..utils.plot import approx_string_em_width, get_pop_logo_data
 
 warnings.filterwarnings(
     "ignore",
@@ -30,8 +31,6 @@ warnings.filterwarnings(
     category=UserWarning,
     module="bokeh.plotting.helpers",
 )
-
-POP_LOGO_PNG = "pop_logo.npy"
 
 
 def get_any_webdriver():
@@ -53,16 +52,6 @@ def get_any_webdriver():
         return driver
 
     raise RuntimeError("Failed to load suitable webdriver")
-
-
-def approx_string_em_width(string):
-    """Give the approximate string width in 'em'
-
-    Basically assume 'w' and 'm' have em width and everything else has
-    a width of 0.6*em
-    """
-
-    return 0.6 * len(string) + 0.4 * sum(string.count(x) for x in ["w", "m", "~"])
 
 
 def build_discrete_cmap(factors):
@@ -96,6 +85,9 @@ class BokehBase:
         return self._figure
 
     def _repr_html_(self):
+        if environ.get("PYPOP_HEADLESS"):
+            return None
+
         return file_html(self.figure, INLINE, "")
 
     def _repr_png_(self):
@@ -390,8 +382,7 @@ class MetricTable(BokehBase):
         )
 
         if self._pop_logo:
-            pop_img = resource_filename(__name__, POP_LOGO_PNG)
-            pop_data = numpy.load(pop_img)
+            pop_data = get_pop_logo_data()
             img_h = pop_data.shape[0]
             img_w = pop_data.shape[1]
 
