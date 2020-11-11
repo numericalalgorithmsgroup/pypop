@@ -154,7 +154,7 @@ class PRVTrace(Trace):
                     outfile = path_join(outpath, tgtname)
                 else:
                     outfile = None
-                    cut_trace = chop_prv_to_roi(trace, outfile)
+                cut_trace = chop_prv_to_roi(trace, outfile)
             else:
                 cut_trace = trace
         except ExtraePRVNoOnOffEventsError as err:
