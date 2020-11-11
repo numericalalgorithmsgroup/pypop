@@ -4,18 +4,20 @@
 
 import numpy
 import pandas
-from sys import float_info
 
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
 import matplotlib.cm as mcm
 import matplotlib.colors as mc
-import matplotlib as mpl
 import matplotlib.table as mt
 import matplotlib.ticker as mtick
 
-from ..metrics.metricset import MetricSet
-from ..utils.plot import approx_string_em_width, get_pop_logo_data
+from pypop.metrics.metricset import MetricSet
+from pypop.utils.plot import approx_string_em_width, get_pop_logo_data
+
+from .mplplotbase import MPLPlotBase
+
+__all__ = ["MPLMetricTable", "MPLScalingPlot"]
 
 
 def build_discrete_cmap(factors):
@@ -29,28 +31,6 @@ def build_discrete_cmap(factors):
         return {factors[0]: cmap(0.0)}
 
     return {k: cmap(i / (len(factors) - 1)) for i, k in enumerate(factors)}
-
-
-class MPLPlotBase(object):
-    def __init__(self):
-        self._figure = None
-
-    def _build_plot(self):
-        raise NotImplementedError("MPLPlotBase should not be used directly!")
-
-    @property
-    def figure(self):
-        if not self._figure:
-            self._build_plot()
-        return self._figure
-
-    def _repr_png_(self):
-        imgbuffer = BytesIO()
-        self.figure.savefig(imgbuffer, format="png")
-        return imgbuffer.getvalue()
-
-    def save_png(self, filename):
-        self.figure.savefig(filename, format="png")
 
 
 class MPLScalingPlot(MPLPlotBase):
@@ -174,8 +154,6 @@ class MPLScalingPlot(MPLPlotBase):
             lw=0,
         )
 
-        xmin = float_info.max
-        xmax = 0
         for group, groupdata in plot_data.groupby("Plotgroups", sort=False):
             groupdata = groupdata.sort_values(self._xaxis_key)
             self._figax.plot(
@@ -346,15 +324,12 @@ class MPLMetricTable(MPLPlotBase):
                 self._logo_height / plot_height,  # Logo height
             ]
 
-            print("Logo Ax: {:.2f}, {:.2f}, {:.2f}, {:.2f}".format(*logo_ax_layout))
-
             self._logo_ax = self._figure.add_axes(logo_ax_layout, frame_on=False)
             self._logo_ax.xaxis.set_visible(False)
             self._logo_ax.yaxis.set_visible(False)
 
             self._logo_ax.imshow(pop_data, origin="lower")
 
-        print("Tabl Ax: {:.2f}, {:.2f}, {:.2f}, {:.2f}".format(*table_ax_layout))
         self._table_ax = self._figure.add_axes(table_ax_layout, frame_on=False)
 
         self._table_ax.xaxis.set_visible(False)
@@ -501,120 +476,3 @@ class MPLMetricTable(MPLPlotBase):
             return self._eff_cmap(-1)
 
         return self._eff_cmap(value)
-
-
-def _plot_table(
-    self, columns_key, title, columns_label, good_thres, bad_thres, skipfirst, bwfirst,
-):
-
-    if not columns_key:
-        columns_values = self.metric_data.index
-        if columns_label is None:
-            columns_label = "Index"
-    else:
-        columns_values = self.metric_data[columns_key]
-        if not columns_label:
-            columns_label = columns_key
-
-    label_cell_width = 0.60
-    body_cell_width = (1 - label_cell_width) / (len(columns_values) - skipfirst)
-    body_cell_height = 0.1
-    level_pad = 0.075
-
-    pop_red = (0.690, 0.074, 0.074)
-    pop_fade = (0.992, 0.910, 0.910)
-    pop_green = (0.074, 0.690, 0.074)
-
-    ineff_points = [
-        (0.0, pop_green),
-        (1 - good_thres, pop_fade),
-        (1 - good_thres + 1e-20, pop_fade),
-        (1 - bad_thres, pop_red),
-        (1.0, pop_red),
-    ]
-
-    eff_points = [
-        (0.0, pop_red),
-        (bad_thres, pop_red),
-        (good_thres - 1e-20, pop_fade),
-        (good_thres, pop_fade),
-        (1.0, pop_green),
-    ]
-
-    ineff_cmap = mc.LinearSegmentedColormap.from_list(
-        "POP_Metrics", colors=ineff_points, N=256, gamma=1
-    )
-
-    eff_cmap = mc.LinearSegmentedColormap.from_list(
-        "POP_Metrics", colors=eff_points, N=256, gamma=1
-    )
-
-    label_cell_kwargs = {
-        "loc": "left",
-        "width": label_cell_width,
-        "height": body_cell_height,
-    }
-    body_cell_kwargs = {
-        "loc": "center",
-        "width": body_cell_width,
-        "height": body_cell_height,
-    }
-
-    fig = plt.figure(figsize=figparams["single.figsize"])
-    ax = [fig.add_axes(fp) for fp in figparams["single.axlayout"]]
-    ax[0].set_axis_off()
-
-    # Create empty table using full bounding box of axes
-    metric_table = mt.Table(ax=ax[0], bbox=(0, 0, 1, 1))
-    metric_table.auto_set_font_size(True)
-    #        metric_table.set_fontsize(8)
-
-    metric_table.add_cell(
-        0,
-        0,
-        width=label_cell_width,
-        height=body_cell_height,
-        text=columns_label,
-        loc="center",
-    )
-
-    for col_num, col_data in enumerate(columns_values, start=1):
-        if col_num <= skipfirst:
-            continue
-        metric_table.add_cell(
-            0, col_num - skipfirst, text="{}".format(col_data), **body_cell_kwargs
-        )
-
-    for row_num, metric in enumerate(self.metrics, start=1):
-        cmap = ineff_cmap if metric.is_inefficiency else eff_cmap
-        c = metric_table.add_cell(
-            row_num, 0, text=metric.displayname, **label_cell_kwargs
-        )
-        c.PAD = 0.05
-        c.PAD += 0 if metric.level <= 1 else level_pad * (metric.level - 1)
-
-        for col_num, col_data in enumerate(self.metric_data[metric.key], start=1):
-            if col_num <= skipfirst:
-                continue
-            if col_num <= bwfirst:
-                metric_table.add_cell(
-                    row_num,
-                    col_num,
-                    text="{:1.02f}".format(col_data),
-                    **body_cell_kwargs
-                )
-            else:
-                metric_table.add_cell(
-                    row_num,
-                    col_num - skipfirst,
-                    text="{:1.02f}".format(col_data),
-                    facecolor=cmap(col_data),
-                    **body_cell_kwargs
-                )
-
-    ax[0].add_table(metric_table)
-
-    if title:
-        ax[0].set_title(title)
-
-    return fig

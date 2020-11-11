@@ -11,3 +11,7 @@ class UnknownLoaderError(RuntimeError):
 
 class ExtraePRVNoOnOffEventsError(RuntimeError):
     pass
+
+
+class NoWebDriverError(RuntimeError):
+    pass

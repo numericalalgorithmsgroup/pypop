@@ -7,8 +7,7 @@ from io import BytesIO
 from sys import float_info
 import numpy
 import pandas
-import warnings
-from pkg_resources import resource_filename
+from warnings import filterwarnings, warn
 
 from bokeh.plotting import figure
 from bokeh.colors import RGB
@@ -24,8 +23,9 @@ from matplotlib.colors import LinearSegmentedColormap
 from ..metrics.metricset import MetricSet
 from .palettes import efficiency_red_green
 from ..utils.plot import approx_string_em_width, get_pop_logo_data
+from pypop.utils.exceptions import NoWebDriverError
 
-warnings.filterwarnings(
+filterwarnings(
     "ignore",
     ".* are being repeated",
     category=UserWarning,
@@ -35,8 +35,11 @@ warnings.filterwarnings(
 
 def get_any_webdriver():
 
-    import selenium.webdriver
-    from selenium.common.exceptions import WebDriverException
+    try:
+        import selenium.webdriver
+        from selenium.common.exceptions import WebDriverException
+    except ImportError:
+        raise NoWebDriverError("Selenium is not installed.")
 
     driver = None
     for drivername in ["Chrome", "Firefox"]:
@@ -51,7 +54,7 @@ def get_any_webdriver():
     if driver:
         return driver
 
-    raise RuntimeError("Failed to load suitable webdriver")
+    raise NoWebDriverError("Failed to load suitable webdriver")
 
 
 def build_discrete_cmap(factors):
@@ -68,6 +71,7 @@ class BokehBase:
     def __init__(self, *args, **kwargs):
 
         self._figure = None
+        self._mpl_fallback = None
         self._update_callback = None
 
     def install_update_callback(self, callback):
@@ -90,17 +94,20 @@ class BokehBase:
 
         return file_html(self.figure, INLINE, "")
 
-    def _repr_png_(self, force=False):
-        if not environ.get("PYPOP_HEADLESS") and not force:
-            return None
+    def _repr_png_(self):
+
+        try:
+            driver = get_any_webdriver()
+        except NoWebDriverError:
+            warn("Webdriver unavailable - falling back to matplotlib interface")
+            return self._mpl_fallback_png()
 
         self.figure.min_border = 10
 
-        window_size = [1.1*self.figure.plot_width, 1.1*self.figure.plot_height]
+        window_size = [1.1 * self.figure.plot_width, 1.1 * self.figure.plot_height]
 
         self.figure.toolbar_location = None
 
-        driver = get_any_webdriver()
         driver.set_window_size(*window_size)
 
         img = get_screenshot_as_png(self.figure, driver=driver,)
@@ -111,6 +118,16 @@ class BokehBase:
         img.save(imgbuffer, format="png")
         return imgbuffer.getvalue()
 
+    def _mpl_fallback_png(self):
+        from pypop.matplotlib.mplplotbase import MPLPlotBase
+
+        if isinstance(self._mpl_fallback, MPLPlotBase):
+            return self._mpl_fallback._repr_png_()
+        else:
+            raise RuntimeError(
+                "No Matplotlib fallback provided for class {}".format(self.__name__)
+            )
+
     def save_html(self, path):
         imgcode = self._repr_html_()
 
@@ -118,7 +135,7 @@ class BokehBase:
             fh.write(imgcode)
 
     def save_png(self, path):
-        imgdata = self._repr_png_(force=True)
+        imgdata = self._repr_png_()
 
         with open(path, "wb") as fh:
             fh.write(imgdata)
@@ -139,6 +156,21 @@ class MetricTable(BokehBase):
     ):
         self._metrics = metrics
         super().__init__()
+
+        # Create matplotlib fallback object. This is lightweight unless used for e.g png
+        # generation
+        from pypop.matplotlib import MPLMetricTable
+
+        self._mpl_fallback = MPLMetricTable(
+            metrics,
+            columns_key,
+            group_key,
+            group_label,
+            title,
+            columns_label,
+            fontsize,
+            pop_logo,
+        )
 
         self._columns_key = (
             self._metrics._default_metric_key if columns_key == "auto" else columns_key
@@ -438,6 +470,22 @@ class ScalingPlot(BokehBase):
         self._metrics = metrics
         super().__init__()
 
+        # Create matplotlib fallback object. This is lightweight unless used for e.g png
+        # generation
+        from pypop.matplotlib import MPLScalingPlot
+
+        self._mpl_fallback = MPLScalingPlot(
+            metrics,
+            scaling_variable,
+            independent_variable,
+            group_key,
+            group_label,
+            title,
+            fontsize,
+            fit_data_only,
+            **kwargs
+        )
+
         self._group_key = (
             self._metrics._default_group_key if group_key == "auto" else group_key
         )
@@ -491,7 +539,7 @@ class ScalingPlot(BokehBase):
             [plot_data[self._yaxis_key].min(), plot_data[self._yaxis_key].max()]
         )
 
-        xrange_ideal = x_lims + numpy.asarray([0, numpy.diff(x_lims)[0]*0.1])
+        xrange_ideal = x_lims + numpy.asarray([0, numpy.diff(x_lims)[0] * 0.1])
         yrange_ideal = xrange_ideal / x_lims[0]
         yrange_80pc = 0.8 * yrange_ideal + 0.2
 
@@ -499,7 +547,10 @@ class ScalingPlot(BokehBase):
         if self.fit_data_only:
             y_axis_range = y_lims
         else:
-            y_axis_range = min(y_lims[0], yrange_ideal[0]), max(y_lims[1], yrange_ideal[1])
+            y_axis_range = (
+                min(y_lims[0], yrange_ideal[0]),
+                max(y_lims[1], yrange_ideal[1]),
+            )
 
         x_expand = numpy.asarray([-0.1, 0.1]) * numpy.abs(numpy.diff(x_lims))
         y_expand = numpy.asarray([-0.1, 0.1]) * numpy.abs(numpy.diff(y_lims))
@@ -513,7 +564,7 @@ class ScalingPlot(BokehBase):
             sizing_mode="fixed",
             x_range=x_axis_range,
             y_range=y_axis_range,
-            title=self.title
+            title=self.title,
         )
 
         self._figure.varea(
@@ -535,8 +586,8 @@ class ScalingPlot(BokehBase):
             y1=numpy.ones_like(xrange_ideal),
             y2=numpy.zeros_like(xrange_ideal),
             fill_color="red",
-            fill_alpha=0.2
-            )
+            fill_alpha=0.2,
+        )
 
         self._figure.xaxis.axis_label_text_font_size = "{}pt".format(self.fontsize)
         self._figure.xaxis.major_label_text_font_size = "{}pt".format(self.fontsize - 1)
