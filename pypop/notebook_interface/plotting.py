@@ -90,14 +90,13 @@ class BokehBase:
 
         return file_html(self.figure, INLINE, "")
 
-    def _repr_png_(self):
-        if not environ.get("PYPOP_HEADLESS"):
+    def _repr_png_(self, force=False):
+        if not environ.get("PYPOP_HEADLESS") and not force:
             return None
 
-        try:
-            window_size = [int(1.1 * x) for x in self._plot_dims]
-        except AttributeError:
-            window_size = (900, 600)
+        self.figure.min_border = 10
+
+        window_size = [1.1*self.figure.plot_width, 1.1*self.figure.plot_height]
 
         self.figure.toolbar_location = None
 
@@ -119,7 +118,7 @@ class BokehBase:
             fh.write(imgcode)
 
     def save_png(self, path):
-        imgdata = self._repr_png_()
+        imgdata = self._repr_png_(force=True)
 
         with open(path, "wb") as fh:
             fh.write(imgdata)
@@ -511,7 +510,7 @@ class ScalingPlot(BokehBase):
             tools=["save"],
             min_border=0,
             aspect_ratio=1.5,
-            sizing_mode="scale_width",
+            sizing_mode="fixed",
             x_range=x_axis_range,
             y_range=y_axis_range,
             title=self.title

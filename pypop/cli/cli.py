@@ -271,6 +271,8 @@ def hybrid_cli_metrics():
 
     metrics = MPI_OpenMP_Metrics(statistics)
 
+    print(config.metric_table)
+
     # Create and save table
     if not config.no_metric_table:
         metric_table = metrics.plot_table(

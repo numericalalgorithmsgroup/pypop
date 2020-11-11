@@ -30,13 +30,13 @@ setup(
     include_package_data=True,
     entry_points={
         "console_scripts": [
-            "pypop-mpi-metrics = pypop.cli:mpi_cli_metrics",
-            "pypop-hybrid-metrics = pypop.cli:hybrid_cli_metrics",
-            "pypop-openmp-metrics = pypop.cli:openmp_cli_metrics",
-            "pypop-preprocess = pypop.cli:preprocess_traces",
-            "pypop-idealise-prv = pypop.cli:dimemas_idealise_cli",
-            "pypop-copy-examples = pypop.cli:copy_examples",
-            "pypop-gui = pypop.cli:pypop_gui",
+            "pypop-mpi-metrics = pypop.cli.cli:mpi_cli_metrics",
+            "pypop-hybrid-metrics = pypop.cli.cli:hybrid_cli_metrics",
+            "pypop-openmp-metrics = pypop.cli.cli:openmp_cli_metrics",
+            "pypop-preprocess = pypop.cli.cli:preprocess_traces",
+            "pypop-idealise-prv = pypop.cli.cli:dimemas_idealise_cli",
+            "pypop-copy-examples = pypop.cli.cli:copy_examples",
+            "pypop-gui = pypop.cli.cli:pypop_gui",
         ]
     },
 )
