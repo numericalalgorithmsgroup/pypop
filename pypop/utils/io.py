@@ -21,7 +21,7 @@ def zipopen(path, mode="rt"):
         mode = "{}t".format(mode)
 
     try:
-        if gzip.open(path, mode=mode).readline():
+        if gzip.open(path, mode=mode).read(1):
             return gzip.open(path, mode=mode)
     except OSError:
         return open(path, mode=mode)
