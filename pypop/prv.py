@@ -16,7 +16,7 @@ import gzip
 from io import StringIO
 import pickle
 
-from .utils.io import zipopen
+from pypop.utils.io import zipopen
 
 try:
     from tqdm.auto import tqdm
@@ -85,20 +85,49 @@ class PRV:
 
     def __init__(self, prv_path):
 
-        try:
-            self._load_prv_and_pcf(prv_path)
-
-        except ValueError:
-            try:
-                self._load_pickle(prv_path)
-            except ValueError:
-                raise ValueError("Not a prv or valid pickle")
+        self._prv_path = prv_path
+        self._no_prv = False
 
         self._omp_region_data = None
-
-    def _load_prv_and_pcf(self, prv_path):
         self._event_names = {}
         self._event_vals = {}
+        self.state = None
+        self.event = None
+        self.comm = None
+
+        try:
+            self._load_pickle(prv_path)
+            self._no_prv = True
+        except (pickle.UnpicklingError, ValueError):
+            try:
+                self._load_pickle(PRV._generate_event_cache_name(prv_path))
+            except (pickle.UnpicklingError, ValueError):
+                try:
+                    self._load_prv_and_pcf(prv_path)
+                    self.save(PRV._generate_event_cache_name(prv_path))
+                except ValueError:
+                    raise ValueError("Not a prv or valid pickle")
+
+    @staticmethod
+    def _generate_event_cache_name(prvfile):
+        return prvfile + ".eventcache"
+
+    @staticmethod
+    def _generate_region_cache_name(prvfile):
+        if "eventcache" in prvfile:
+            return prvfile.replace("eventcache", "regioncache")
+
+        return prvfile + ".regioncache"
+
+    def reload(self):
+        if self._no_prv:
+            warn("Data loaded directly from cachefile, reload from PRV not possible")
+            return
+
+        self._parse_pcf()
+        self._parse_prv()
+
+    def _load_prv_and_pcf(self, prv_path):
         self._parse_pcf(prv_path)
 
         self._parse_prv(prv_path)
@@ -196,32 +225,48 @@ class PRV:
         pass
 
     def save(self, filename):
-        savedata = (self.metadata, self.state, self.event, self.comm)
+        savedata = (
+            self.metadata,
+            self.state,
+            self.event,
+            self.comm,
+            self._event_names,
+            self._event_vals,
+        )
 
         with gzip.open(filename, "wb", compresslevel=6) as fh:
             pickle.dump(savedata, fh)
 
     def _load_pickle(self, filename):
-        try:
-            with gzip.open(filename, "rb") as fh:
-                data = pickle.load(fh)
-        except gzip.BadGzipFile:
-            try:
-                with open(filename, "rb") as fh:
-                    data = pickle.load(fh)
-            except pickle.UnpicklingError:
-                raise ValueError("Invalid pickle -- missing data")
+        with zipopen(filename, "rb") as fh:
+            data = pickle.load(fh)
 
-            self.metadata, self.state, self.event, self.comm = data
+        try:
+            (
+                self.metadata,
+                self.state,
+                self.event,
+                self.comm,
+                self._event_names,
+                self._event_vals,
+            ) = data
         except ValueError:
             raise ValueError("Invalid pickle -- missing data")
 
-    def profile_openmp_regions(self, no_progress=False):
+    def profile_openmp_regions(self, no_progress=False, ignore_cache=False):
         """Profile OpenMP Region Info
         """
 
         if self._omp_region_data is not None:
             return self._omp_region_data
+
+        if not ignore_cache:
+            try:
+                with zipopen(PRV._generate_region_cache_name(self._prv_path), 'rb') as fh:
+                    self._omp_region_data = pickle.load(fh)
+                return self._omp_region_data
+            except (FileNotFoundError, pickle.UnpicklingError):
+                pass
 
         idx_master_threads = pd.IndexSlice[:, 1]
 
@@ -419,6 +464,9 @@ class PRV:
 
         self._omp_region_data = pd.concat(rank_stats, names=["rank", "region"])
 
+        with zipopen(PRV._generate_region_cache_name(self._prv_path), 'wb') as fh:
+            pickle.dump(self._omp_region_data, fh)
+
         return self._omp_region_data
 
     def region_location_from_fingerprint(self, fingerprint):
@@ -470,41 +518,42 @@ class PRV:
             fingerprint_key = "Region Function Fingerprint"
 
         runtime = self.metadata.ns_elapsed
+        nproc = len(set(self._omp_region_data["Rank"]))
 
         self.profile_openmp_regions()
 
         summary = self._omp_region_data.groupby(fingerprint_key).agg(
             **{
                 "Instances": ("Maximum Computation Time", "count"),
-                "Relative Load Balance Efficiency": (
-                    "Load Balance",
-                    lambda x: np.average(
-                        x, weights=self._omp_region_data.loc[x.index, "Region Length"],
-                    ),
+                "Total Parallel Inefficiency Contribution": (
+                    "Region Delay Time",
+                    lambda x: np.sum(x) / (nproc * runtime),
                 ),
-                "Relative Parallel Efficiency": (
+                "Total Load Imbalance Contribution": (
+                    "Computation Delay Time",
+                    lambda x: np.sum(x) / (nproc * runtime),
+                ),
+                "Average Parallel Efficiency": (
                     "Parallel Efficiency",
                     lambda x: np.average(
                         x, weights=self._omp_region_data.loc[x.index, "Region Length"]
                     ),
                 ),
-                "Load Balance Efficiency": (
-                    "Computation Delay Time",
-                    lambda x: 1 - np.sum(x / runtime),
-                ),
-                "Parallel Efficiency": (
-                    "Region Delay Time",
-                    lambda x: 1 - np.sum(x / runtime),
+                "Average Load Balance": (
+                    "Load Balance",
+                    lambda x: np.average(
+                        x, weights=self._omp_region_data.loc[x.index, "Region Length"],
+                    ),
                 ),
                 "Accumulated Region Time": ("Region Length", np.sum),
                 "Accumulated Computation Time": ("Region Total Computation", np.sum),
                 "Average Computation Time": ("Average Computation Time", np.average),
                 "Maximum Computation Time": ("Maximum Computation Time", np.max),
-                "Region Functions": (fingerprint_key, lambda x: x[0],),
+                "Region Functions": (fingerprint_key, lambda x: x.iloc[0],),
             }
         )
 
-        return summary.sort_values("Load Balance Efficiency")
+        return summary.sort_values("Total Parallel Inefficiency Contribution")
 
 
 def _format_timedate(prv_td):
