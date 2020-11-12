@@ -238,7 +238,7 @@ class PRV:
             pickle.dump(savedata, fh)
 
     def _load_pickle(self, filename):
-        with zipopen(filename, "rb") as fh:
+        with gzip.open(filename, "rb") as fh:
             data = pickle.load(fh)
 
         try:
@@ -262,7 +262,7 @@ class PRV:
 
         if not ignore_cache:
             try:
-                with zipopen(
+                with gzip.open(
                     PRV._generate_region_cache_name(self._prv_path), "rb"
                 ) as fh:
                     self._omp_region_data = pickle.load(fh)
@@ -466,7 +466,7 @@ class PRV:
 
         self._omp_region_data = pd.concat(rank_stats, names=["rank", "region"])
 
-        with zipopen(PRV._generate_region_cache_name(self._prv_path), "wb") as fh:
+        with gzip.open(PRV._generate_region_cache_name(self._prv_path), "wb") as fh:
             pickle.dump(self._omp_region_data, fh)
 
         return self._omp_region_data
