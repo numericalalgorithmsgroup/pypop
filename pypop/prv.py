@@ -285,6 +285,11 @@ class PRV:
             region_ends = thread_events.index[thread_events["value"] == 0]
 
             # Now sanity check regions and try to repair issues caused by missing events:
+            # Cut traces seem to have an extra end event injected by the cutter trying to
+            # be "helpful" If this seems to be the case try trimming the end and post a
+            # warning
+            if len(region_ends) == len(region_starts) + 1:
+                region_ends = region_ends[:-1]
 
             # First region start should be earlier than first region end
             if region_ends[0] <= region_starts[0]:
