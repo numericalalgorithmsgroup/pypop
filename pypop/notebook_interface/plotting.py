@@ -119,7 +119,7 @@ class BokehBase:
         return imgbuffer.getvalue()
 
     def _mpl_fallback_png(self):
-        from pypop.matplotlib.mplplotbase import MPLPlotBase
+        from pypop.mplplotting.mplplotbase import MPLPlotBase
 
         if isinstance(self._mpl_fallback, MPLPlotBase):
             return self._mpl_fallback._repr_png_()
@@ -159,7 +159,7 @@ class MetricTable(BokehBase):
 
         # Create matplotlib fallback object. This is lightweight unless used for e.g png
         # generation
-        from pypop.matplotlib import MPLMetricTable
+        from pypop.mplplotting import MPLMetricTable
 
         self._mpl_fallback = MPLMetricTable(
             metrics,
@@ -472,7 +472,7 @@ class ScalingPlot(BokehBase):
 
         # Create matplotlib fallback object. This is lightweight unless used for e.g png
         # generation
-        from pypop.matplotlib import MPLScalingPlot
+        from pypop.mplplotting import MPLScalingPlot
 
         self._mpl_fallback = MPLScalingPlot(
             metrics,
