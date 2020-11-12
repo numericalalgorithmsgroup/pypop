@@ -101,7 +101,7 @@ class PRV:
         except (pickle.UnpicklingError, ValueError):
             try:
                 self._load_pickle(PRV._generate_event_cache_name(prv_path))
-            except (pickle.UnpicklingError, ValueError):
+            except (pickle.UnpicklingError, ValueError, FileNotFoundError):
                 try:
                     self._load_prv_and_pcf(prv_path)
                     self.save(PRV._generate_event_cache_name(prv_path))
@@ -262,7 +262,9 @@ class PRV:
 
         if not ignore_cache:
             try:
-                with zipopen(PRV._generate_region_cache_name(self._prv_path), 'rb') as fh:
+                with zipopen(
+                    PRV._generate_region_cache_name(self._prv_path), "rb"
+                ) as fh:
                     self._omp_region_data = pickle.load(fh)
                 return self._omp_region_data
             except (FileNotFoundError, pickle.UnpicklingError):
@@ -464,7 +466,7 @@ class PRV:
 
         self._omp_region_data = pd.concat(rank_stats, names=["rank", "region"])
 
-        with zipopen(PRV._generate_region_cache_name(self._prv_path), 'wb') as fh:
+        with zipopen(PRV._generate_region_cache_name(self._prv_path), "wb") as fh:
             pickle.dump(self._omp_region_data, fh)
 
         return self._omp_region_data
