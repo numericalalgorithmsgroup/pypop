@@ -5,13 +5,23 @@
 from setuptools import setup, find_packages
 from versionate import versionate
 
+with open("README.md", "r") as fh:
+    long_desc = fh.read()
+
 setup(
-    name="pypop",
+    name="NAG-PyPOP",
     version=versionate(),
     url="https://github.com/numericalalgorithmsgroup/pypop.git",
     author="Numerical Algorithms Group",
     author_email="phil.tooley@nag.co.uk",
     description="Python notebook support for POP metrics and reports",
+    long_description=long_desc,
+    long_description_content_type="text/markdown",
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: BSD License",
+        "Operating System :: OS Independent",
+    ],
     packages=find_packages(),
     python_requires=">=3.6",
     install_requires=[

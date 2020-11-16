@@ -31,7 +31,7 @@ additional formats.
 Install using pip:
 
 ```bash
-$ pip install [--user] git+https://github.com/numericalalgorithmsgroup/pypop
+$ pip install [--user] NAG-PyPOP
 ```
 
 The optional `--user` directive instructs pip to install to the users home directory instead of the
