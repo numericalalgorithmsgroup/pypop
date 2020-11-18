@@ -119,6 +119,13 @@ class PRV(object):
 
         return super().__getattribute__(attr)
 
+    @property
+    def omp_region_data(self):
+        if self._omp_region_data is None:
+            self.profile_openmp_regions(no_progress=True)
+
+        return self._omp_region_data
+
     @staticmethod
     def _generate_binaryfile_name(prvfile):
         return prvfile + ".bincache"
@@ -566,12 +573,12 @@ class PRV(object):
         else:
             fingerprint_key = "Region Function Fingerprint"
 
-        runtime = self.metadata.ns_elapsed
-        nproc = len(set(self._omp_region_data["Rank"]))
+        runtime = self.metadata.elapsed_seconds * 1e-9
+        nproc = len(set(self.omp_region_data["Rank"]))
 
         self.profile_openmp_regions()
 
-        summary = self._omp_region_data.groupby(fingerprint_key).agg(
+        summary = self.omp_region_data.groupby(fingerprint_key).agg(
             **{
                 "Instances": ("Maximum Computation Time", "count"),
                 "Total Parallel Inefficiency Contribution": (
@@ -585,13 +592,13 @@ class PRV(object):
                 "Average Parallel Efficiency": (
                     "Parallel Efficiency",
                     lambda x: np.average(
-                        x, weights=self._omp_region_data.loc[x.index, "Region Length"]
+                        x, weights=self.omp_region_data.loc[x.index, "Region Length"]
                     ),
                 ),
                 "Average Load Balance": (
                     "Load Balance",
                     lambda x: np.average(
-                        x, weights=self._omp_region_data.loc[x.index, "Region Length"],
+                        x, weights=self.omp_region_data.loc[x.index, "Region Length"],
                     ),
                 ),
                 "Accumulated Region Time": ("Region Length", np.sum),
