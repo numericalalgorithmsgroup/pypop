@@ -10,7 +10,7 @@ additional formats.
 
 ## Requirements
 
-  * [Extrae] (for trace creation)
+  * [Extrae] (for trace capture)
   * [Paraver/Paramedir] (for trace analysis)
   * [Dimemas] *optional* (for ideal network analysis)
   * [Numpy]
@@ -28,7 +28,7 @@ additional formats.
 
 ## Installation
 
-Install using pip:
+PyPOP itself can be installed using the `pip` package manager:
 
 ```bash
 $ pip install [--user] NAG-PyPOP
@@ -39,6 +39,9 @@ system site package directory.
 
 **N.B: Some linux distributions are still shipping Python2 alongside Python3. PyPOP requires
 Python3 and so you may need to install using the `pip3` command rather than the `pip` command.**
+
+Note that the [Extrae] tool is needed to collect application traces and the [Paraver/Paramedir] and
+[Dimemas] tools must be installed for trace Analysis.
 
 ## Usage
 

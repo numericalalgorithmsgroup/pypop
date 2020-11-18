@@ -21,7 +21,7 @@ from pkg_resources import resource_filename
 import pandas
 import numpy
 
-from .prv import PRV, get_prv_header_info
+from .prv import PRV
 from . import config
 
 from pypop.utils.exceptions import ExtraePRVNoOnOffEventsError
@@ -62,31 +62,6 @@ def remove_trace(tracefile, failure_is_error=False):
         except FileNotFoundError as err:
             if failure_is_error:
                 raise err
-
-
-def sort_traces_by_commsize(tracelist):
-    """Take a list of traces and return them sorted in ascending order of
-    their MPI commsize
-
-    Parameters
-    ----------
-    tracelist: iterable of str
-        List of traces in arbitrary order
-
-    Returns
-    -------
-    commsizes: list of int
-        Sorted list of comm sizes
-    traces: list of str
-        Sorted list of tracefiles
-
-    """
-
-    tracelist = list(tracelist)
-
-    nproc_list = [get_prv_header_info(x).application_layout.commsize for x in tracelist]
-
-    return zip(*sorted(zip(nproc_list, tracelist)))
 
 
 def chop_prv_to_roi(prv_file, outfile=None):
@@ -201,6 +176,9 @@ def _get_roi_times(roi_prv):
     # Get dataframe of events from filtered trace
     data = PRV(roi_prv)
     df = data.event
+
+    if df.empty:
+        raise ExtraePRVNoOnOffEventsError("No valid Extrae ON-OFF bracket in trace")
 
     # Get the first on and last off events
     grouped = df.reset_index(level="time").groupby(level=["task", "thread"])

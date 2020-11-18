@@ -47,13 +47,13 @@ class Trace:
         if force_recalculation is False:
             # First try to open file as if it *is* a summary file
             try:
-                summaryloaded = Trace._load_from_summary_file(
+                return Trace._load_from_summary_file(
                     filename, tag=tag, **kwargs
                 )
             except WrongLoaderError:
                 # Otherwise, see if it has a summaryfile present
                 try:
-                    summaryloaded = Trace._load_from_summary_file(
+                    return Trace._load_from_summary_file(
                         Trace.get_summary_filename(filename), tag=tag, **kwargs
                     )
                 # Fallback - assume valid trace with no summary
@@ -97,6 +97,8 @@ class Trace:
         # Save keyword args for later
         self._kwargs = kwargs
 
+        self._analysis_failed = False
+
         if force_recalculation is False:
             # First check to see if we have been passed a summary file. If so, load from
             # that and skip parsing the whole trace again
@@ -135,7 +137,7 @@ class Trace:
     def _load_trace(self):
         self._gather_metadata()
 
-        if self._kwargs.get("eager_load", True):
+        if self._kwargs.get("eager_load", False):
             self._gather_statistics()
             self.write_summary_file()
 
@@ -145,12 +147,19 @@ class Trace:
     def _gather_statistics(self):
         raise NotImplementedError
 
-    def _ensure_statistics_gathered(self):
+    def ensure_loaded(self):
+        # Can ensure load by evaluating self.statistics
+        if self.statistics is None:
+            raise RuntimeError("Internal Error: This should be unreachable code")
+
+    @property
+    def statistics(self):
         if self._statistics is not None:
-            return
+            return self._statistics
         if self._analysis_failed is False:
             try:
                 self._gather_statistics()
+                return self._statistics
             except Exception as err:
                 self._analysis_failed = str(err)
                 raise
@@ -159,12 +168,6 @@ class Trace:
             raise RuntimeError(
                 "Analysis previously failed ({})".format(self._analysis_failed)
             )
-
-    @property
-    def statistics(self):
-        if self._statistics is None:
-            self._gather_statistics()
-        return self._statistics
 
     @property
     def stats(self):
@@ -186,8 +189,6 @@ class Trace:
     def write_summary_file(self):
         """Save the trace statistics to a summary file for fast reload next time.
         """
-        self._ensure_statistics_gathered()
-
         self._summaryfile = Trace.get_summary_filename(self._tracefile)
 
         packed_metadata = self.metadata.pack_dataframe()
@@ -208,12 +209,13 @@ class Trace:
             with HDFStoreContext(filename, mode="r") as hdfstore:
                 try:
                     file_metadata = hdfstore[Trace._metadatakey]
+                    format_version = file_metadata[Trace._formatversionkey][0]
                 except KeyError:
                     raise WrongLoaderError(
                         '"{}" is not a PyPOP summary file'.format(filename)
                     )
 
-                if file_metadata[Trace._formatversionkey][0] > Trace._formatversion:
+                if format_version > Trace._formatversion:
                     warn(
                         "Trace summary was written with a newer PyPOP version. The "
                         "format is intended to be backward compatible but you may wish "

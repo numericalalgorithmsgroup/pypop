@@ -19,7 +19,7 @@ import subprocess as sp
 
 from pkg_resources import resource_filename
 
-from .prv import _parse_paraver_headerline
+from .prv import PRV
 from .utils.io import zipopen
 from .extrae import remove_trace
 from . import config
@@ -46,13 +46,12 @@ def dimemas_idealise(tracefile, outpath=None):
     """
 
     # First we need the application layout info
-    with zipopen(tracefile, "rt") as fh:
-        metadata = _parse_paraver_headerline(fh.readline().strip())
+    metadata = PRV(tracefile, lazy_load=True).metadata
 
     # Populate run specfic config data
     subs = {
-        "@NUM_NODES@": metadata.application_layout.commsize,
-        "@PROCS_PER_NODE@": max(metadata.procs_per_node),
+        "@NUM_NODES@": metadata.num_processes,
+        "@PROCS_PER_NODE@": max(metadata.cores_per_node),
         "@RANKS_PER_NODE@": 1,
         "@COLLECTIVES_PATH@": IDEAL_COLL_PATH,
     }

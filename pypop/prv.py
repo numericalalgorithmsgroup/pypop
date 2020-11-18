@@ -9,14 +9,20 @@ PRV Trace Loader
 Support for directly loading PRV trace data as Pandas dataframes
 """
 
+import pandas
+import numpy
+
+from hashlib import sha1
 from warnings import warn
-from collections import namedtuple, OrderedDict
+from collections import OrderedDict
 from csv import writer as csvwriter
-import gzip
 from io import StringIO
-import pickle
 
 from pypop.utils.io import zipopen
+from pypop.utils.pandas import HDFStoreContext
+from pypop.utils.exceptions import WrongLoaderError
+
+from pypop.trace.tracemetadata import TraceMetadata
 
 try:
     from tqdm.auto import tqdm
@@ -34,26 +40,18 @@ K_EVENT_OMP_TASK_FUNCTION = "60000023"
 K_EVENT_OMP_LOOP_FILE_AND_LINE = "60000118"
 K_EVENT_OMP_TASK_FILE_AND_LINE = "60000123"
 
-Trace = namedtuple("Trace", field_names=["info", "data"])
 
-TraceMetadata = namedtuple(
-    "TraceMetadata",
-    field_names=[
-        "captured",
-        "ns_elapsed",
-        "nodes",
-        "procs_per_node",
-        "num_appl",
-        "application_layout",
-    ],
-)
+class PRV(object):
 
-ApplicationLayout = namedtuple(
-    "ApplicationLayout", field_names=["commsize", "rank_threads"]
-)
+    _metadatakey = "/PyPOPTraceMetadata"
+    _statekey = "/PyPOPPRVStates"
+    _eventkey = "/PyPOPPRVEvents"
+    _commkey = "/PyPOPPRVComms"
+    _eventnamekey = "/PyPOPPRVEventNames"
+    _eventvaluekey = "/PyPOPPRVEventVals_"
 
-
-class PRV:
+    _formatversionkey = "/PyPOPPRVBinaryTraceFormatVersion"
+    _formatversion = 1
 
     record_types = OrderedDict([(1, "state"), (2, "event"), (3, "comm")])
 
@@ -78,46 +76,52 @@ class PRV:
             "cpu": np.int32,
             "begin": np.int64,
             "event": np.int32,
-            "value": np.int64,
+            "value": np.int,
         },
         "comm": None,
     }
 
-    def __init__(self, prv_path):
+    def __init__(self, prv_path, lazy_load=False, ignore_cache=False):
 
         self._prv_path = prv_path
-        self._no_prv = False
+
+        self.metadata = TraceMetadata(self)
 
         self._omp_region_data = None
-        self._event_names = {}
-        self._event_vals = {}
-        self.state = None
-        self.event = None
-        self.comm = None
+        self.event_names = {}
+        self.event_vals = {}
+
+        # These go deliberately unset for JIT loading with __getattr__
+        # self.state =
+        # self.event =
+        # self.comm =
 
         try:
-            self._load_pickle(prv_path)
-            self._no_prv = True
-        except (pickle.UnpicklingError, ValueError):
+            if ignore_cache:
+                raise FileNotFoundError("Ignoring Cache")
+            self._load_binarycache()
+        except (ValueError, FileNotFoundError):
             try:
-                self._load_pickle(PRV._generate_event_cache_name(prv_path))
-            except (pickle.UnpicklingError, ValueError, FileNotFoundError):
-                try:
-                    self._load_prv_and_pcf(prv_path)
-                    self.save(PRV._generate_event_cache_name(prv_path))
-                except ValueError:
-                    raise ValueError("Not a prv or valid pickle")
+                self._parse_pcf()
+                if not lazy_load:
+                    self._parse_prv()
+            except (ValueError, WrongLoaderError):
+                raise ValueError("Not a valid prv or binary cache file")
+
+    def __getattr__(self, attr):
+        """Need to intercept attempts to access lazily-loaded data objects and ensure
+        they are loaded just-in-time
+        """
+
+        if attr in PRV.record_types.values():
+            self._parse_prv()
+            return self.__getattribute__(attr)
+
+        return super().__getattribute__(attr)
 
     @staticmethod
-    def _generate_event_cache_name(prvfile):
-        return prvfile + ".eventcache"
-
-    @staticmethod
-    def _generate_region_cache_name(prvfile):
-        if "eventcache" in prvfile:
-            return prvfile.replace("eventcache", "regioncache")
-
-        return prvfile + ".regioncache"
+    def _generate_binaryfile_name(prvfile):
+        return prvfile + ".bincache"
 
     def reload(self):
         if self._no_prv:
@@ -127,17 +131,14 @@ class PRV:
         self._parse_pcf()
         self._parse_prv()
 
-    def _load_prv_and_pcf(self, prv_path):
-        self._parse_pcf(prv_path)
+    def _parse_pcf(self):
 
-        self._parse_prv(prv_path)
+        self.metadata = PRV._populate_metadata(self._prv_path, self.metadata)
 
-    def _parse_pcf(self, prv_path):
-
-        if prv_path.endswith(".gz"):
-            prv_path = prv_path[:-3]
-
-        pcf_path = "".join([prv_path[:-3], "pcf"])
+        if self._prv_path.endswith(".gz"):
+            pcf_path = "".join([self._prv_path[:-6], "pcf"])
+        else:
+            pcf_path = "".join([self._prv_path[:-3], "pcf"])
 
         try:
             with open(pcf_path, "rt") as fh:
@@ -152,19 +153,23 @@ class PRV:
                     if block_mode == "EVENT_TYPE":
                         linevals = line.strip().split(maxsplit=2)
                         eventkey = linevals[1]
-                        self._event_names[eventkey] = linevals[2]
-                        self._event_vals[eventkey] = {}
+                        self.event_names[eventkey] = linevals[2]
+                        self.event_vals[eventkey] = {}
                         continue
 
                     if block_mode == "VALUES":
                         linevals = line.strip().split(maxsplit=1)
                         valuekey = linevals[0]
-                        self._event_vals[eventkey][valuekey] = linevals[1]
+                        self.event_vals[eventkey][valuekey] = linevals[1]
 
         except FileNotFoundError:
-            pass
+            raise FileNotFoundError("No PCF file accompanying PRV - cannot continue")
 
-    def _parse_prv(self, prv_path):
+    def _parse_prv(self):
+
+        self.state = None
+        self.event = None
+        self.comm = None
 
         temp_data = [StringIO() for _ in range(len(PRV.record_types))]
         temp_writers = [csvwriter(x) for x in temp_data]
@@ -174,9 +179,9 @@ class PRV:
             for k, v in PRV.record_types.items()
         }
 
-        with zipopen(prv_path, "rt") as prv_fh:
+        with zipopen(self._prv_path, "rt") as prv_fh:
             headerline = next(prv_fh)
-            self.metadata = _parse_paraver_headerline(headerline)
+            self.metadata = PRV._populate_metadata(headerline, self.metadata)
 
             # Skip the communicator lines for now
             try:
@@ -186,31 +191,43 @@ class PRV:
             for i in range(skiplines):
                 next(prv_fh)
 
+            linecounter = 0
             for line in prv_fh:
                 # Skip comment lines
                 if line.startswith("#"):
                     continue
                 line = [int(x) for x in line.split(":")]
                 line_processors[line[0]](line, temp_writers[line[0] - 1])
+                linecounter += 1
+                if linecounter % 1000000 == 0:
+                    self._flush_prv_temp_data(temp_data)
+                    temp_data = [StringIO() for _ in range(len(PRV.record_types))]
+                    temp_writers = [csvwriter(x) for x in temp_data]
 
-            for iattr, attrname in PRV.record_types.items():
-                temp_data[iattr - 1].seek(0)
-                try:
-                    setattr(
-                        self,
-                        attrname,
-                        pd.read_csv(
-                            temp_data[iattr - 1],
-                            names=PRV.colnames[attrname],
-                            dtype=PRV.coltypes[attrname],
-                        ),
-                    )
-                    getattr(self, attrname).set_index(
-                        ["task", "thread", "time"], inplace=True
-                    )
-                    getattr(self, attrname).sort_index(inplace=True)
-                except pd.errors.EmptyDataError:
-                    setattr(self, attrname, None)
+        for iattr, attrname in PRV.record_types.items():
+            if getattr(self, attrname) is not None and not getattr(self, attrname).empty:
+                getattr(self, attrname).set_index(
+                    ["task", "thread", "time"], inplace=True
+                )
+                getattr(self, attrname).sort_index(inplace=True)
+
+        self._write_binarycache()
+
+    def _flush_prv_temp_data(self, temp_data):
+        for iattr, attrname in PRV.record_types.items():
+            temp_data[iattr - 1].seek(0)
+            try:
+                newdata = pd.read_csv(
+                    temp_data[iattr - 1],
+                    names=PRV.colnames[attrname],
+                    dtype=PRV.coltypes[attrname],
+                    engine="c",
+                )
+            except pd.errors.EmptyDataError:
+                continue
+            setattr(
+                self, attrname, pd.concat([getattr(self, attrname), newdata]),
+            )
 
     def _process_stateline(self, line, writer):
         writer.writerow([line[3], line[4], line[1], line[5], line[6], line[7]])
@@ -224,34 +241,77 @@ class PRV:
     def _process_commline(self, line, writer):
         pass
 
-    def save(self, filename):
-        savedata = (
-            self.metadata,
-            self.state,
-            self.event,
-            self.comm,
-            self._event_names,
-            self._event_vals,
+    def _write_binarycache(self):
+        binaryfile = self._generate_binaryfile_name(self._prv_path)
+
+        packed_metadata = self.metadata.pack_dataframe()
+
+        packed_metadata[PRV._formatversionkey] = pandas.Series(
+            data=PRV._formatversion, dtype=numpy.int32
         )
 
-        with gzip.open(filename, "wb", compresslevel=6) as fh:
-            pickle.dump(savedata, fh)
+        with HDFStoreContext(binaryfile, mode="w") as hdfstore:
+            hdfstore.put(self._metadatakey, packed_metadata, format="t")
+            hdfstore.put(self._statekey, self.state, format="t", complib="blosc")
+            hdfstore.put(self._eventkey, self.event, format="t", complib="blosc")
+            hdfstore.put(self._eventnamekey, pd.Series(self.event_names), format="t")
 
-    def _load_pickle(self, filename):
-        with gzip.open(filename, "rb") as fh:
-            data = pickle.load(fh)
+            for evtkey, evtvals in self.event_vals.items():
+                hdfstore.put(
+                    "".join([self._eventvaluekey, evtkey]),
+                    pd.Series(evtvals),
+                    format="t",
+                )
+
+            if self.comm is not None and not self.comm.empty:
+                hdfstore.put(self._commkey, self.comm, format="t", complib="blosc")
+
+    def _load_binarycache(self):
 
         try:
-            (
-                self.metadata,
-                self.state,
-                self.event,
-                self.comm,
-                self._event_names,
-                self._event_vals,
-            ) = data
-        except ValueError:
-            raise ValueError("Invalid pickle -- missing data")
+            self._read_binarycache(self._prv_path)
+            self._no_prv = True
+        except (ValueError, FileNotFoundError):
+            # This will raise either ValueError or FileNotFoundError to be trapped and
+            # handled by calling function
+            self._read_binarycache(self._generate_binaryfile_name(self._prv_path))
+
+    def _read_binarycache(self, filename):
+
+        # HDFStoreContext will raise perfectly sensible errors, no need to trap
+        with HDFStoreContext(filename, mode="r") as hdfstore:
+            try:
+                file_metadata = hdfstore[PRV._metadatakey]
+                format_version = file_metadata[PRV._formatversionkey][0]
+            except KeyError:
+                raise ValueError("{} is not a binary event store".format(filename))
+
+            if format_version > PRV._formatversion:
+                warn(
+                    "Trace data was written with a newer PyPOP version. The "
+                    "format is intended to be backward compatible but you may wish "
+                    "to upgrade your installed PyPOP version to support all "
+                    "features."
+                )
+
+            try:
+                self.metadata = TraceMetadata.unpack_dataframe(file_metadata)
+                self.state = hdfstore[PRV._statekey]
+                self.event = hdfstore[PRV._eventkey]
+                self.event_names = hdfstore[PRV._eventnamekey].to_dict()
+                self.event_vals = {}
+                for evtkey in (
+                    x for x in hdfstore.keys() if x.startswith(PRV._eventvaluekey)
+                ):
+                    intkey = int(evtkey.replace(PRV._eventvaluekey, ""))
+                    self.event_vals[intkey] = hdfstore[evtkey].to_dict()
+            except KeyError:
+                raise ValueError("{} corrupted binary event cache")
+
+            try:
+                self.comm = hdfstore[PRV._commkey]
+            except KeyError:
+                pass
 
     def profile_openmp_regions(self, no_progress=False, ignore_cache=False):
         """Profile OpenMP Region Info
@@ -259,16 +319,6 @@ class PRV:
 
         if self._omp_region_data is not None:
             return self._omp_region_data
-
-        if not ignore_cache:
-            try:
-                with gzip.open(
-                    PRV._generate_region_cache_name(self._prv_path), "rb"
-                ) as fh:
-                    self._omp_region_data = pickle.load(fh)
-                return self._omp_region_data
-            except (FileNotFoundError, pickle.UnpicklingError):
-                pass
 
         idx_master_threads = pd.IndexSlice[:, 1]
 
@@ -318,7 +368,7 @@ class PRV:
                 rank_func_groups,
                 rank_func_loc_groups,
             ),
-            total=self.metadata.application_layout.commsize,
+            total=self.metadata.num_processes,
             disable=no_progress,
             leave=None,
         ):
@@ -466,13 +516,10 @@ class PRV:
 
         self._omp_region_data = pd.concat(rank_stats, names=["rank", "region"])
 
-        with gzip.open(PRV._generate_region_cache_name(self._prv_path), "wb") as fh:
-            pickle.dump(self._omp_region_data, fh)
-
         return self._omp_region_data
 
     def region_location_from_fingerprint(self, fingerprint):
-        if self._event_vals:
+        if self.event_vals:
             fpvals = fingerprint.split(":")
             fpstrings = [self.omp_location_by_value(fpk, "MISSINGVAL") for fpk in fpvals]
             return ":".join(fpstrings)
@@ -481,14 +528,14 @@ class PRV:
 
     def omp_location_by_value(self, value, default="MISSINGVAL"):
         value_dict = {
-            **self._event_vals.get(K_EVENT_OMP_TASK_FILE_AND_LINE, {}),
-            **self._event_vals.get(K_EVENT_OMP_LOOP_FILE_AND_LINE, {}),
+            **self.event_vals.get(K_EVENT_OMP_TASK_FILE_AND_LINE, {}),
+            **self.event_vals.get(K_EVENT_OMP_LOOP_FILE_AND_LINE, {}),
         }
 
         return value_dict.get(value, default)
 
     def region_function_from_fingerprint(self, fingerprint):
-        if self._event_vals:
+        if self.event_vals:
             fpvals = fingerprint.split(":")
             fpstrings = [self.omp_function_by_value(fpk, "MISSINGVAL") for fpk in fpvals]
             return ":".join(fpstrings)
@@ -497,8 +544,8 @@ class PRV:
 
     def omp_function_by_value(self, value, default="MISSINGVAL"):
         value_dict = {
-            **self._event_vals.get(K_EVENT_OMP_TASK_FUNCTION, {}),
-            **self._event_vals.get(K_EVENT_OMP_LOOP_FUNCTION, {}),
+            **self.event_vals.get(K_EVENT_OMP_TASK_FUNCTION, {}),
+            **self.event_vals.get(K_EVENT_OMP_LOOP_FUNCTION, {}),
         }
 
         return value_dict.get(value, default)
@@ -557,76 +604,64 @@ class PRV:
 
         return summary.sort_values("Total Parallel Inefficiency Contribution")
 
+    @staticmethod
+    def _populate_metadata(prv_file, metadata):
 
-def _format_timedate(prv_td):
-    return prv_td[prv_td.find("(") + 1 : prv_td.find(")")].replace(";", ":")
+        if prv_file.startswith("#Paraver"):
+            headerline = prv_file
+        else:
+            try:
+                with zipopen(prv_file, "rt") as fh:
+                    headerline = fh.readline().strip()
+            except IsADirectoryError:
+                raise WrongLoaderError("Not a valid prv file")
 
+            if not headerline.startswith("#Paraver"):
+                raise WrongLoaderError("Not a valid prv file")
 
-def _format_timing(prv_td):
-    return int(prv_td[:-3])
+        elem = headerline.replace(":", ";", 1).split(":", 4)
 
+        metadata.capture_time = elem[0][
+            elem[0].find("(") + 1 : elem[0].find(")")
+        ].replace(";", ":")
 
-def _split_nodestring(prv_td):
-    nnodes, plist = prv_td.split("(", 2)
-    nnodes = int(nnodes)
-    ncpu_list = tuple(int(x) for x in plist.rstrip(",)").split(","))
+        metadata.elapsed_seconds = float(elem[1][:-3]) * 1e-9
 
-    return (nnodes, ncpu_list)
+        metadata.num_nodes, metadata.cores_per_node = PRV._split_nodestring(elem[2])
 
+        # elem 3 is the number of applications, currently only support 1
+        if int(elem[3]) != 1:
+            raise ValueError("Multi-application traces are not supported")
 
-def _format_num_apps(prv_td):
-    return int(prv_td)
+        # elem 4 contains the application layout processes/threads
+        (
+            metadata.num_processes,
+            metadata.threads_per_process,
+        ) = PRV._split_layoutstring(elem[4])
 
+        metadata.tracefile_name = prv_file
 
-def _format_app_list(prv_td):
-    try:
-        prv_td = prv_td[: prv_td.index("),") + 1]
-    except IndexError:
-        pass
-    apps = [x for x in prv_td.split(")") if x]
+        hasher = sha1()
+        hasher.update(headerline.encode())
+        metadata.fingerprint = hasher.hexdigest()
 
-    if len(apps) > 1:
-        raise ValueError("Only 1 traced application supported")
-    app = apps[0].strip(",")
-    nranks, nprocs = app.split("(")
-    nranks = int(nranks)
-    nprocs = tuple(tuple(int(y) for y in x.split(":")) for x in nprocs.split(","))
+        return metadata
 
-    appdata = ApplicationLayout(nranks, nprocs)
+    @staticmethod
+    def _split_nodestring(prv_td):
+        num_nodes, plist = prv_td.split("(", 2)
+        num_nodes = int(num_nodes)
+        cores_per_node = tuple(int(x) for x in plist.rstrip(",)").split(","))
 
-    return appdata
+        return (num_nodes, cores_per_node)
 
+    @staticmethod
+    def _split_layoutstring(prv_td):
 
-def _parse_paraver_headerline(headerline):
-    if not headerline.startswith("#") or headerline.count(":") < 5:
-        raise ValueError("Invalid headerline format")
+        prv_td = prv_td.split(")")[0].strip()
+        commsize, layoutstring = prv_td.split("(")
 
-    elems = headerline.replace(":", ";", 1).split(":", 4)
+        commsize = int(commsize)
+        threads = [int(x.split(":")[0]) for x in layoutstring.split(",")]
 
-    metadata = TraceMetadata(
-        _format_timedate(elems[0]),
-        _format_timing(elems[1]),
-        *_split_nodestring(elems[2]),
-        _format_num_apps(elems[3]),
-        _format_app_list(elems[4]),
-    )
-
-    return metadata
-
-
-def get_prv_header_info(prv_file):
-    """Get basic run information from the prv file header
-
-    Parameters
-    ----------
-    prv_file: str
-        Path to prv trace file.
-
-    Returns:
-    --------
-    metadata: NamedTuple
-        Named tuple containing the header information.
-    """
-
-    with zipopen(prv_file, "rt") as fh:
-        return _parse_paraver_headerline(fh.readline().strip())
+        return (commsize, threads)

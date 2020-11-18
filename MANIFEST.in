@@ -6,3 +6,4 @@ recursive-include pypop/cfgs *
 recursive-include pypop/cutters *
 recursive-include pypop/filters *
 global-exclude */.ipynb_checkpoints/*
+global-exclude */*.bincache

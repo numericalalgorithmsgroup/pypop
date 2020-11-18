@@ -56,6 +56,10 @@ class TraceSet:
     outpath: str or None
         Optional output directory for chopped and idealised traces. (If not specified
         will be created in a temporary folder and deleted.)
+
+    eager_load: bool (default True)
+        If `True` full analysis of traces immediately, if `False` wait until statistics
+        are requested for a given trace
     """
 
     def __init__(
@@ -65,6 +69,7 @@ class TraceSet:
         chop_to_roi=False,
         no_progress=False,
         outpath=None,
+        eager_load=True,
         ignore_cache=None,
         tag=None,
         chop_fail_is_error=False,
@@ -86,6 +91,7 @@ class TraceSet:
             chop_to_roi,
             no_progress,
             outpath,
+            eager_load,
             tag,
             chop_fail_is_error,
         )
@@ -97,6 +103,7 @@ class TraceSet:
         chop_to_roi=False,
         no_progress=False,
         outpath=None,
+        eager_load=True,
         tag=None,
         chop_fail_is_error=False,
     ):
@@ -130,6 +137,10 @@ class TraceSet:
         outpath: str or None
             Optional output directory for chopped and idealised traces. (If not specified
             will be created in a temporary folder and deleted.)
+
+        eager_load: bool (default True)
+            If `True` full analysis of traces immediately, if `False` wait until
+            statistics are requested for a given trace.
         """
         if isinstance(path_list, str):
             path_list = [path_list]
@@ -147,6 +158,7 @@ class TraceSet:
                         force_recalculation=force_recalculation,
                         chop_to_roi=chop_to_roi,
                         outpath=outpath,
+                        eager_load=eager_load,
                         tag=tag,
                         chop_fail_is_error=chop_fail_is_error,
                     )
