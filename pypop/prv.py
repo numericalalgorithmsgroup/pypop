@@ -388,13 +388,6 @@ class PRV(object):
             region_starts = thread_events.index[thread_events["value"] != 0]
             region_ends = thread_events.index[thread_events["value"] == 0]
 
-            # Now sanity check regions and try to repair issues caused by missing events:
-            # Cut traces seem to have an extra end event injected by the cutter trying to
-            # be "helpful" If this seems to be the case try trimming the end and post a
-            # warning
-            if len(region_ends) == len(region_starts) + 1:
-                region_ends = region_ends[:-1]
-
             # First region start should be earlier than first region end
             if region_ends[0] <= region_starts[0]:
                 warn(
@@ -413,6 +406,14 @@ class PRV(object):
                 while len(region_starts) > 0 and region_starts[-1] >= region_ends[-1]:
                     region_starts = region_starts[:-1]
 
+            # Now sanity check regions and try to repair issues caused by missing events:
+            # Cut traces seem to have an extra end event injected by the cutter trying to
+            # be "helpful" If this seems to be the case try trimming the end and post a
+            # warning
+            if len(region_ends) == len(region_starts) + 1:
+                region_ends = region_ends[:-1]
+                warn("Attempting to trim spurious events - cutter inserted?")
+
             if np.any(region_starts > region_ends):
                 raise ValueError("Unable to make sense of OpenMP region events.")
 
@@ -426,7 +427,10 @@ class PRV(object):
             funcbins = pd.cut(
                 rank_funcs.droplevel(("task", "thread")).index, regionintervals
             ).codes
-            region_funcs = rank_funcs.droplevel(("task", "thread")).groupby(funcbins)
+            # Remove negative categories codes -> events not in any region interval
+            cleaned_rfuncs = rank_funcs.droplevel(("task", "thread"))[funcbins >= 0]
+            cleaned_fbins = funcbins[funcbins >= 0]
+            region_funcs = cleaned_rfuncs.groupby(cleaned_fbins)
             region_fingerprints_func = region_funcs.apply(
                 lambda x: ":".join(
                     [
@@ -439,9 +443,11 @@ class PRV(object):
             funclocbins = pd.cut(
                 rank_func_locs.droplevel(("task", "thread")).index, regionintervals
             ).codes
-            region_func_locs = rank_func_locs.droplevel(("task", "thread")).groupby(
-                funclocbins
-            )
+            cleaned_rflocs = rank_func_locs.droplevel(("task", "thread"))[
+                funclocbins >= 0
+            ]
+            cleaned_flbins = funclocbins[funclocbins >= 0]
+            region_func_locs = cleaned_rflocs.groupby(cleaned_flbins)
             region_fingerprints_loc = region_func_locs.apply(
                 lambda x: ":".join(
                     [
