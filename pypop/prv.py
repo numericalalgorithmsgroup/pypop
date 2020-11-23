@@ -278,7 +278,7 @@ class PRV(object):
 
             for evtkey, evtvals in self.event_vals.items():
                 hdfstore.put(
-                    "".join([self._eventvaluekey, evtkey]),
+                    "".join([self._eventvaluekey, str(evtkey)]),
                     pd.Series(evtvals),
                     format="t",
                 )

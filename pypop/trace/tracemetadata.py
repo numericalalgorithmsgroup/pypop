@@ -28,10 +28,10 @@ class TraceMetadata:
         _tracesubclasskey: str,
         "capture_time": str,
         "elapsed_seconds": numpy.float64,
-        "num_nodes": numpy.int64,
-        "cores_per_node": numpy.int64,
-        "num_processes": numpy.int64,
-        "threads_per_process": numpy.int64,
+        "num_nodes": int,
+        "cores_per_node": int,
+        "num_processes": int,
+        "threads_per_process": int,
         # "layout": str,
         "tracefile_name": str,
         "fingerprint": str,
@@ -105,11 +105,15 @@ class TraceMetadata:
 
     @staticmethod
     def pack_threads_per_process(data, dtype):
-        return pandas.Series(data=data, dtype=dtype)
+        data = "|".join(str(x) for x in data)
+        return pandas.Series(data=data, dtype=str)
 
     @staticmethod
     def unpack_threads_per_process(data, dtype):
-        return list(data)
+        try:
+            return [dtype(x) for x in data[0].split("|")]
+        except AttributeError:
+            return list(data)
 
     def __bool__(self):
         return self.fingerprint is not None
