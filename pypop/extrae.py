@@ -177,7 +177,7 @@ def _get_roi_times(roi_prv):
     data = PRV(roi_prv)
     df = data.event
 
-    if df.empty:
+    if df is None or df.empty:
         raise ExtraePRVNoOnOffEventsError("No valid Extrae ON-OFF bracket in trace")
 
     # Get the first on and last off events
