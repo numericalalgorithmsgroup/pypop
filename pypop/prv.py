@@ -34,11 +34,11 @@ import numpy as np
 
 # Event states - hopefully these will not change(!)
 K_STATE_RUNNING = "1"
-K_EVENT_OMP_PARALLEL = "60000001"
-K_EVENT_OMP_LOOP_FUNCTION = "60000018"
-K_EVENT_OMP_TASK_FUNCTION = "60000023"
-K_EVENT_OMP_LOOP_FILE_AND_LINE = "60000118"
-K_EVENT_OMP_TASK_FILE_AND_LINE = "60000123"
+K_EVENT_OMP_PARALLEL = 60000001
+K_EVENT_OMP_LOOP_FUNCTION = 60000018
+K_EVENT_OMP_TASK_FUNCTION = 60000023
+K_EVENT_OMP_LOOP_FILE_AND_LINE = 60000118
+K_EVENT_OMP_TASK_FILE_AND_LINE = 60000123
 
 
 class PRV(object):
@@ -49,6 +49,7 @@ class PRV(object):
     _commkey = "/PyPOPPRVComms"
     _eventnamekey = "/PyPOPPRVEventNames"
     _eventvaluekey = "/PyPOPPRVEventVals_"
+    _ompregionkey = "/PyPOPPRVOMPRegionDetail"
 
     _formatversionkey = "/PyPOPPRVBinaryTraceFormatVersion"
     _formatversion = 1
@@ -159,14 +160,14 @@ class PRV(object):
 
                     if block_mode == "EVENT_TYPE":
                         linevals = line.strip().split(maxsplit=2)
-                        eventkey = linevals[1]
+                        eventkey = int(linevals[1])
                         self.event_names[eventkey] = linevals[2]
                         self.event_vals[eventkey] = {}
                         continue
 
                     if block_mode == "VALUES":
                         linevals = line.strip().split(maxsplit=1)
-                        valuekey = linevals[0]
+                        valuekey = int(linevals[0])
                         self.event_vals[eventkey][valuekey] = linevals[1]
 
         except FileNotFoundError:
@@ -259,8 +260,20 @@ class PRV(object):
 
         with HDFStoreContext(binaryfile, mode="w") as hdfstore:
             hdfstore.put(self._metadatakey, packed_metadata, format="t")
-            hdfstore.put(self._statekey, self.state, format="t", complib="blosc")
-            hdfstore.put(self._eventkey, self.event, format="t", complib="blosc")
+            if self.state is not None and not self.state.empty:
+                hdfstore.put(self._statekey, self.state, format="t", complib="blosc")
+            if self.event is not None and not self.event.empty:
+                hdfstore.put(self._eventkey, self.event, format="t", complib="blosc")
+            if self.comm is not None and not self.comm.empty:
+                hdfstore.put(self._commkey, self.comm, format="t", complib="blosc")
+            if self._omp_region_data is not None and not self._omp_region_data.empty:
+                hdfstore.put(
+                    self._ompregionkey,
+                    self._omp_region_data,
+                    format="t",
+                    complib="blosc",
+                )
+
             hdfstore.put(self._eventnamekey, pd.Series(self.event_names), format="t")
 
             for evtkey, evtvals in self.event_vals.items():
@@ -269,9 +282,6 @@ class PRV(object):
                     pd.Series(evtvals),
                     format="t",
                 )
-
-            if self.comm is not None and not self.comm.empty:
-                hdfstore.put(self._commkey, self.comm, format="t", complib="blosc")
 
     def _load_binarycache(self):
 
@@ -303,8 +313,6 @@ class PRV(object):
 
             try:
                 self.metadata = TraceMetadata.unpack_dataframe(file_metadata)
-                self.state = hdfstore[PRV._statekey]
-                self.event = hdfstore[PRV._eventkey]
                 self.event_names = hdfstore[PRV._eventnamekey].to_dict()
                 self.event_vals = {}
                 for evtkey in (
@@ -316,7 +324,19 @@ class PRV(object):
                 raise ValueError("{} corrupted binary event cache")
 
             try:
+                self.state = hdfstore[PRV._statekey]
+            except KeyError:
+                pass
+            try:
+                self.event = hdfstore[PRV._eventkey]
+            except KeyError:
+                pass
+            try:
                 self.comm = hdfstore[PRV._commkey]
+            except KeyError:
+                pass
+            try:
+                self._omp_region_data = hdfstore[self._ompregionkey]
             except KeyError:
                 pass
 
