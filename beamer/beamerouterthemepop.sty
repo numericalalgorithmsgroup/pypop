@@ -28,7 +28,12 @@
 {%
   \ifnum\thepage>1\relax%
   \begin{tikzpicture}[remember picture, overlay]
-    \coordinate (leftpos) at ($(current page.south west) + (0.05, 0.02)$);
+    \useasboundingbox (0,0) rectangle(\the\paperwidth,\the\paperheight);
+    \coordinate[anchor=north east] (logopos) at ($(current page.north east) - (0.2, 0.10)$);
+    \node[anchor=north east] (poplogo) at (logopos) {\includegraphics[height=0.8cm]{\poplogo}};
+    \coordinate (barleft) at ($(current page.north west) - (-0.0, 1.25)$);
+    \coordinate (barright) at ($(current page.north east) - (0.0, 1.35)$);
+    \shade[left color=popblue, right color=popgreen] (barleft) rectangle (barright);  \coordinate (leftpos) at ($(current page.south west) + (0.05, 0.02)$);
     \coordinate (rightpos) at ($(current page.south east) + (-0.05, 0.02)$);
     \coordinate (centerpos) at ($(current page.south) + (0.0, 0.02)$);
     \node[anchor=south west, text=popgreydark] (author) at (leftpos) {\insertshortauthor~\insertshortinstitute};

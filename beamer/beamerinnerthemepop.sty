@@ -10,18 +10,18 @@
 
 \mode<presentation>
 
-\setbeamertemplate{background}{%
-  \ifnum\thepage>1\relax% No teeny headerline on title page
-    \begin{tikzpicture}
-      \useasboundingbox (0,0) rectangle(\the\paperwidth,\the\paperheight);
-      \coordinate[anchor=north east] (logopos) at ($(current page.north east) - (0.2, 0.10)$);
-      \node[anchor=north east] (poplogo) at (logopos) {\includegraphics[height=0.8cm]{\poplogo}};
-      \coordinate (leftpos) at ($(current page.north west) - (-0.3, 1.25)$);
-      \coordinate (rightpos) at ($(current page.north east) - (0.3, 1.35)$);
-      \shade[left color=popblue, right color=popgreen] (leftpos) rectangle (rightpos);
-    \end{tikzpicture}
-  \fi
-}
+%\setbeamertemplate{background}{%
+%  \ifnum\thepage>1\relax% No teeny headerline on title page
+%    \begin{tikzpicture}
+%      \useasboundingbox (0,0) rectangle(\the\paperwidth,\the\paperheight);
+%      \coordinate[anchor=north east] (logopos) at ($(current page.north east) - (0.2, 0.10)$);
+%      \node[anchor=north east] (poplogo) at (logopos) {\includegraphics[height=0.8cm]{\poplogo}};
+%      \coordinate (barleft) at ($(current page.north west) - (-0.3, 1.25)$);
+%      \coordinate (barright) at ($(current page.north east) - (0.3, 1.35)$);
+%      \shade[left color=popblue, right color=popgreen] (barleft) rectangle (barright);
+%    \end{tikzpicture}
+%  \fi
+%}
 
 \defbeamertemplate*{title page}{pop}
 {%
