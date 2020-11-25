@@ -116,7 +116,6 @@ class PRV(object):
 
         if attr in PRV.record_types.values():
             self._parse_prv()
-            return self.__getattribute__(attr)
 
         return super().__getattribute__(attr)
 
@@ -172,6 +171,18 @@ class PRV(object):
 
         except FileNotFoundError:
             raise FileNotFoundError("No PCF file accompanying PRV - cannot continue")
+
+    def add_interpreted_names(self):
+
+        if "Event Name" not in self.event:
+            self.event["Event Name"] = self.event["event"].map(self.event_names)
+        if "Event Value" not in self.event:
+            self.event["Event Value"] = self.event.apply(
+                lambda x: self.event_vals.get(x["event"], {}).get(
+                    x["value"], str(x["value"])
+                ),
+                axis="columns",
+            )
 
     def _parse_prv(self):
 
@@ -326,19 +337,19 @@ class PRV(object):
             try:
                 self.state = hdfstore[PRV._statekey]
             except KeyError:
-                pass
+                self.state = None
             try:
                 self.event = hdfstore[PRV._eventkey]
             except KeyError:
-                pass
+                self.event = None
             try:
                 self.comm = hdfstore[PRV._commkey]
             except KeyError:
-                pass
+                self.comm = None
             try:
                 self._omp_region_data = hdfstore[self._ompregionkey]
             except KeyError:
-                pass
+                self._omp_region_data = None
 
     def profile_openmp_regions(self, no_progress=False, ignore_cache=False):
         """Profile OpenMP Region Info
@@ -454,7 +465,7 @@ class PRV(object):
             region_fingerprints_func = region_funcs.apply(
                 lambda x: ":".join(
                     [
-                        self.omp_function_by_value(str(int(y)))
+                        self.omp_function_by_value(int(y))
                         for y in x["value"].unique()
                     ]
                 )
@@ -471,7 +482,7 @@ class PRV(object):
             region_fingerprints_loc = region_func_locs.apply(
                 lambda x: ":".join(
                     [
-                        self.omp_location_by_value(str(int(y)))
+                        self.omp_location_by_value(int(y))
                         for y in x["value"].unique()
                     ]
                 )
@@ -599,7 +610,7 @@ class PRV(object):
         else:
             fingerprint_key = "Region Function Fingerprint"
 
-        runtime = self.metadata.elapsed_seconds * 1e-9
+        runtime = self.metadata.elapsed_seconds * 1e9
         nproc = len(set(self.omp_region_data["Rank"]))
 
         self.profile_openmp_regions()
