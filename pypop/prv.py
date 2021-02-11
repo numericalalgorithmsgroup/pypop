@@ -211,6 +211,7 @@ class PRV(object):
                     self._flush_prv_temp_data(temp_data)
                     temp_data = [StringIO() for _ in range(len(PRV.record_types))]
                     temp_writers = [csvwriter(x) for x in temp_data]
+            self._flush_prv_temp_data(temp_data)
 
         for iattr, attrname in PRV.record_types.items():
             if getattr(self, attrname) is not None and not getattr(self, attrname).empty:
