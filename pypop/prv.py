@@ -300,7 +300,7 @@ class PRV(object):
         try:
             self._read_binarycache(self._prv_path)
             self._no_prv = True
-        except (ValueError, FileNotFoundError):
+        except:
             # This will raise either ValueError or FileNotFoundError to be trapped and
             # handled by calling function
             self._read_binarycache(self._generate_binaryfile_name(self._prv_path))

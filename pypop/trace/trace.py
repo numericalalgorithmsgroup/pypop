@@ -225,7 +225,7 @@ class Trace:
 
                 tracemetadata = TraceMetadata.unpack_dataframe(file_metadata)
                 statistics = hdfstore[Trace._statisticskey]
-        except ValueError:
+        except:
             raise WrongLoaderError('"{}" is not a PyPOP summary file'.format(filename))
 
         return (tracemetadata, statistics)
