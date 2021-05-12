@@ -109,10 +109,13 @@ class BokehBase:
         self.figure.toolbar_location = None
 
         driver.set_window_size(*window_size)
-
-        img = get_screenshot_as_png(self.figure, driver=driver,)
-
-        driver.quit()
+        
+        try:
+            img = get_screenshot_as_png(self.figure, driver=driver, timeout=10)
+        except:
+            driver.quit()
+            warn("Webdriver failed - falling back to matplotlib interface")
+            return self._mpl_fallback_png()
 
         imgbuffer = BytesIO()
         img.save(imgbuffer, format="png")
