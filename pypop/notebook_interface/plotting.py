@@ -109,7 +109,7 @@ class BokehBase:
         self.figure.toolbar_location = None
 
         driver.set_window_size(*window_size)
-        
+
         try:
             img = get_screenshot_as_png(self.figure, driver=driver, timeout=10)
         except:
@@ -423,7 +423,11 @@ class MetricTable(BokehBase):
             render_h = self._logo_height
             render_w = self._logo_height * img_w / img_h
             self._figure.image_rgba(
-                image=[pop_data], x=20, y=-self._logo_height, dw=render_w, dh=render_h
+                image=[pop_data.view(dtype=numpy.uint32).reshape((img_h, img_w))],
+                x=20,
+                y=-self._logo_height,
+                dw=render_w,
+                dh=render_h,
             )
 
         self.update()
