@@ -84,6 +84,11 @@ k_IPCSC_desc = (
     "The IPC rate can be reduced due to CPU data starvation, inefficient cache usage or "
     "high rates of branch misprediction."
 )
+k_FREQSC_desc = (
+    "Inefficiencies due to changes in the rate at which the CPU executes instructions. "
+    "This is typically due to thermal management in the CPU reducing the overall clock "
+    "speed."
+)
 
 
 class MPI_OpenMP_Metrics(MetricSet):
@@ -104,6 +109,7 @@ class MPI_OpenMP_Metrics(MetricSet):
         Metric("Computational Scaling", 1, desc=k_COMPSC_desc),
         Metric("Instruction Scaling", 2, desc=k_INSSC_desc),
         Metric("IPC Scaling", 2, "IPC Scaling", desc=k_IPCSC_desc),
+        Metric("Frequency Scaling", 2, desc=k_FREQSC_desc),
     ]
 
     _programming_model = "MPI + OpenMP"
@@ -265,6 +271,7 @@ class MPI_OpenMP_Multiplicative_Metrics(MetricSet):
         Metric("Computational Scaling", 1, desc=k_COMPSC_desc),
         Metric("Instruction Scaling", 2, desc=k_INSSC_desc),
         Metric("IPC Scaling", 2, "IPC Scaling", desc=k_IPCSC_desc),
+        Metric("Frequency Scaling", 2, desc=k_FREQSC_desc),
     ]
 
     _programming_model = "MPI + OpenMP"
