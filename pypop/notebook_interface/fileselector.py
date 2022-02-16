@@ -2,8 +2,7 @@
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 # Copyright (c) 2019, The Numerical Algorithms Group, Ltd. All rights reserved.
 
-from os import getcwd
-from os.path import expanduser, normpath
+import os
 
 from ipyfilechooser import FileChooser
 from ipywidgets import (
@@ -26,26 +25,31 @@ class ValidatingChooser(VBox):
     _container_layout = Layout(margin="1em 0em 1em 0em")
     _msgbox_layout = Layout()
 
-    def __init__(self, starting_file=None, starting_path=None, **kwargs):
+    def __init__(self, starting_path=None, **kwargs):
         """\
         Parameters
         ----------
-        starting_file: str or None
-            If not None, file that is initially selected.
         starting_path: str or None
-            Starting directory for filechooser. If none, defaults to value of
-            `os.getcwd()`
+            If a file, start with that file selected. If a directory, use as the starting
+            directory for filechooser. If none, defaults to value of `os.os.getcwd()`
         """
 
-        if starting_file is None:
-            starting_file = ""
 
         if starting_path is None:
-            starting_path = getcwd()
+            starting_dir = os.getcwd()
+            starting_file = ""
+        else:
+            starting_path = os.path.os.path.normpath(starting_path)
+            if os.path.isfile(starting_path):
+                starting_file = os.path.basename(starting_path)
+                starting_dir = os.path.os.path.dirname(starting_path)
+            else:
+                starting_file = ""
+                starting_dir = starting_path
 
         self._filechooser = FileChooser(
             filename=starting_file,
-            path=starting_path,
+            path=starting_dir,
             select_default=bool(starting_file),
             use_dir_icons=True,
         )
@@ -102,7 +106,7 @@ class FileSelector(VBox):
         ----------
 
         base_dir: str or None
-            Starting directory for filechooser. If None defaults to `os.getcwd()`.
+            Starting directory for filechooser. If None defaults to `os.os.getcwd()`.
         starting_files: list of str or None
             List of files to be initially selected.
         calculation_callback: callable
@@ -113,11 +117,11 @@ class FileSelector(VBox):
             with those saved)
         """
 
-        self._base_dir = base_dir if base_dir else getcwd()
+        self._base_dir = base_dir if base_dir else os.getcwd()
         self._files = (
             [None]
             if starting_files is None
-            else [normpath(expanduser(path)) for path in starting_files]
+            else [os.path.normpath(os.path.expanduser(path)) for path in starting_files]
         )
         self._calculation_callback = calculation_callback
         self._analysis_state = analysis_state
@@ -189,9 +193,9 @@ class FileSelector(VBox):
     def _create_filechoosers(self):
 
         self._filechoosers = [
-            ValidatingChooser(starting_file=fname)
+            ValidatingChooser(starting_path=fname)
             if fname
-            else ValidatingChooser(starting_path=self._base_dir)
+            else ValidatingChooser(starting_path=os.path.expanduser('~'))
             for fname in self._files
         ]
         [fc.set_file_select_callback(self._update_files) for fc in self._filechoosers]
