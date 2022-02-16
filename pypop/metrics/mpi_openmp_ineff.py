@@ -16,8 +16,7 @@ __all__ = [
 
 
 class MPI_OpenMP_Ineff_Metrics(MetricSet):
-    """Proposed Hybrid MPI+OpenMP Inefficiency Metrics (additive version).
-    """
+    """Proposed Hybrid MPI+OpenMP Inefficiency Metrics (additive version)."""
 
     _metric_list = [
         Metric("Global Inefficiency", 0, is_inefficiency=True),
@@ -62,7 +61,7 @@ class MPI_OpenMP_Ineff_Metrics(MetricSet):
                 metrics["OpenMP Region Inefficiency"] = (
                     (
                         stats["OpenMP Total Runtime"].loc[:, 1]
-                        - stats["OpenMP Useful Computation"].mean(level="rank")
+                        - stats["OpenMP Useful Computation"].groupby(level="rank").mean()
                     ).mean()
                 ) / stats["Total Runtime"].max()
 

@@ -54,9 +54,9 @@ k_FREQSC_desc = (
     "reduced due to either incorrect choice of CPU scheduler or overheating of the CPU."
 )
 
+
 class OpenMP_Metrics(MetricSet):
-    """Proposed Hybrid MPI+OpenMP Metrics.
-    """
+    """Proposed Hybrid MPI+OpenMP Metrics."""
 
     _metric_list = [
         Metric("Global Efficiency", 0, desc=k_GE_desc),
@@ -96,7 +96,9 @@ class OpenMP_Metrics(MetricSet):
                     (
                         (
                             stats["OpenMP Total Runtime"].loc[:, 1]
-                            - stats["OpenMP Useful Computation"].mean(level="rank")
+                            - stats["OpenMP Useful Computation"]
+                            .groupby(level="rank")
+                            .mean()
                         ).mean()
                     )
                     / stats["Total Runtime"].max()
@@ -143,10 +145,13 @@ class OpenMP_Metrics(MetricSet):
                 )
 
                 metrics["Frequency Scaling"] = (
-                    stats["Useful Cycles"].sum() / stats["Total Useful Computation"].sum()
+                    stats["Useful Cycles"].sum()
+                    / stats["Total Useful Computation"].sum()
                 ) / (
                     self._stats_dict[ref_key].statistics["Useful Cycles"].sum()
-                    / self._stats_dict[ref_key].statistics["Total Useful Computation"].sum()
+                    / self._stats_dict[ref_key]
+                    .statistics["Total Useful Computation"]
+                    .sum()
                 )
 
                 metrics["Global Efficiency"] = (

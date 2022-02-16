@@ -52,8 +52,7 @@ k_IPCSC_desc = (
 
 
 class Thread_Metrics(MetricSet):
-    """Proposed Hybrid MPI+OpenMP Metrics.
-    """
+    """Proposed Hybrid MPI+OpenMP Metrics."""
 
     _required_stats = [
         "Serial Useful",
@@ -114,7 +113,7 @@ class Thread_Metrics(MetricSet):
                     (
                         (
                             stats["Parallel Region Time"].loc[:, 1]
-                            - stats["Parallel Useful"].mean(level="process")
+                            - stats["Parallel Useful"].groupby(level="process").mean()
                         ).mean()
                     )
                     / stats["Total Runtime"].max()

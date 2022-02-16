@@ -92,8 +92,7 @@ k_FREQSC_desc = (
 
 
 class MPI_OpenMP_Metrics(MetricSet):
-    """Proposed Hybrid MPI+OpenMP Metrics (additive version).
-    """
+    """Proposed Hybrid MPI+OpenMP Metrics (additive version)."""
 
     _metric_list = [
         Metric("Global Efficiency", 0, desc=k_GE_desc),
@@ -140,7 +139,9 @@ class MPI_OpenMP_Metrics(MetricSet):
                     (
                         (
                             stats["OpenMP Total Runtime"].loc[:, 1]
-                            - stats["OpenMP Useful Computation"].mean(level="rank")
+                            - stats["OpenMP Useful Computation"]
+                            .groupby(level="rank")
+                            .mean()
                         ).mean()
                     )
                     / stats["Total Runtime"].max()
@@ -254,8 +255,7 @@ class MPI_OpenMP_Metrics(MetricSet):
 
 
 class MPI_OpenMP_Multiplicative_Metrics(MetricSet):
-    """Proposed Hybrid MPI+OpenMP Metrics (multiplicative version).
-    """
+    """Proposed Hybrid MPI+OpenMP Metrics (multiplicative version)."""
 
     _metric_list = [
         Metric("Global Efficiency", 0, desc=k_GE_desc),
